@@ -43,180 +43,101 @@ REQUIREMENT_CATEGORIES = [
 ]
 
 
-STANDARD_REQUIREMENT_TEMPLATE = [
-    {
-        "Requirement ID": "STD-001",
-        "Requirement Area": "Project Definition",
-        "Requirement": "Project number",
-        "Required Value": "",
-        "Unit / Limit": "",
-        "Verification Method": "Document review",
-        "Notes": "",
-    },
-    {
-        "Requirement ID": "STD-002",
-        "Requirement Area": "Project Definition",
-        "Requirement": "Customer name",
-        "Required Value": "",
-        "Unit / Limit": "",
-        "Verification Method": "Document review",
-        "Notes": "",
-    },
-    {
-        "Requirement ID": "STD-003",
-        "Requirement Area": "Product Configuration",
-        "Requirement": "ISV product variant",
-        "Required Value": "",
-        "Unit / Limit": "",
-        "Verification Method": "Design review",
-        "Notes": "",
-    },
-    {
-        "Requirement ID": "STD-004",
-        "Requirement Area": "Mechanical",
-        "Requirement": "Number of spray zones",
-        "Required Value": "",
-        "Unit / Limit": "zones",
-        "Verification Method": "Drawing review",
-        "Notes": "",
-    },
-    {
-        "Requirement ID": "STD-005",
-        "Requirement Area": "Mechanical",
-        "Requirement": "Spraybar overall length",
-        "Required Value": "",
-        "Unit / Limit": "mm",
-        "Verification Method": "Drawing review",
-        "Notes": "",
-    },
-    {
-        "Requirement ID": "STD-006",
-        "Requirement Area": "Mechanical",
-        "Requirement": "Zone pitch",
-        "Required Value": "",
-        "Unit / Limit": "mm",
-        "Verification Method": "Drawing review",
-        "Notes": "",
-    },
-    {
-        "Requirement ID": "STD-007",
-        "Requirement Area": "Fluid",
-        "Requirement": "Operating fluid",
-        "Required Value": "",
-        "Unit / Limit": "",
-        "Verification Method": "Document review",
-        "Notes": "",
-    },
-    {
-        "Requirement ID": "STD-008",
-        "Requirement Area": "Fluid",
-        "Requirement": "Maximum operating pressure",
-        "Required Value": "",
-        "Unit / Limit": "bar",
-        "Verification Method": "Design review",
-        "Notes": "",
-    },
-    {
-        "Requirement ID": "STD-009",
-        "Requirement Area": "Fluid",
-        "Requirement": "Minimum flow rate",
-        "Required Value": "",
-        "Unit / Limit": "litres per minute",
-        "Verification Method": "Calculation / design review",
-        "Notes": "",
-    },
-    {
-        "Requirement ID": "STD-010",
-        "Requirement Area": "Electrical",
-        "Requirement": "Solenoid valve voltage",
-        "Required Value": "",
-        "Unit / Limit": "V",
-        "Verification Method": "Document review",
-        "Notes": "",
-    },
-    {
-        "Requirement ID": "STD-011",
-        "Requirement Area": "Controls",
-        "Requirement": "Control interface type",
-        "Required Value": "",
-        "Unit / Limit": "",
-        "Verification Method": "Design review",
-        "Notes": "",
-    },
-    {
-        "Requirement ID": "STD-012",
-        "Requirement Area": "Installation",
-        "Requirement": "Installation side",
-        "Required Value": "",
-        "Unit / Limit": "",
-        "Verification Method": "Drawing review",
-        "Notes": "",
-    },
-    {
-        "Requirement ID": "STD-013",
-        "Requirement Area": "Environment",
-        "Requirement": "Ambient operating temperature range",
-        "Required Value": "",
-        "Unit / Limit": "°C",
-        "Verification Method": "Document review",
-        "Notes": "",
-    },
-    {
-        "Requirement ID": "STD-014",
-        "Requirement Area": "Documentation",
-        "Requirement": "Customer approval drawing required",
-        "Required Value": "",
-        "Unit / Limit": "Yes / No",
-        "Verification Method": "Document review",
-        "Notes": "",
-    },
-    {
-        "Requirement ID": "STD-015",
-        "Requirement Area": "Documentation",
-        "Requirement": "Manufacturing drawing required",
-        "Required Value": "",
-        "Unit / Limit": "Yes / No",
-        "Verification Method": "Document review",
-        "Notes": "",
-    },
+STANDARD_REQUIREMENT_CATEGORIES = [
+    "General",
+    "Mechanical",
+    "Electrical",
+    "Controls",
+    "Hydraulic / Fluid",
+    "Performance",
+    "Environmental",
+    "Interface",
+    "Installation",
+    "Manufacturing",
+    "Maintenance",
+    "Safety",
+    "Documentation",
+]
+
+
+VERIFICATION_METHODS = [
+    "Not assigned",
+    "Drawing review",
+    "Design review",
+    "Calculation",
+    "Inspection",
+    "Simulation",
+    "Testing",
+    "Document review",
+]
+
+
+STANDARD_REQUIREMENT_COLUMNS = [
+    "Requirement ID",
+    "Category",
+    "Requirement title",
+    "Requirement statement",
+    "Verification method",
+    "Notes",
 ]
 
 
 # ============================================================
-# DATABASE FUNCTIONS
+# DATABASE CONNECTION
 # ============================================================
 
 def get_database_connection():
-    return sqlite3.connect(DATABASE_FILE)
+    """
+    Open a connection to the SQLite database.
+
+    row_factory allows database rows to be accessed
+    using their column names.
+    """
+
+    connection = sqlite3.connect(
+        DATABASE_FILE
+    )
+
+    connection.row_factory = sqlite3.Row
+
+    return connection
 
 
-def get_existing_columns(connection, table_name):
+# ============================================================
+# DATABASE INITIALISATION
+# ============================================================
+
+def get_existing_columns(
+    connection,
+    table_name,
+):
+    """
+    Return the existing columns for a database table.
+    """
+
     table_information = connection.execute(
         f"PRAGMA table_info({table_name})"
     ).fetchall()
 
     return [
-        column[1]
+        column["name"]
         for column in table_information
     ]
 
 
-def table_exists(connection, table_name):
-    result = connection.execute(
-        """
-        SELECT name
-        FROM sqlite_master
-        WHERE type = 'table'
-        AND name = ?
-        """,
-        (table_name,),
-    ).fetchone()
-
-    return result is not None
-
-
 def create_or_update_database():
+    """
+    Create all tables required by the application.
+
+    Existing project-specific requirements are preserved.
+    """
+
     connection = get_database_connection()
+
+
+    # --------------------------------------------------------
+    # PROJECT-SPECIFIC REQUIREMENTS
+    # --------------------------------------------------------
 
     connection.execute(
         """
@@ -237,12 +158,20 @@ def create_or_update_database():
         """
     )
 
-    requirement_columns = get_existing_columns(
-        connection,
-        "requirements",
+
+    existing_requirement_columns = (
+        get_existing_columns(
+            connection,
+            "requirements",
+        )
     )
 
-    if "boilerplate_name" not in requirement_columns:
+
+    if (
+        "boilerplate_name"
+        not in existing_requirement_columns
+    ):
+
         connection.execute(
             """
             ALTER TABLE requirements
@@ -250,7 +179,12 @@ def create_or_update_database():
             """
         )
 
-    if "stakeholder_input" not in requirement_columns:
+
+    if (
+        "stakeholder_input"
+        not in existing_requirement_columns
+    ):
+
         connection.execute(
             """
             ALTER TABLE requirements
@@ -258,39 +192,80 @@ def create_or_update_database():
             """
         )
 
+
+    # --------------------------------------------------------
+    # STANDARD REQUIREMENT DRAFTS
+    # --------------------------------------------------------
+
     connection.execute(
         """
-        CREATE TABLE IF NOT EXISTS standard_requirement_revisions (
+        CREATE TABLE IF NOT EXISTS
+        standard_requirement_drafts (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             project_name TEXT NOT NULL,
-            revision_number TEXT NOT NULL,
-            committed_by TEXT NOT NULL,
-            committed_date TEXT NOT NULL,
-            revision_status TEXT NOT NULL,
-            revision_comment TEXT,
-            UNIQUE(project_name, revision_number)
+            row_order INTEGER NOT NULL,
+            requirement_id TEXT,
+            category TEXT,
+            requirement_title TEXT,
+            requirement_statement TEXT,
+            verification_method TEXT,
+            notes TEXT,
+            updated_at TEXT NOT NULL
         )
         """
     )
 
+
+    # --------------------------------------------------------
+    # STANDARD REQUIREMENT REVISION HEADERS
+    # --------------------------------------------------------
+
     connection.execute(
         """
-        CREATE TABLE IF NOT EXISTS standard_requirement_items (
+        CREATE TABLE IF NOT EXISTS
+        standard_requirement_revisions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            revision_id INTEGER NOT NULL,
-            requirement_id TEXT NOT NULL,
-            requirement_area TEXT NOT NULL,
-            requirement_text TEXT NOT NULL,
-            required_value TEXT,
-            unit_or_limit TEXT,
-            verification_method TEXT,
-            notes TEXT,
-            locked TEXT NOT NULL,
-            FOREIGN KEY(revision_id)
-                REFERENCES standard_requirement_revisions(id)
+            project_name TEXT NOT NULL,
+            revision_number INTEGER NOT NULL,
+            committed_by TEXT NOT NULL,
+            committed_at TEXT NOT NULL,
+            revision_comment TEXT,
+            is_locked INTEGER NOT NULL DEFAULT 1,
+            UNIQUE (
+                project_name,
+                revision_number
+            )
         )
         """
     )
+
+
+    # --------------------------------------------------------
+    # STANDARD REQUIREMENT REVISION ITEMS
+    # --------------------------------------------------------
+
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS
+        standard_requirement_revision_items (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            revision_id INTEGER NOT NULL,
+            row_order INTEGER NOT NULL,
+            requirement_id TEXT NOT NULL,
+            category TEXT NOT NULL,
+            requirement_title TEXT NOT NULL,
+            requirement_statement TEXT NOT NULL,
+            verification_method TEXT,
+            notes TEXT,
+            FOREIGN KEY (
+                revision_id
+            )
+            REFERENCES
+            standard_requirement_revisions(id)
+        )
+        """
+    )
+
 
     connection.commit()
     connection.close()
@@ -310,6 +285,10 @@ def save_project_requirement(
     requirement_category,
     stakeholder_input,
 ):
+    """
+    Save a stakeholder-generated project requirement.
+    """
+
     connection = get_database_connection()
 
     connection.execute(
@@ -337,7 +316,9 @@ def save_project_requirement(
             category,
             source_department,
             submitted_by,
-            datetime.now().strftime("%Y-%m-%d %H:%M"),
+            datetime.now().strftime(
+                "%Y-%m-%d %H:%M"
+            ),
             "Pending",
             requirement_category,
             stakeholder_input,
@@ -349,6 +330,10 @@ def save_project_requirement(
 
 
 def load_project_requirements():
+    """
+    Load project-specific requirements.
+    """
+
     connection = get_database_connection()
 
     requirements = pd.read_sql_query(
@@ -378,128 +363,495 @@ def load_project_requirements():
 
 
 # ============================================================
-# STANDARD REQUIREMENT FUNCTIONS
+# STANDARD REQUIREMENT HELPER FUNCTIONS
 # ============================================================
 
-def load_standard_revisions(project_name):
+def create_empty_standard_requirements():
+    """
+    Create an initial empty standard-requirement table.
+
+    Five blank rows are provided initially.
+    Additional rows can be added in the data editor.
+    """
+
+    return pd.DataFrame(
+        [
+            {
+                "Requirement ID": "",
+                "Category": "General",
+                "Requirement title": "",
+                "Requirement statement": "",
+                "Verification method": (
+                    "Not assigned"
+                ),
+                "Notes": "",
+            }
+            for _ in range(5)
+        ],
+        columns=STANDARD_REQUIREMENT_COLUMNS,
+    )
+
+
+def normalise_standard_requirements(
+    requirements_dataframe,
+):
+    """
+    Ensure the standard requirements contain the
+    expected columns and clean empty values.
+    """
+
+    dataframe = (
+        requirements_dataframe.copy()
+    )
+
+
+    for column in STANDARD_REQUIREMENT_COLUMNS:
+
+        if column not in dataframe.columns:
+
+            dataframe[column] = ""
+
+
+    dataframe = dataframe[
+        STANDARD_REQUIREMENT_COLUMNS
+    ]
+
+
+    dataframe = dataframe.fillna("")
+
+
+    for column in STANDARD_REQUIREMENT_COLUMNS:
+
+        dataframe[column] = (
+            dataframe[column]
+            .astype(str)
+            .str.strip()
+        )
+
+
+    return dataframe
+
+
+def remove_completely_blank_rows(
+    requirements_dataframe,
+):
+    """
+    Remove rows which contain no meaningful requirement data.
+    """
+
+    dataframe = normalise_standard_requirements(
+        requirements_dataframe
+    )
+
+
+    meaningful_columns = [
+        "Requirement ID",
+        "Requirement title",
+        "Requirement statement",
+    ]
+
+
+    row_contains_information = (
+
+        dataframe[
+            meaningful_columns
+        ]
+
+        .apply(
+            lambda row:
+            any(
+                str(value).strip()
+                for value in row
+            ),
+            axis=1,
+        )
+    )
+
+
+    return (
+        dataframe[
+            row_contains_information
+        ]
+        .reset_index(
+            drop=True
+        )
+    )
+
+
+def validate_standard_requirements(
+    requirements_dataframe,
+):
+    """
+    Validate requirements before they are committed.
+
+    Returns a list of validation messages.
+    """
+
+    dataframe = remove_completely_blank_rows(
+        requirements_dataframe
+    )
+
+    errors = []
+
+
+    if dataframe.empty:
+
+        errors.append(
+            "At least one standard requirement "
+            "must be entered."
+        )
+
+        return errors
+
+
+    required_columns = [
+        "Requirement ID",
+        "Category",
+        "Requirement title",
+        "Requirement statement",
+    ]
+
+
+    for row_number, row in dataframe.iterrows():
+
+        displayed_row_number = (
+            row_number + 1
+        )
+
+
+        for column in required_columns:
+
+            if not str(
+                row[column]
+            ).strip():
+
+                errors.append(
+                    f"Row {displayed_row_number}: "
+                    f"{column} is required."
+                )
+
+
+    requirement_ids = (
+
+        dataframe[
+            "Requirement ID"
+        ]
+
+        .str.upper()
+
+        .tolist()
+    )
+
+
+    duplicate_ids = {
+
+        requirement_id
+
+        for requirement_id
+        in requirement_ids
+
+        if requirement_ids.count(
+            requirement_id
+        ) > 1
+    }
+
+
+    if duplicate_ids:
+
+        errors.append(
+            "Requirement IDs must be unique. "
+            "Duplicates found: "
+            + ", ".join(
+                sorted(
+                    duplicate_ids
+                )
+            )
+        )
+
+
+    return errors
+
+
+# ============================================================
+# STANDARD REQUIREMENT DRAFT FUNCTIONS
+# ============================================================
+
+def save_standard_requirement_draft(
+    project_name,
+    requirements_dataframe,
+):
+    """
+    Save or replace the editable draft for one project.
+    """
+
+    dataframe = remove_completely_blank_rows(
+        requirements_dataframe
+    )
+
     connection = get_database_connection()
 
-    revisions = pd.read_sql_query(
+
+    connection.execute(
         """
-        SELECT
-            id,
-            project_name,
-            revision_number,
-            committed_by,
-            committed_date,
-            revision_status,
-            revision_comment
-        FROM standard_requirement_revisions
+        DELETE FROM
+        standard_requirement_drafts
         WHERE project_name = ?
-        ORDER BY revision_number DESC
         """,
-        connection,
-        params=(project_name,),
+        (
+            project_name,
+        ),
     )
 
+
+    current_time = (
+        datetime.now().strftime(
+            "%Y-%m-%d %H:%M"
+        )
+    )
+
+
+    for row_order, row in dataframe.iterrows():
+
+        connection.execute(
+            """
+            INSERT INTO
+            standard_requirement_drafts (
+                project_name,
+                row_order,
+                requirement_id,
+                category,
+                requirement_title,
+                requirement_statement,
+                verification_method,
+                notes,
+                updated_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                project_name,
+                row_order,
+                row["Requirement ID"],
+                row["Category"],
+                row["Requirement title"],
+                row[
+                    "Requirement statement"
+                ],
+                row[
+                    "Verification method"
+                ],
+                row["Notes"],
+                current_time,
+            ),
+        )
+
+
+    connection.commit()
     connection.close()
 
-    return revisions
 
+def load_standard_requirement_draft(
+    project_name,
+):
+    """
+    Load the saved editable draft for one project.
+    """
 
-def load_standard_revision_items(revision_id):
     connection = get_database_connection()
 
-    items = pd.read_sql_query(
+    dataframe = pd.read_sql_query(
         """
         SELECT
-            requirement_id AS "Requirement ID",
-            requirement_area AS "Requirement Area",
-            requirement_text AS "Requirement",
-            required_value AS "Required Value",
-            unit_or_limit AS "Unit / Limit",
-            verification_method AS "Verification Method",
-            notes AS "Notes"
-        FROM standard_requirement_items
-        WHERE revision_id = ?
-        ORDER BY requirement_id ASC
+            requirement_id
+                AS "Requirement ID",
+
+            category
+                AS "Category",
+
+            requirement_title
+                AS "Requirement title",
+
+            requirement_statement
+                AS "Requirement statement",
+
+            verification_method
+                AS "Verification method",
+
+            notes
+                AS "Notes"
+
+        FROM standard_requirement_drafts
+
+        WHERE project_name = ?
+
+        ORDER BY row_order
         """,
         connection,
-        params=(revision_id,),
+        params=(
+            project_name,
+        ),
     )
 
     connection.close()
 
-    return items
+
+    if dataframe.empty:
+
+        return (
+            create_empty_standard_requirements()
+        )
 
 
-def get_next_standard_revision_number(project_name):
-    revisions = load_standard_revisions(project_name)
-
-    if revisions.empty:
-        return "00"
-
-    latest_revision_number = (
-        revisions["revision_number"]
-        .astype(int)
-        .max()
+    return normalise_standard_requirements(
+        dataframe
     )
 
-    return f"{latest_revision_number + 1:02d}"
+
+def delete_standard_requirement_draft(
+    project_name,
+):
+    """
+    Delete the editable draft for one project.
+    """
+
+    connection = get_database_connection()
+
+    connection.execute(
+        """
+        DELETE FROM
+        standard_requirement_drafts
+
+        WHERE project_name = ?
+        """,
+        (
+            project_name,
+        ),
+    )
+
+    connection.commit()
+    connection.close()
 
 
-def get_latest_standard_revision_id(project_name):
-    revisions = load_standard_revisions(project_name)
+# ============================================================
+# STANDARD REQUIREMENT REVISION FUNCTIONS
+# ============================================================
 
-    if revisions.empty:
+def get_latest_revision_number(
+    project_name,
+):
+    """
+    Return the latest revision number for a project.
+
+    Returns None when the project has no committed revision.
+    """
+
+    connection = get_database_connection()
+
+    result = connection.execute(
+        """
+        SELECT
+            MAX(revision_number)
+                AS latest_revision
+
+        FROM standard_requirement_revisions
+
+        WHERE project_name = ?
+        """,
+        (
+            project_name,
+        ),
+    ).fetchone()
+
+    connection.close()
+
+
+    if (
+        result is None
+        or result["latest_revision"] is None
+    ):
+
         return None
 
-    latest_revision = revisions.sort_values(
-        "revision_number",
-        ascending=False,
-    ).iloc[0]
 
-    return int(latest_revision["id"])
-
-
-def get_standard_revision_starting_data(project_name):
-    latest_revision_id = get_latest_standard_revision_id(
-        project_name
+    return int(
+        result["latest_revision"]
     )
 
-    if latest_revision_id is None:
-        return pd.DataFrame(STANDARD_REQUIREMENT_TEMPLATE)
 
-    latest_items = load_standard_revision_items(
-        latest_revision_id
+def get_next_revision_number(
+    project_name,
+):
+    """
+    Return the next revision number.
+
+    The first revision is 00.
+    """
+
+    latest_revision = (
+        get_latest_revision_number(
+            project_name
+        )
     )
 
-    if latest_items.empty:
-        return pd.DataFrame(STANDARD_REQUIREMENT_TEMPLATE)
 
-    return latest_items
+    if latest_revision is None:
+
+        return 0
+
+
+    return latest_revision + 1
+
+
+def format_revision(
+    revision_number,
+):
+    """
+    Format revisions as 00, 01, 02, etc.
+    """
+
+    return (
+        f"{revision_number:02d}"
+    )
 
 
 def commit_standard_requirement_revision(
     project_name,
-    revision_number,
+    requirements_dataframe,
     committed_by,
     revision_comment,
-    requirements_dataframe,
 ):
+    """
+    Commit and lock a standard-requirement revision.
+
+    A new revision header and immutable requirement
+    records are inserted into the database.
+    """
+
+    dataframe = remove_completely_blank_rows(
+        requirements_dataframe
+    )
+
+
+    revision_number = (
+        get_next_revision_number(
+            project_name
+        )
+    )
+
+
     connection = get_database_connection()
 
-    cursor = connection.cursor()
 
-    cursor.execute(
+    cursor = connection.execute(
         """
-        INSERT INTO standard_requirement_revisions (
+        INSERT INTO
+        standard_requirement_revisions (
             project_name,
             revision_number,
             committed_by,
-            committed_date,
-            revision_status,
-            revision_comment
+            committed_at,
+            revision_comment,
+            is_locked
         )
         VALUES (?, ?, ?, ?, ?, ?)
         """,
@@ -507,66 +859,186 @@ def commit_standard_requirement_revision(
             project_name,
             revision_number,
             committed_by,
-            datetime.now().strftime("%Y-%m-%d %H:%M"),
-            "Locked",
+            datetime.now().strftime(
+                "%Y-%m-%d %H:%M"
+            ),
             revision_comment,
+            1,
         ),
     )
 
+
     revision_id = cursor.lastrowid
 
-    for _, row in requirements_dataframe.iterrows():
-        cursor.execute(
+
+    for row_order, row in dataframe.iterrows():
+
+        connection.execute(
             """
-            INSERT INTO standard_requirement_items (
+            INSERT INTO
+            standard_requirement_revision_items (
                 revision_id,
+                row_order,
                 requirement_id,
-                requirement_area,
-                requirement_text,
-                required_value,
-                unit_or_limit,
+                category,
+                requirement_title,
+                requirement_statement,
                 verification_method,
-                notes,
-                locked
+                notes
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 revision_id,
-                str(row["Requirement ID"]).strip(),
-                str(row["Requirement Area"]).strip(),
-                str(row["Requirement"]).strip(),
-                str(row["Required Value"]).strip(),
-                str(row["Unit / Limit"]).strip(),
-                str(row["Verification Method"]).strip(),
-                str(row["Notes"]).strip(),
-                "Yes",
+                row_order,
+                row[
+                    "Requirement ID"
+                ],
+                row[
+                    "Category"
+                ],
+                row[
+                    "Requirement title"
+                ],
+                row[
+                    "Requirement statement"
+                ],
+                row[
+                    "Verification method"
+                ],
+                row[
+                    "Notes"
+                ],
             ),
         )
+
+
+    connection.execute(
+        """
+        DELETE FROM
+        standard_requirement_drafts
+
+        WHERE project_name = ?
+        """,
+        (
+            project_name,
+        ),
+    )
+
 
     connection.commit()
     connection.close()
 
 
-# ============================================================
-# SMALL HELPER FUNCTIONS
-# ============================================================
-
-def is_complete_text(value):
-    return bool(str(value).strip())
+    return revision_number
 
 
-def clean_dataframe_text(dataframe):
-    cleaned_dataframe = dataframe.copy()
+def load_revision_history(
+    project_name,
+):
+    """
+    Load the committed revision history for one project.
+    """
 
-    for column in cleaned_dataframe.columns:
-        cleaned_dataframe[column] = (
-            cleaned_dataframe[column]
-            .fillna("")
-            .astype(str)
+    connection = get_database_connection()
+
+    revision_history = pd.read_sql_query(
+        """
+        SELECT
+            id,
+            revision_number,
+            committed_by,
+            committed_at,
+            revision_comment,
+            is_locked
+
+        FROM standard_requirement_revisions
+
+        WHERE project_name = ?
+
+        ORDER BY revision_number DESC
+        """,
+        connection,
+        params=(
+            project_name,
+        ),
+    )
+
+    connection.close()
+
+    return revision_history
+
+
+def load_standard_revision_items(
+    revision_id,
+):
+    """
+    Load the locked standard requirements belonging
+    to one committed revision.
+    """
+
+    connection = get_database_connection()
+
+    dataframe = pd.read_sql_query(
+        """
+        SELECT
+            requirement_id
+                AS "Requirement ID",
+
+            category
+                AS "Category",
+
+            requirement_title
+                AS "Requirement title",
+
+            requirement_statement
+                AS "Requirement statement",
+
+            verification_method
+                AS "Verification method",
+
+            notes
+                AS "Notes"
+
+        FROM
+        standard_requirement_revision_items
+
+        WHERE revision_id = ?
+
+        ORDER BY row_order
+        """,
+        connection,
+        params=(
+            revision_id,
+        ),
+    )
+
+    connection.close()
+
+    return dataframe
+
+
+def create_draft_from_revision(
+    project_name,
+    revision_id,
+):
+    """
+    Copy a locked revision into a new editable draft.
+
+    The committed revision remains unchanged.
+    """
+
+    revision_items = (
+        load_standard_revision_items(
+            revision_id
         )
+    )
 
-    return cleaned_dataframe
+
+    save_standard_requirement_draft(
+        project_name,
+        revision_items,
+    )
 
 
 # ============================================================
@@ -580,25 +1052,30 @@ create_or_update_database()
 # PAGE HEADER
 # ============================================================
 
-st.title("📋 ISV Requirements Management")
+st.title(
+    "📋 ISV Requirements Management"
+)
 
 st.write(
     """
-    Capture project-specific stakeholder requirements and standard
-    project requirements in a structured, traceable format.
+    Capture project-specific stakeholder requirements and
+    maintain controlled standard requirement baselines for
+    individual ISV projects.
     """
 )
 
 
 # ============================================================
-# APPLICATION TABS
+# MAIN TABS
 # ============================================================
 
-project_specific_tab, standard_requirements_tab = st.tabs(
-    [
-        "Project-Specific Requirements",
-        "Standard Requirements",
-    ]
+project_specific_tab, standard_requirements_tab = (
+    st.tabs(
+        [
+            "Project-Specific Requirements",
+            "Standard Requirements",
+        ]
+    )
 )
 
 
@@ -608,44 +1085,51 @@ project_specific_tab, standard_requirements_tab = st.tabs(
 
 with project_specific_tab:
 
-    st.header("Project-Specific Requirement Capture")
-
-    st.write(
-        """
-        Select the type of requirement you want to add and answer
-        the questions shown. The complete requirement will be
-        generated automatically.
-        """
+    st.header(
+        "Project-Specific Requirement Capture"
     )
 
     st.info(
         """
-        You do not need systems-engineering experience to use
-        this form. New requirements are submitted with a
-        status of **Pending** for project-owner review.
+        This section continues to use the simplified stakeholder
+        requirement workflow developed previously.
         """
     )
 
-    st.subheader("1. Requirement Details")
 
-    information_column_1, information_column_2 = st.columns(2)
+    # --------------------------------------------------------
+    # REQUIREMENT DETAILS
+    # --------------------------------------------------------
 
-    with information_column_1:
+    st.subheader(
+        "1. Requirement Details"
+    )
+
+
+    details_column_1, details_column_2 = (
+        st.columns(2)
+    )
+
+
+    with details_column_1:
 
         selected_project = st.selectbox(
             "Project *",
             options=ALLOWED_PROJECTS,
-            help="Select the project to which this requirement applies.",
             key="project_specific_project",
         )
 
+
         requirement_title = st.text_input(
             "Requirement title *",
-            placeholder="Example: Ambient operating temperature",
-            help="Enter a short title that makes the requirement easy to identify.",
+            placeholder=(
+                "Example: Ambient operating temperature"
+            ),
+            key="project_requirement_title",
         )
 
-    with information_column_2:
+
+    with details_column_2:
 
         source_department = st.selectbox(
             "Where did this requirement come from? *",
@@ -661,861 +1145,250 @@ with project_specific_tab:
                 "Quality",
                 "Other",
             ],
+            key="project_requirement_source",
         )
+
 
         submitted_by = st.text_input(
             "Submitted by *",
             placeholder="Enter your name",
+            key="project_requirement_submitter",
         )
+
+
+    # --------------------------------------------------------
+    # REQUIREMENT TYPE
+    # --------------------------------------------------------
 
     st.divider()
 
-    st.subheader("2. What Type of Requirement Is This?")
-
-    selected_requirement_category = st.selectbox(
-        "Requirement type *",
-        options=REQUIREMENT_CATEGORIES,
-        help="Select the option that most closely describes what is needed.",
+    st.subheader(
+        "2. What Type of Requirement Is This?"
     )
 
-    category_descriptions = {
-        "Operating condition":
-            "Use this when equipment must operate under a particular environmental or operating condition.",
-        "Capacity or quantity":
-            "Use this when a minimum quantity, capacity, or number of items is required.",
-        "Performance level":
-            "Use this when a minimum output, rate, pressure, flow, speed, or other performance value is required.",
-        "Response time":
-            "Use this when an action must happen within a specified time after an event.",
-        "Compatibility or interface":
-            "Use this when the ISV must connect to or operate with another system.",
-        "Product type or standard":
-            "Use this when a particular type, grade, standard, material, or specification is required.",
-        "Reliability or maintenance":
-            "Use this when equipment must operate for a defined period or meet a maintenance requirement.",
-        "Other requirement":
-            "Use this when the requirement does not fit one of the predefined categories.",
-    }
 
-    st.caption(
-        category_descriptions[selected_requirement_category]
+    selected_requirement_category = (
+        st.selectbox(
+            "Requirement type *",
+            options=REQUIREMENT_CATEGORIES,
+            key="project_requirement_category",
+        )
     )
+
+
+    # --------------------------------------------------------
+    # SIMPLIFIED INPUT
+    # --------------------------------------------------------
 
     st.divider()
 
-    st.subheader("3. Tell Us What Is Needed")
-
-    generated_requirement = ""
-    requirement_preview = ""
-    stakeholder_input = ""
-    required_inputs_complete = False
-    database_category = "Other"
-
-    if selected_requirement_category == "Operating condition":
-
-        database_category = "Environmental"
-
-        st.write(
-            """
-            Example: The ISV spraybar shall operate continuously
-            at an ambient temperature between 5°C and 45°C.
-            """
-        )
-
-        column_1, column_2 = st.columns(2)
-
-        with column_1:
-            equipment_name = st.text_input(
-                "What equipment or system does this apply to? *",
-                value="ISV spraybar",
-                key="operating_equipment",
-            )
-
-            required_action = st.text_input(
-                "What must it do? *",
-                placeholder="Example: operate continuously",
-                key="operating_action",
-            )
-
-        with column_2:
-            operating_condition = st.text_area(
-                "Under what condition must it operate? *",
-                placeholder="Example: at an ambient temperature between 5°C and 45°C",
-                height=125,
-                key="operating_condition",
-            )
-
-        required_inputs_complete = all(
-            [
-                equipment_name.strip(),
-                required_action.strip(),
-                operating_condition.strip(),
-            ]
-        )
-
-        equipment_preview = equipment_name.strip() or "[equipment or system]"
-        action_preview = required_action.strip() or "[required action]"
-        condition_preview = operating_condition.strip() or "[operating condition]"
-
-        requirement_preview = (
-            f"The {equipment_preview} shall "
-            f"{action_preview} "
-            f"{condition_preview}."
-        )
-
-        generated_requirement = (
-            f"The {equipment_name.strip()} shall "
-            f"{required_action.strip()} "
-            f"{operating_condition.strip()}."
-        )
-
-        stakeholder_input = (
-            f"Equipment: {equipment_name.strip()}\n"
-            f"Required action: {required_action.strip()}\n"
-            f"Operating condition: {operating_condition.strip()}"
-        )
-
-    elif selected_requirement_category == "Capacity or quantity":
-
-        database_category = "Capacity"
-
-        st.write(
-            """
-            Example: The ISV spraybar shall control a minimum
-            of 64 spray zones.
-            """
-        )
-
-        column_1, column_2 = st.columns(2)
-
-        with column_1:
-            equipment_name = st.text_input(
-                "What equipment or system does this apply to? *",
-                value="ISV spraybar",
-                key="capacity_equipment",
-            )
-
-            required_action = st.text_input(
-                "What must it do? *",
-                placeholder="Example: control",
-                key="capacity_action",
-            )
-
-        with column_2:
-            minimum_quantity = st.number_input(
-                "What is the minimum quantity required? *",
-                min_value=0,
-                step=1,
-                key="capacity_quantity",
-            )
-
-            item_name = st.text_input(
-                "What is being counted? *",
-                placeholder="Example: spray zones",
-                key="capacity_item",
-            )
-
-        required_inputs_complete = all(
-            [
-                equipment_name.strip(),
-                required_action.strip(),
-                minimum_quantity > 0,
-                item_name.strip(),
-            ]
-        )
-
-        equipment_preview = equipment_name.strip() or "[equipment or system]"
-        action_preview = required_action.strip() or "[required action]"
-        quantity_preview = str(minimum_quantity) if minimum_quantity > 0 else "[minimum quantity]"
-        item_preview = item_name.strip() or "[item being counted]"
-
-        requirement_preview = (
-            f"The {equipment_preview} shall "
-            f"{action_preview} "
-            f"a minimum of {quantity_preview} "
-            f"{item_preview}."
-        )
-
-        generated_requirement = (
-            f"The {equipment_name.strip()} shall "
-            f"{required_action.strip()} "
-            f"a minimum of {minimum_quantity} "
-            f"{item_name.strip()}."
-        )
-
-        stakeholder_input = (
-            f"Equipment: {equipment_name.strip()}\n"
-            f"Required action: {required_action.strip()}\n"
-            f"Minimum quantity: {minimum_quantity}\n"
-            f"Item: {item_name.strip()}"
-        )
-
-    elif selected_requirement_category == "Performance level":
-
-        database_category = "Performance"
-
-        st.write(
-            """
-            Example: The ISV spraybar shall deliver cooling fluid
-            at a minimum rate of 120 litres per minute.
-            """
-        )
-
-        column_1, column_2 = st.columns(2)
-
-        with column_1:
-            equipment_name = st.text_input(
-                "What equipment or system does this apply to? *",
-                value="ISV spraybar",
-                key="performance_equipment",
-            )
-
-            required_action = st.text_input(
-                "What must it do? *",
-                placeholder="Example: deliver cooling fluid",
-                key="performance_action",
-            )
-
-        with column_2:
-            required_value = st.number_input(
-                "What is the minimum required value? *",
-                min_value=0.0,
-                step=1.0,
-                key="performance_value",
-            )
-
-            engineering_unit = st.text_input(
-                "What unit is used? *",
-                placeholder="Example: litres per minute",
-                key="performance_unit",
-            )
-
-        required_inputs_complete = all(
-            [
-                equipment_name.strip(),
-                required_action.strip(),
-                required_value > 0,
-                engineering_unit.strip(),
-            ]
-        )
-
-        equipment_preview = equipment_name.strip() or "[equipment or system]"
-        action_preview = required_action.strip() or "[required action]"
-        value_preview = f"{required_value:g}" if required_value > 0 else "[minimum value]"
-        unit_preview = engineering_unit.strip() or "[engineering unit]"
-
-        requirement_preview = (
-            f"The {equipment_preview} shall "
-            f"{action_preview} "
-            f"at a minimum value of {value_preview} "
-            f"{unit_preview}."
-        )
-
-        generated_requirement = (
-            f"The {equipment_name.strip()} shall "
-            f"{required_action.strip()} "
-            f"at a minimum value of {required_value:g} "
-            f"{engineering_unit.strip()}."
-        )
-
-        stakeholder_input = (
-            f"Equipment: {equipment_name.strip()}\n"
-            f"Required action: {required_action.strip()}\n"
-            f"Minimum value: {required_value:g}\n"
-            f"Unit: {engineering_unit.strip()}"
-        )
-
-    elif selected_requirement_category == "Response time":
-
-        database_category = "Performance"
-
-        st.write(
-            """
-            Example: The ISV spraybar shall begin coolant delivery
-            within 2 seconds of receiving a control signal.
-            """
-        )
-
-        column_1, column_2 = st.columns(2)
-
-        with column_1:
-            equipment_name = st.text_input(
-                "What equipment or system does this apply to? *",
-                value="ISV spraybar",
-                key="response_equipment",
-            )
-
-            required_action = st.text_input(
-                "What action must happen? *",
-                placeholder="Example: begin coolant delivery",
-                key="response_action",
-            )
-
-            trigger_event = st.text_input(
-                "What triggers the action? *",
-                placeholder="Example: receiving a control signal",
-                key="response_trigger",
-            )
-
-        with column_2:
-            maximum_time = st.number_input(
-                "What is the maximum permitted time? *",
-                min_value=0.0,
-                step=0.1,
-                key="response_time",
-            )
-
-            time_unit = st.selectbox(
-                "Time unit *",
-                options=[
-                    "milliseconds",
-                    "seconds",
-                    "minutes",
-                    "hours",
-                ],
-                key="response_unit",
-            )
-
-        required_inputs_complete = all(
-            [
-                equipment_name.strip(),
-                required_action.strip(),
-                trigger_event.strip(),
-                maximum_time > 0,
-            ]
-        )
-
-        equipment_preview = equipment_name.strip() or "[equipment or system]"
-        action_preview = required_action.strip() or "[required action]"
-        time_preview = f"{maximum_time:g}" if maximum_time > 0 else "[maximum time]"
-        trigger_preview = trigger_event.strip() or "[triggering event]"
-
-        requirement_preview = (
-            f"The {equipment_preview} shall "
-            f"{action_preview} "
-            f"within {time_preview} "
-            f"{time_unit} of {trigger_preview}."
-        )
-
-        generated_requirement = (
-            f"The {equipment_name.strip()} shall "
-            f"{required_action.strip()} "
-            f"within {maximum_time:g} "
-            f"{time_unit} of {trigger_event.strip()}."
-        )
-
-        stakeholder_input = (
-            f"Equipment: {equipment_name.strip()}\n"
-            f"Required action: {required_action.strip()}\n"
-            f"Trigger event: {trigger_event.strip()}\n"
-            f"Maximum response time: {maximum_time:g} {time_unit}"
-        )
-
-    elif selected_requirement_category == "Compatibility or interface":
-
-        database_category = "Interface"
-
-        st.write(
-            """
-            Example: The ISV spraybar shall interface with the
-            mill control system using a minimum of 64 digital outputs.
-            """
-        )
-
-        column_1, column_2 = st.columns(2)
-
-        with column_1:
-            equipment_name = st.text_input(
-                "What equipment or system does this apply to? *",
-                value="ISV spraybar",
-                key="interface_equipment",
-            )
-
-            external_system = st.text_input(
-                "What other equipment must it connect to? *",
-                placeholder="Example: mill control system",
-                key="interface_external_system",
-            )
-
-        with column_2:
-            interface_description = st.text_input(
-                "What connection or interface is required? *",
-                placeholder="Example: a minimum of 64 digital outputs",
-                key="interface_description",
-            )
-
-        required_inputs_complete = all(
-            [
-                equipment_name.strip(),
-                external_system.strip(),
-                interface_description.strip(),
-            ]
-        )
-
-        equipment_preview = equipment_name.strip() or "[equipment or system]"
-        external_preview = external_system.strip() or "[external equipment or system]"
-        interface_preview = interface_description.strip() or "[required connection or interface]"
-
-        requirement_preview = (
-            f"The {equipment_preview} shall "
-            f"interface with the {external_preview} "
-            f"using {interface_preview}."
-        )
-
-        generated_requirement = (
-            f"The {equipment_name.strip()} shall "
-            f"interface with the {external_system.strip()} "
-            f"using {interface_description.strip()}."
-        )
-
-        stakeholder_input = (
-            f"Equipment: {equipment_name.strip()}\n"
-            f"External equipment: {external_system.strip()}\n"
-            f"Required interface: {interface_description.strip()}"
-        )
-
-    elif selected_requirement_category == "Product type or standard":
-
-        database_category = "Specification"
-
-        st.write(
-            """
-            Example: The ISV spraybar shall use ISO VG 32
-            cooling fluid at a maximum operating pressure of 10 bar.
-            """
-        )
-
-        column_1, column_2 = st.columns(2)
-
-        with column_1:
-            equipment_name = st.text_input(
-                "What equipment or system does this apply to? *",
-                value="ISV spraybar",
-                key="standard_equipment",
-            )
-
-            specified_item = st.text_input(
-                "What item is being specified? *",
-                placeholder="Example: cooling fluid",
-                key="standard_item",
-            )
-
-        with column_2:
-            required_standard = st.text_input(
-                "What type, grade, or standard is required? *",
-                placeholder="Example: ISO VG 32",
-                key="standard_grade",
-            )
-
-            operating_limit = st.text_input(
-                "Are there any operating limits?",
-                placeholder="Example: at a maximum operating pressure of 10 bar",
-                key="standard_limit",
-            )
-
-        required_inputs_complete = all(
-            [
-                equipment_name.strip(),
-                specified_item.strip(),
-                required_standard.strip(),
-            ]
-        )
-
-        equipment_preview = equipment_name.strip() or "[equipment or system]"
-        standard_preview = required_standard.strip() or "[required type, grade, or standard]"
-        item_preview = specified_item.strip() or "[specified item]"
-        limit_preview = operating_limit.strip() or "[optional operating limit]"
-
-        requirement_preview = (
-            f"The {equipment_preview} shall use "
-            f"{standard_preview} "
-            f"{item_preview} "
-            f"{limit_preview}."
-        )
-
-        generated_requirement = (
-            f"The {equipment_name.strip()} shall use "
-            f"{required_standard.strip()} "
-            f"{specified_item.strip()}"
-        )
-
-        if operating_limit.strip():
-            generated_requirement += f" {operating_limit.strip()}"
-
-        generated_requirement += "."
-
-        stakeholder_input = (
-            f"Equipment: {equipment_name.strip()}\n"
-            f"Specified item: {specified_item.strip()}\n"
-            f"Required type, grade, or standard: {required_standard.strip()}\n"
-            f"Operating limit: {operating_limit.strip()}"
-        )
-
-    elif selected_requirement_category == "Reliability or maintenance":
-
-        database_category = "Maintenance"
-
-        st.write(
-            """
-            Example: The ISV spraybar shall operate for a minimum
-            of 8,000 operating hours without planned maintenance.
-            """
-        )
-
-        column_1, column_2 = st.columns(2)
-
-        with column_1:
-            equipment_name = st.text_input(
-                "What equipment or system does this apply to? *",
-                value="ISV spraybar",
-                key="reliability_equipment",
-            )
-
-            required_action = st.text_input(
-                "What must continue operating? *",
-                placeholder="Example: operate",
-                key="reliability_action",
-            )
-
-        with column_2:
-            minimum_duration = st.number_input(
-                "What is the minimum required duration? *",
-                min_value=0.0,
-                step=100.0,
-                key="reliability_duration",
-            )
-
-            duration_unit = st.text_input(
-                "What unit is used? *",
-                placeholder="Example: operating hours",
-                key="reliability_unit",
-            )
-
-            maintenance_condition = st.text_input(
-                "What maintenance limitation applies?",
-                placeholder="Example: without planned maintenance",
-                key="reliability_condition",
-            )
-
-        required_inputs_complete = all(
-            [
-                equipment_name.strip(),
-                required_action.strip(),
-                minimum_duration > 0,
-                duration_unit.strip(),
-            ]
-        )
-
-        equipment_preview = equipment_name.strip() or "[equipment or system]"
-        action_preview = required_action.strip() or "[required action]"
-        duration_preview = f"{minimum_duration:g}" if minimum_duration > 0 else "[minimum duration]"
-        unit_preview = duration_unit.strip() or "[duration unit]"
-        maintenance_preview = maintenance_condition.strip() or "[optional maintenance condition]"
-
-        requirement_preview = (
-            f"The {equipment_preview} shall "
-            f"{action_preview} "
-            f"for a minimum of {duration_preview} "
-            f"{unit_preview} "
-            f"{maintenance_preview}."
-        )
-
-        generated_requirement = (
-            f"The {equipment_name.strip()} shall "
-            f"{required_action.strip()} "
-            f"for a minimum of {minimum_duration:g} "
-            f"{duration_unit.strip()}"
-        )
-
-        if maintenance_condition.strip():
-            generated_requirement += f" {maintenance_condition.strip()}"
-
-        generated_requirement += "."
-
-        stakeholder_input = (
-            f"Equipment: {equipment_name.strip()}\n"
-            f"Required action: {required_action.strip()}\n"
-            f"Minimum duration: {minimum_duration:g} {duration_unit.strip()}\n"
-            f"Maintenance condition: {maintenance_condition.strip()}"
-        )
-
-    elif selected_requirement_category == "Other requirement":
-
-        database_category = "Other"
-
-        st.write(
-            """
-            Describe the requirement in your own words.
-            The project owner can refine the wording during review.
-            """
-        )
-
-        stakeholder_description = st.text_area(
-            "Describe what is needed *",
-            placeholder="Example: The spraybar must be accessible from the operator side for maintenance.",
-            height=150,
-            key="other_description",
-        )
-
-        required_inputs_complete = bool(
-            stakeholder_description.strip()
-        )
-
-        requirement_preview = (
-            stakeholder_description.strip()
-            if stakeholder_description.strip()
-            else "[Describe the requirement in your own words]"
-        )
-
-        generated_requirement = stakeholder_description.strip()
-        stakeholder_input = stakeholder_description.strip()
+    st.subheader(
+        "3. Tell Us What Is Needed"
+    )
+
+
+    stakeholder_description = st.text_area(
+        (
+            "Describe the requirement in plain language. "
+            "*"
+        ),
+        placeholder=(
+            "Example: The spraybar must operate between "
+            "5°C and 45°C."
+        ),
+        height=130,
+        key="project_stakeholder_description",
+    )
+
+
+    generated_requirement = (
+        stakeholder_description.strip()
+    )
+
+
+    # --------------------------------------------------------
+    # PREVIEW
+    # --------------------------------------------------------
 
     st.divider()
 
-    st.subheader("4. Live Requirement Preview")
-
-    st.write(
-        """
-        The requirement below updates as you complete the
-        questions in Section 3.
-        """
+    st.subheader(
+        "4. Requirement Preview"
     )
+
+
+    requirement_preview = (
+
+        generated_requirement
+
+        if generated_requirement
+
+        else (
+            "[Describe what is required "
+            "in Section 3]"
+        )
+    )
+
 
     st.code(
         requirement_preview,
         language=None,
     )
 
-    if required_inputs_complete:
-        st.success(
-            "The requirement is complete and ready to submit."
-        )
-    else:
-        st.info(
-            """
-            Fields shown in square brackets still need to be
-            completed.
-            """
-        )
+
+    # --------------------------------------------------------
+    # SUBMIT
+    # --------------------------------------------------------
 
     st.divider()
 
-    st.subheader("5. Submit for Project-Owner Review")
-
-    save_requirement_button = st.button(
-        "Submit Requirement",
-        type="primary",
-        use_container_width=True,
+    st.subheader(
+        "5. Submit for Project-Owner Review"
     )
 
-    if save_requirement_button:
 
-        missing_information = []
+    submit_project_requirement = st.button(
+        "Submit Project Requirement",
+        type="primary",
+        use_container_width=True,
+        key="submit_project_requirement",
+    )
+
+
+    if submit_project_requirement:
+
+        missing_fields = []
+
 
         if not requirement_title.strip():
-            missing_information.append("Requirement title")
+
+            missing_fields.append(
+                "Requirement title"
+            )
+
 
         if not submitted_by.strip():
-            missing_information.append("Submitted by")
 
-        if not required_inputs_complete:
-            missing_information.append("All required questions")
+            missing_fields.append(
+                "Submitted by"
+            )
 
-        if missing_information:
+
+        if not generated_requirement:
+
+            missing_fields.append(
+                "Requirement description"
+            )
+
+
+        if missing_fields:
+
             st.error(
                 "Please complete: "
-                + ", ".join(missing_information)
+                + ", ".join(
+                    missing_fields
+                )
             )
+
+
         else:
+
             save_project_requirement(
-                project_name=selected_project,
-                requirement_title=requirement_title.strip(),
-                requirement_text=generated_requirement,
-                category=database_category,
-                source_department=source_department,
-                submitted_by=submitted_by.strip(),
-                requirement_category=selected_requirement_category,
-                stakeholder_input=stakeholder_input,
+                project_name=(
+                    selected_project
+                ),
+                requirement_title=(
+                    requirement_title.strip()
+                ),
+                requirement_text=(
+                    generated_requirement
+                ),
+                category=(
+                    selected_requirement_category
+                ),
+                source_department=(
+                    source_department
+                ),
+                submitted_by=(
+                    submitted_by.strip()
+                ),
+                requirement_category=(
+                    selected_requirement_category
+                ),
+                stakeholder_input=(
+                    stakeholder_description.strip()
+                ),
             )
+
 
             st.success(
                 """
                 Requirement submitted successfully.
 
-                Its review status has been set to **Pending**.
+                Status: **Pending**
                 """
             )
 
-    project_requirements = load_project_requirements()
+
+    # --------------------------------------------------------
+    # SAVED REQUIREMENTS
+    # --------------------------------------------------------
 
     st.divider()
 
-    st.header("Project Requirements Dashboard")
+    st.header(
+        "Project Requirements Dashboard"
+    )
+
+
+    project_requirements = (
+        load_project_requirements()
+    )
+
 
     if project_requirements.empty:
 
         st.info(
-            """
-            No project-specific requirements have
-            been submitted.
-            """
+            "No project-specific requirements "
+            "have been submitted."
         )
+
 
     else:
 
-        total_requirements = len(project_requirements)
-
-        pending_requirements = (
-            project_requirements["status"]
-            .eq("Pending")
-            .sum()
-        )
-
-        number_of_projects = (
-            project_requirements["project_name"]
-            .nunique()
-        )
-
-        number_of_sources = (
-            project_requirements["source_department"]
-            .nunique()
-        )
-
-        metric_1, metric_2, metric_3, metric_4 = st.columns(4)
-
-        metric_1.metric(
-            "Project Requirements",
-            total_requirements,
-        )
-
-        metric_2.metric(
-            "Pending Review",
-            int(pending_requirements),
-        )
-
-        metric_3.metric(
-            "Projects",
-            number_of_projects,
-        )
-
-        metric_4.metric(
-            "Stakeholder Sources",
-            number_of_sources,
-        )
-
-        st.subheader("Search and Filter Requirements")
-
-        filter_column_1, filter_column_2, filter_column_3 = st.columns(3)
-
-        with filter_column_1:
-            search_text = st.text_input(
-                "Search requirements",
-                placeholder="Search title or requirement text",
-                key="requirement_search",
-            )
-
-        with filter_column_2:
-            project_filter = st.selectbox(
-                "Filter by project",
-                options=["All Projects"] + ALLOWED_PROJECTS,
-                key="project_filter",
-            )
-
-        with filter_column_3:
-            requirement_category_filter = st.selectbox(
-                "Filter by requirement type",
-                options=["All Types"] + REQUIREMENT_CATEGORIES,
-                key="requirement_category_filter",
-            )
-
-        filtered_requirements = project_requirements.copy()
-
-        if search_text.strip():
-
-            search_value = search_text.strip().lower()
-
-            search_matches = (
-                filtered_requirements["requirement_title"]
-                .str.lower()
-                .str.contains(
-                    search_value,
-                    na=False,
-                    regex=False,
-                )
-                |
-                filtered_requirements["requirement_text"]
-                .str.lower()
-                .str.contains(
-                    search_value,
-                    na=False,
-                    regex=False,
-                )
-            )
-
-            filtered_requirements = filtered_requirements[
-                search_matches
-            ]
-
-        if project_filter != "All Projects":
-
-            filtered_requirements = filtered_requirements[
-                filtered_requirements["project_name"]
-                == project_filter
-            ]
-
-        if requirement_category_filter != "All Types":
-
-            filtered_requirements = filtered_requirements[
-                filtered_requirements["boilerplate_name"]
-                == requirement_category_filter
-            ]
-
-        st.subheader("Saved Project Requirements")
-
-        st.caption(
-            f"Showing {len(filtered_requirements)} "
-            f"of {len(project_requirements)} "
-            f"project requirements."
-        )
-
-        display_requirements = filtered_requirements.rename(
-            columns={
-                "id": "ID",
-                "project_name": "Project",
-                "requirement_title": "Title",
-                "requirement_text": "Generated Requirement",
-                "category": "Internal Category",
-                "source_department": "Source",
-                "submitted_by": "Submitted By",
-                "date_submitted": "Date Submitted",
-                "status": "Status",
-                "boilerplate_name": "Requirement Type",
-                "stakeholder_input": "Original Stakeholder Input",
-            }
-        )
-
         st.dataframe(
-            display_requirements,
+            project_requirements.rename(
+                columns={
+                    "id":
+                        "ID",
+
+                    "project_name":
+                        "Project",
+
+                    "requirement_title":
+                        "Title",
+
+                    "requirement_text":
+                        "Requirement",
+
+                    "source_department":
+                        "Source",
+
+                    "submitted_by":
+                        "Submitted By",
+
+                    "date_submitted":
+                        "Date Submitted",
+
+                    "status":
+                        "Status",
+
+                    "boilerplate_name":
+                        "Requirement Type",
+                }
+            ),
             use_container_width=True,
             hide_index=True,
-            column_config={
-                "ID": st.column_config.NumberColumn(
-                    "ID",
-                    format="REQ-%04d",
-                ),
-                "Generated Requirement": st.column_config.TextColumn(
-                    "Generated Requirement",
-                    width="large",
-                ),
-                "Original Stakeholder Input": st.column_config.TextColumn(
-                    "Original Stakeholder Input",
-                    width="large",
-                ),
-                "Requirement Type": st.column_config.TextColumn(
-                    "Requirement Type",
-                    width="medium",
-                ),
-            },
         )
 
 
@@ -1525,296 +1398,770 @@ with project_specific_tab:
 
 with standard_requirements_tab:
 
-    st.header("Standard Product Requirements")
+    st.header(
+        "Standard Project Requirements"
+    )
+
 
     st.write(
         """
-        Use this page to define the standard requirement set for
-        a specific project. Once committed, the requirement set is
-        saved as a locked revision.
+        Complete the standard requirement set for the selected
+        project. The requirement set remains editable while it is
+        a draft. When committed, it becomes a locked project
+        revision.
         """
     )
+
 
     st.info(
         """
-        The first committed standard requirements set for each
-        project will be saved as **Revision 00**. Locked revisions
-        are retained as project records and cannot be edited.
+        The first committed requirement baseline is
+        **Revision 00**.
+
+        A committed revision cannot be edited. Later changes must
+        be made through a new revision.
         """
     )
 
-    st.subheader("1. Select Project")
+
+    # --------------------------------------------------------
+    # PROJECT SELECTION
+    # --------------------------------------------------------
+
+    st.subheader(
+        "1. Select Project"
+    )
+
 
     standard_project = st.selectbox(
         "Project *",
         options=ALLOWED_PROJECTS,
-        key="standard_project",
+        key="standard_requirement_project",
     )
 
-    standard_revisions = load_standard_revisions(
-        standard_project
-    )
 
-    next_revision_number = get_next_standard_revision_number(
-        standard_project
-    )
-
-    st.divider()
-
-    st.subheader("2. Existing Locked Revisions")
-
-    if standard_revisions.empty:
-
-        st.info(
-            f"No standard requirement revisions have been committed for {standard_project}."
-        )
-
-    else:
-
-        st.write(
-            f"Locked revisions already committed for **{standard_project}**:"
-        )
-
-        revision_summary = standard_revisions.rename(
-            columns={
-                "revision_number": "Revision",
-                "committed_by": "Committed By",
-                "committed_date": "Committed Date",
-                "revision_status": "Status",
-                "revision_comment": "Comment",
-            }
-        )
-
-        st.dataframe(
-            revision_summary[
-                [
-                    "Revision",
-                    "Committed By",
-                    "Committed Date",
-                    "Status",
-                    "Comment",
-                ]
-            ],
-            use_container_width=True,
-            hide_index=True,
-        )
-
-        selected_revision_number = st.selectbox(
-            "View locked revision",
-            options=standard_revisions["revision_number"].tolist(),
-            key="view_standard_revision",
-        )
-
-        selected_revision_id = int(
-            standard_revisions[
-                standard_revisions["revision_number"]
-                == selected_revision_number
-            ]["id"].iloc[0]
-        )
-
-        selected_revision_items = load_standard_revision_items(
-            selected_revision_id
-        )
-
-        st.write(
-            f"Viewing locked standard requirements for **{standard_project}**, "
-            f"Revision **{selected_revision_number}**."
-        )
-
-        st.dataframe(
-            selected_revision_items,
-            use_container_width=True,
-            hide_index=True,
-        )
-
-    st.divider()
-
-    st.subheader("3. Create New Locked Revision")
-
-    st.write(
-        f"""
-        Complete the standard requirement table below. When committed,
-        it will be saved as locked Revision **{next_revision_number}**
-        for project **{standard_project}**.
-        """
-    )
-
-    if standard_revisions.empty:
-        starting_standard_data = pd.DataFrame(
-            STANDARD_REQUIREMENT_TEMPLATE
-        )
-    else:
-        starting_standard_data = get_standard_revision_starting_data(
+    revision_history = (
+        load_revision_history(
             standard_project
         )
-
-    edited_standard_data = st.data_editor(
-        starting_standard_data,
-        use_container_width=True,
-        hide_index=True,
-        num_rows="dynamic",
-        column_config={
-            "Requirement ID": st.column_config.TextColumn(
-                "Requirement ID",
-                help="Unique standard requirement reference.",
-                required=True,
-            ),
-            "Requirement Area": st.column_config.SelectboxColumn(
-                "Requirement Area",
-                options=[
-                    "Project Definition",
-                    "Product Configuration",
-                    "Mechanical",
-                    "Fluid",
-                    "Electrical",
-                    "Controls",
-                    "Installation",
-                    "Environment",
-                    "Documentation",
-                    "Safety",
-                    "Maintenance",
-                    "Other",
-                ],
-                required=True,
-            ),
-            "Requirement": st.column_config.TextColumn(
-                "Requirement",
-                help="The standard requirement being defined.",
-                required=True,
-                width="large",
-            ),
-            "Required Value": st.column_config.TextColumn(
-                "Required Value",
-                help="The project-specific value for this requirement.",
-            ),
-            "Unit / Limit": st.column_config.TextColumn(
-                "Unit / Limit",
-                help="The unit, limit, or allowed value.",
-            ),
-            "Verification Method": st.column_config.SelectboxColumn(
-                "Verification Method",
-                options=[
-                    "Document review",
-                    "Drawing review",
-                    "Design review",
-                    "Calculation / design review",
-                    "Inspection",
-                    "Test",
-                    "Not defined",
-                ],
-            ),
-            "Notes": st.column_config.TextColumn(
-                "Notes",
-                width="medium",
-            ),
-        },
     )
 
-    edited_standard_data = clean_dataframe_text(
-        edited_standard_data
+
+    latest_revision_number = (
+        get_latest_revision_number(
+            standard_project
+        )
     )
 
-    st.divider()
 
-    st.subheader("4. Commit Locked Revision")
+    next_revision_number = (
+        get_next_revision_number(
+            standard_project
+        )
+    )
 
-    commit_column_1, commit_column_2 = st.columns(2)
 
-    with commit_column_1:
-        standard_committed_by = st.text_input(
-            "Committed by *",
-            placeholder="Enter your name",
-            key="standard_committed_by",
+    # --------------------------------------------------------
+    # REVISION STATUS
+    # --------------------------------------------------------
+
+    status_column_1, status_column_2, status_column_3 = (
+        st.columns(3)
+    )
+
+
+    with status_column_1:
+
+        st.metric(
+            "Selected Project",
+            standard_project,
         )
 
-    with commit_column_2:
-        standard_revision_comment = st.text_input(
-            "Revision comment",
-            placeholder="Example: Initial standard requirements baseline",
-            key="standard_revision_comment",
-        )
 
-    st.warning(
-        f"""
-        Committing will lock Revision **{next_revision_number}**
-        for project **{standard_project}**. This revision will be
-        stored as a project record and should not be edited later.
-        """
-    )
+    with status_column_2:
 
-    commit_standard_revision_button = st.button(
-        f"Commit Locked Revision {next_revision_number}",
-        type="primary",
-        use_container_width=True,
-    )
+        if latest_revision_number is None:
 
-    if commit_standard_revision_button:
-
-        missing_commit_information = []
-
-        if not standard_committed_by.strip():
-            missing_commit_information.append("Committed by")
-
-        required_columns = [
-            "Requirement ID",
-            "Requirement Area",
-            "Requirement",
-        ]
-
-        for column in required_columns:
-            if edited_standard_data[column].str.strip().eq("").any():
-                missing_commit_information.append(
-                    f"Blank values in '{column}'"
-                )
-
-        duplicate_requirement_ids = (
-            edited_standard_data["Requirement ID"]
-            .str.strip()
-            .duplicated()
-            .any()
-        )
-
-        if duplicate_requirement_ids:
-            missing_commit_information.append(
-                "Duplicate Requirement IDs"
-            )
-
-        if missing_commit_information:
-
-            st.error(
-                "The revision cannot be committed yet. Please resolve: "
-                + ", ".join(sorted(set(missing_commit_information)))
+            latest_revision_text = (
+                "No revision"
             )
 
         else:
 
-            try:
+            latest_revision_text = (
+                format_revision(
+                    latest_revision_number
+                )
+            )
+
+
+        st.metric(
+            "Latest Locked Revision",
+            latest_revision_text,
+        )
+
+
+    with status_column_3:
+
+        st.metric(
+            "Next Revision",
+            format_revision(
+                next_revision_number
+            ),
+        )
+
+
+    # --------------------------------------------------------
+    # LOAD DRAFT INTO SESSION
+    # --------------------------------------------------------
+
+    draft_session_key = (
+        f"standard_draft_"
+        f"{standard_project}"
+    )
+
+
+    if (
+        draft_session_key
+        not in st.session_state
+    ):
+
+        st.session_state[
+            draft_session_key
+        ] = (
+            load_standard_requirement_draft(
+                standard_project
+            )
+        )
+
+
+    # --------------------------------------------------------
+    # EDITABLE DRAFT
+    # --------------------------------------------------------
+
+    st.divider()
+
+    st.subheader(
+        "2. Edit Standard Requirements Draft"
+    )
+
+
+    st.write(
+        f"""
+        You are preparing **Revision
+        {format_revision(next_revision_number)}**
+        for project **{standard_project}**.
+        """
+    )
+
+
+    st.caption(
+        """
+        Add or remove rows as required. Requirement IDs should be
+        unique within the project requirement set.
+        """
+    )
+
+
+    edited_standard_requirements = (
+        st.data_editor(
+            st.session_state[
+                draft_session_key
+            ],
+            use_container_width=True,
+            hide_index=True,
+            num_rows="dynamic",
+            key=(
+                f"standard_editor_"
+                f"{standard_project}"
+            ),
+            column_config={
+
+                "Requirement ID":
+
+                    st.column_config.TextColumn(
+                        "Requirement ID",
+                        help=(
+                            "Example: STD-001"
+                        ),
+                        width="small",
+                    ),
+
+
+                "Category":
+
+                    st.column_config.SelectboxColumn(
+                        "Category",
+                        options=(
+                            STANDARD_REQUIREMENT_CATEGORIES
+                        ),
+                        required=True,
+                        width="medium",
+                    ),
+
+
+                "Requirement title":
+
+                    st.column_config.TextColumn(
+                        "Requirement title",
+                        width="medium",
+                    ),
+
+
+                "Requirement statement":
+
+                    st.column_config.TextColumn(
+                        "Requirement statement",
+                        help=(
+                            "Use a clear shall statement."
+                        ),
+                        width="large",
+                    ),
+
+
+                "Verification method":
+
+                    st.column_config.SelectboxColumn(
+                        "Verification method",
+                        options=(
+                            VERIFICATION_METHODS
+                        ),
+                        width="medium",
+                    ),
+
+
+                "Notes":
+
+                    st.column_config.TextColumn(
+                        "Notes",
+                        width="medium",
+                    ),
+            },
+        )
+    )
+
+
+    st.session_state[
+        draft_session_key
+    ] = (
+        edited_standard_requirements
+    )
+
+
+    # --------------------------------------------------------
+    # DRAFT ACTIONS
+    # --------------------------------------------------------
+
+    draft_button_column_1, draft_button_column_2 = (
+        st.columns(2)
+    )
+
+
+    with draft_button_column_1:
+
+        save_draft_button = st.button(
+            "Save Draft",
+            use_container_width=True,
+            key=(
+                f"save_standard_draft_"
+                f"{standard_project}"
+            ),
+        )
+
+
+    with draft_button_column_2:
+
+        clear_draft_button = st.button(
+            "Clear Draft",
+            use_container_width=True,
+            key=(
+                f"clear_standard_draft_"
+                f"{standard_project}"
+            ),
+        )
+
+
+    if save_draft_button:
+
+        save_standard_requirement_draft(
+            standard_project,
+            edited_standard_requirements,
+        )
+
+
+        st.success(
+            f"""
+            Draft saved for project
+            **{standard_project}**.
+
+            No revision has been created.
+            """
+        )
+
+
+    if clear_draft_button:
+
+        delete_standard_requirement_draft(
+            standard_project
+        )
+
+
+        st.session_state[
+            draft_session_key
+        ] = (
+            create_empty_standard_requirements()
+        )
+
+
+        st.success(
+            "The editable draft has been cleared."
+        )
+
+
+        st.rerun()
+
+
+    # --------------------------------------------------------
+    # COMMIT REVISION
+    # --------------------------------------------------------
+
+    st.divider()
+
+    st.subheader(
+        "3. Commit and Lock Revision"
+    )
+
+
+    st.warning(
+        f"""
+        Committing will create locked
+        **Revision {format_revision(next_revision_number)}**
+        for project **{standard_project}**.
+
+        The committed revision cannot be edited.
+        """
+    )
+
+
+    commit_column_1, commit_column_2 = (
+        st.columns(2)
+    )
+
+
+    with commit_column_1:
+
+        committed_by = st.text_input(
+            "Committed by *",
+            placeholder="Enter your name",
+            key=(
+                f"standard_committed_by_"
+                f"{standard_project}"
+            ),
+        )
+
+
+    with commit_column_2:
+
+        revision_comment = st.text_input(
+            "Revision comment",
+            placeholder=(
+                "Example: Initial project baseline"
+            ),
+            key=(
+                f"standard_revision_comment_"
+                f"{standard_project}"
+            ),
+        )
+
+
+    confirm_commit = st.checkbox(
+        (
+            "I confirm that this requirement set "
+            "is complete and should be locked."
+        ),
+        key=(
+            f"confirm_standard_commit_"
+            f"{standard_project}"
+        ),
+    )
+
+
+    commit_revision_button = st.button(
+        (
+            "Commit Revision "
+            f"{format_revision(next_revision_number)}"
+        ),
+        type="primary",
+        use_container_width=True,
+        key=(
+            f"commit_standard_revision_"
+            f"{standard_project}"
+        ),
+    )
+
+
+    if commit_revision_button:
+
+        validation_errors = (
+            validate_standard_requirements(
+                edited_standard_requirements
+            )
+        )
+
+
+        if not committed_by.strip():
+
+            validation_errors.append(
+                "Committed by is required."
+            )
+
+
+        if not confirm_commit:
+
+            validation_errors.append(
+                (
+                    "You must confirm that the "
+                    "revision should be locked."
+                )
+            )
+
+
+        if validation_errors:
+
+            st.error(
+                "The revision could not be committed."
+            )
+
+
+            for validation_error in validation_errors:
+
+                st.write(
+                    f"- {validation_error}"
+                )
+
+
+        else:
+
+            committed_revision_number = (
                 commit_standard_requirement_revision(
-                    project_name=standard_project,
-                    revision_number=next_revision_number,
-                    committed_by=standard_committed_by.strip(),
-                    revision_comment=standard_revision_comment.strip(),
-                    requirements_dataframe=edited_standard_data,
+                    project_name=(
+                        standard_project
+                    ),
+                    requirements_dataframe=(
+                        edited_standard_requirements
+                    ),
+                    committed_by=(
+                        committed_by.strip()
+                    ),
+                    revision_comment=(
+                        revision_comment.strip()
+                    ),
+                )
+            )
+
+
+            st.session_state[
+                draft_session_key
+            ] = (
+                create_empty_standard_requirements()
+            )
+
+
+            st.success(
+                f"""
+                Project **{standard_project}**
+                standard requirements were committed
+                successfully.
+
+                Locked revision:
+                **{format_revision(committed_revision_number)}**
+                """
+            )
+
+
+            st.rerun()
+
+
+    # --------------------------------------------------------
+    # LOCKED REVISION HISTORY
+    # --------------------------------------------------------
+
+    st.divider()
+
+    st.subheader(
+        "4. Locked Revision History"
+    )
+
+
+    revision_history = (
+        load_revision_history(
+            standard_project
+        )
+    )
+
+
+    if revision_history.empty:
+
+        st.info(
+            """
+            This project does not yet have a committed
+            standard-requirement revision.
+
+            The first committed revision will be **00**.
+            """
+        )
+
+
+    else:
+
+        revision_options = {}
+
+
+        for _, revision_row in (
+            revision_history.iterrows()
+        ):
+
+            revision_label = (
+
+                "Revision "
+
+                + format_revision(
+                    int(
+                        revision_row[
+                            "revision_number"
+                        ]
+                    )
                 )
 
-                st.success(
-                    f"""
-                    Standard requirements committed successfully.
+                + " — "
 
-                    Project: **{standard_project}**
+                + revision_row[
+                    "committed_at"
+                ]
 
-                    Locked revision: **{next_revision_number}**
-                    """
+                + " — "
+
+                + revision_row[
+                    "committed_by"
+                ]
+            )
+
+
+            revision_options[
+                revision_label
+            ] = int(
+                revision_row["id"]
+            )
+
+
+        selected_revision_label = (
+            st.selectbox(
+                "View locked revision",
+                options=list(
+                    revision_options.keys()
+                ),
+                key=(
+                    f"revision_history_"
+                    f"{standard_project}"
+                ),
+            )
+        )
+
+
+        selected_revision_id = (
+            revision_options[
+                selected_revision_label
+            ]
+        )
+
+
+        selected_revision_record = (
+
+            revision_history[
+
+                revision_history["id"]
+                == selected_revision_id
+            ]
+
+            .iloc[0]
+        )
+
+
+        selected_revision_number = (
+
+            int(
+                selected_revision_record[
+                    "revision_number"
+                ]
+            )
+        )
+
+
+        revision_detail_column_1, \
+        revision_detail_column_2, \
+        revision_detail_column_3 = (
+            st.columns(3)
+        )
+
+
+        with revision_detail_column_1:
+
+            st.metric(
+                "Revision",
+                format_revision(
+                    selected_revision_number
+                ),
+            )
+
+
+        with revision_detail_column_2:
+
+            st.metric(
+                "Status",
+                "Locked",
+            )
+
+
+        with revision_detail_column_3:
+
+            st.metric(
+                "Committed By",
+                selected_revision_record[
+                    "committed_by"
+                ],
+            )
+
+
+        st.write(
+            "**Committed:** "
+            + selected_revision_record[
+                "committed_at"
+            ]
+        )
+
+
+        revision_comment_value = (
+
+            selected_revision_record[
+                "revision_comment"
+            ]
+
+            if pd.notna(
+                selected_revision_record[
+                    "revision_comment"
+                ]
+            )
+
+            else ""
+        )
+
+
+        if revision_comment_value:
+
+            st.write(
+                "**Revision comment:** "
+                + revision_comment_value
+            )
+
+
+        locked_revision_items = (
+            load_standard_revision_items(
+                selected_revision_id
+            )
+        )
+
+
+        st.dataframe(
+            locked_revision_items,
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+
+                "Requirement statement":
+
+                    st.column_config.TextColumn(
+                        "Requirement statement",
+                        width="large",
+                    ),
+            },
+        )
+
+
+        st.info(
+            """
+            This revision is locked and displayed as
+            read-only.
+            """
+        )
+
+
+        # ----------------------------------------------------
+        # CREATE NEXT REVISION
+        # ----------------------------------------------------
+
+        st.subheader(
+            "Create a New Revision"
+        )
+
+
+        st.write(
+            f"""
+            Copy Revision
+            **{format_revision(selected_revision_number)}**
+            into the editable draft for project
+            **{standard_project}**.
+
+            The locked source revision will not be changed.
+            """
+        )
+
+
+        create_new_revision_button = st.button(
+            (
+                "Create Editable Draft from "
+                f"Revision "
+                f"{format_revision(selected_revision_number)}"
+            ),
+            use_container_width=True,
+            key=(
+                f"create_revision_draft_"
+                f"{standard_project}_"
+                f"{selected_revision_id}"
+            ),
+        )
+
+
+        if create_new_revision_button:
+
+            create_draft_from_revision(
+                project_name=(
+                    standard_project
+                ),
+                revision_id=(
+                    selected_revision_id
+                ),
+            )
+
+
+            st.session_state[
+                draft_session_key
+            ] = (
+                load_standard_requirement_draft(
+                    standard_project
                 )
+            )
 
-                st.rerun()
 
-            except sqlite3.IntegrityError:
+            st.success(
+                f"""
+                Revision
+                **{format_revision(selected_revision_number)}**
+                was copied into the editable draft.
 
-                st.error(
-                    """
-                    This revision could not be committed because a
-                    revision with the same number already exists for
-                    this project. Refresh the page and try again.
-                    """
-                )
+                The next committed revision will be
+                **{format_revision(next_revision_number)}**.
+                """
+            )
+
+
+            st.rerun()
