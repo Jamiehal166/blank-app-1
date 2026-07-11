@@ -43,13 +43,52 @@ PROJECT_REQUIREMENT_CATEGORIES = [
 ]
 
 
+MILL_TYPES = [
+    "FFM",
+    "FIM",
+    "FRM",
+    "CM",
+    "HM",
+    "Other",
+]
+
+
+ISV_PRODUCT_VARIANTS = [
+    "ISV - MK3",
+    "ISV - E",
+    "ISV - EC",
+    "ISV - EX",
+]
+
+
+MK3_CONFIGURATIONS = [
+    "Standard",
+    "Narrow",
+    "Narrow reduced outlet",
+]
+
+
+PITCHING_TYPES = [
+    "Uniform pitching",
+    "Hybrid pitching",
+]
+
+
+OPERATING_FLUIDS = [
+    "Water",
+    "Emulsion",
+    "Kerosene",
+    "Other",
+]
+
+
 # ============================================================
 # DATABASE CONNECTION
 # ============================================================
 
 def get_database_connection():
     """
-    Open a connection to the SQLite database.
+    Open a SQLite database connection.
     """
 
     connection = sqlite3.connect(
@@ -72,7 +111,7 @@ def get_existing_columns(
     table_name,
 ):
     """
-    Return all column names for a database table.
+    Return all columns currently present in a table.
     """
 
     table_information = connection.execute(
@@ -87,9 +126,9 @@ def get_existing_columns(
 
 def create_or_update_database():
     """
-    Create all required tables.
+    Create all required database tables.
 
-    Existing data from previous versions is preserved.
+    Existing data is preserved.
     """
 
     connection = get_database_connection()
@@ -146,7 +185,7 @@ def create_or_update_database():
 
 
     # --------------------------------------------------------
-    # STANDARD REQUIREMENT REVISIONS
+    # STANDARD REQUIREMENT REVISION HEADERS
     # --------------------------------------------------------
 
     connection.execute(
@@ -166,7 +205,7 @@ def create_or_update_database():
 
 
     # --------------------------------------------------------
-    # STANDARD REQUIREMENT ITEMS
+    # STANDARD REQUIREMENT REVISION ITEMS
     # --------------------------------------------------------
 
     connection.execute(
@@ -190,12 +229,11 @@ def create_or_update_database():
 
 
     connection.commit()
-
     connection.close()
 
 
 # ============================================================
-# PROJECT-SPECIFIC DATABASE FUNCTIONS
+# PROJECT-SPECIFIC REQUIREMENT FUNCTIONS
 # ============================================================
 
 def save_project_requirement(
@@ -209,7 +247,7 @@ def save_project_requirement(
     stakeholder_input,
 ):
     """
-    Save a project-specific stakeholder requirement.
+    Save a stakeholder-submitted project requirement.
     """
 
     connection = get_database_connection()
@@ -251,7 +289,6 @@ def save_project_requirement(
 
 
     connection.commit()
-
     connection.close()
 
 
@@ -291,7 +328,7 @@ def load_project_requirements():
 
 
 # ============================================================
-# STANDARD REQUIREMENT DATABASE FUNCTIONS
+# STANDARD REQUIREMENT REVISION FUNCTIONS
 # ============================================================
 
 def load_standard_revisions(
@@ -299,7 +336,7 @@ def load_standard_revisions(
 ):
     """
     Load all committed standard requirement revisions
-    for the selected project.
+    for one project.
     """
 
     connection = get_database_connection()
@@ -335,8 +372,7 @@ def load_standard_revision_items(
     revision_id,
 ):
     """
-    Load all standard requirement rows
-    belonging to one revision.
+    Load every requirement item belonging to one revision.
     """
 
     connection = get_database_connection()
@@ -372,7 +408,7 @@ def get_next_revision_number(
     project_name,
 ):
     """
-    Return the next two-digit revision number.
+    Return the next revision number.
 
     The first revision is 00.
     """
@@ -414,11 +450,8 @@ def get_latest_revision_id(
         return None
 
 
-    latest_row = revisions.iloc[-1]
-
-
     return int(
-        latest_row["id"]
+        revisions.iloc[-1]["id"]
     )
 
 
@@ -426,10 +459,9 @@ def load_latest_standard_values(
     project_name,
 ):
     """
-    Load the latest committed values for a project.
+    Load the most recent values for a project.
 
-    These values are used as the starting point
-    for the next revision.
+    These values populate the next revision.
     """
 
     latest_revision_id = get_latest_revision_id(
@@ -453,7 +485,9 @@ def load_latest_standard_values(
     for _, row in latest_items.iterrows():
 
         latest_values[
-            row["requirement_id"]
+            str(
+                row["requirement_id"]
+            )
         ] = str(
             row["required_value"]
         )
@@ -470,7 +504,7 @@ def commit_standard_revision(
     requirements_dataframe,
 ):
     """
-    Commit and lock a complete standard requirement revision.
+    Save and lock a complete standard requirements revision.
     """
 
     connection = get_database_connection()
@@ -552,7 +586,6 @@ def commit_standard_revision(
 
 
     connection.commit()
-
     connection.close()
 
 
@@ -564,9 +597,7 @@ def revision_items_to_dictionary(
     revision_items,
 ):
     """
-    Convert revision rows into a dictionary.
-
-    This makes comparison between revisions easier.
+    Convert revision rows into a comparison dictionary.
     """
 
     revision_dictionary = {}
@@ -574,13 +605,13 @@ def revision_items_to_dictionary(
 
     for _, row in revision_items.iterrows():
 
-        requirement_id = str(
+        question_id = str(
             row["requirement_id"]
         )
 
 
         revision_dictionary[
-            requirement_id
+            question_id
         ] = {
 
             "requirement_area":
@@ -623,12 +654,7 @@ def find_changed_question_ids(
     current_revision_items,
 ):
     """
-    Compare two locked revisions.
-
-    Return all question IDs which were:
-    - changed;
-    - added; or
-    - removed.
+    Compare two revisions and return changed IDs.
     """
 
     previous_dictionary = (
@@ -664,21 +690,15 @@ def find_changed_question_ids(
 
     for question_id in all_question_ids:
 
-        previous_value = (
+        if (
             previous_dictionary.get(
                 question_id
             )
-        )
-
-
-        current_value = (
+            !=
             current_dictionary.get(
                 question_id
             )
-        )
-
-
-        if previous_value != current_value:
+        ):
 
             changed_question_ids.append(
                 question_id
@@ -692,12 +712,9 @@ def build_revision_history_summary(
     project_name,
 ):
     """
-    Create a compact revision history.
+    Create the compact revision history.
 
-    Revision 00 is labelled as Initial issue.
-
-    Later revisions show only the question IDs
-    changed from the immediately previous revision.
+    Revision 00 is shown as Initial issue.
     """
 
     revisions = load_standard_revisions(
@@ -711,7 +728,6 @@ def build_revision_history_summary(
 
 
     history_rows = []
-
 
     previous_revision_items = None
 
@@ -727,16 +743,12 @@ def build_revision_history_summary(
         )
 
 
-        revision_number = str(
-            revision["revision_number"]
-        )
-
-
         if previous_revision_items is None:
 
             changed_questions = (
                 "Initial issue"
             )
+
 
         else:
 
@@ -756,6 +768,7 @@ def build_revision_history_summary(
                     )
                 )
 
+
             else:
 
                 changed_questions = (
@@ -765,8 +778,13 @@ def build_revision_history_summary(
 
         history_rows.append(
             {
+
                 "Revision":
-                    revision_number,
+                    str(
+                        revision[
+                            "revision_number"
+                        ]
+                    ),
 
                 "Changed Question IDs":
                     changed_questions,
@@ -800,7 +818,7 @@ def build_revision_history_summary(
 
 
 # ============================================================
-# VALUE CONVERSION HELPERS
+# VALUE HELPER FUNCTIONS
 # ============================================================
 
 def get_text_value(
@@ -809,7 +827,7 @@ def get_text_value(
     default_value="",
 ):
     """
-    Return a saved text value or a default.
+    Return a stored text value or a default.
     """
 
     value = latest_values.get(
@@ -837,7 +855,7 @@ def get_integer_value(
     default_value=0,
 ):
     """
-    Safely convert a saved value into an integer.
+    Safely convert a stored value to an integer.
     """
 
     value = latest_values.get(
@@ -854,6 +872,7 @@ def get_integer_value(
             )
         )
 
+
     except (
         TypeError,
         ValueError,
@@ -868,7 +887,7 @@ def get_float_value(
     default_value=0.0,
 ):
     """
-    Safely convert a saved value into a float.
+    Safely convert a stored value to a float.
     """
 
     value = latest_values.get(
@@ -882,6 +901,7 @@ def get_float_value(
         return float(
             value
         )
+
 
     except (
         TypeError,
@@ -897,8 +917,7 @@ def selectbox_index(
     default_index=0,
 ):
     """
-    Find the correct selectbox index
-    for a previously saved value.
+    Return the correct selectbox position.
     """
 
     if saved_value in options:
@@ -912,33 +931,86 @@ def selectbox_index(
 
 
 # ============================================================
+# ELECTRICAL REQUIREMENT LOOKUP
+# ============================================================
+
+def get_electrical_requirement(
+    product_variant,
+):
+    """
+    Return the electrical requirement implied
+    by the selected valve variant.
+
+    These descriptions can be replaced later with
+    the approved technical specifications.
+    """
+
+    electrical_requirements = {
+
+        "ISV - MK3":
+            (
+                "Electrical requirements applicable "
+                "to the ISV - MK3 valve configuration"
+            ),
+
+        "ISV - E":
+            (
+                "Electrical requirements applicable "
+                "to the ISV - E valve configuration"
+            ),
+
+        "ISV - EC":
+            (
+                "Electrical requirements applicable "
+                "to the ISV - EC valve configuration"
+            ),
+
+        "ISV - EX":
+            (
+                "Electrical requirements applicable "
+                "to the ISV - EX valve configuration"
+            ),
+    }
+
+
+    return electrical_requirements.get(
+        product_variant,
+        "Valve-specific electrical requirements",
+    )
+
+
+# ============================================================
 # STANDARD REQUIREMENT TABLE GENERATOR
 # ============================================================
 
 def build_standard_requirement_table(
     project_name,
     customer_name,
+    mill_type,
     product_variant,
-    number_of_spray_zones,
-    spraybar_length,
-    zone_pitch,
+    mk3_configuration,
+    pitching_type,
+    total_valves,
+    uniform_pitch,
+    edge_valves_per_side,
+    edge_pitch,
+    centre_valves,
+    centre_pitch,
     operating_fluid,
-    maximum_pressure,
-    minimum_flow_rate,
-    solenoid_voltage,
-    control_interface,
-    installation_side,
-    minimum_temperature,
-    maximum_temperature,
-    approval_drawing_required,
-    manufacturing_drawings_required,
 ):
     """
-    Convert the questionnaire answers into
-    a formal standard requirements table.
+    Convert the standard questionnaire answers into
+    a formal requirements table.
     """
 
-    standard_requirements = [
+    electrical_requirement = (
+        get_electrical_requirement(
+            product_variant
+        )
+    )
+
+
+    requirements = [
 
 
         {
@@ -946,12 +1018,12 @@ def build_standard_requirement_table(
                 "STD-001",
 
             "Requirement Area":
-                "Project Definition",
+                "Project Information",
 
             "Requirement":
                 (
-                    "The project shall use the selected "
-                    "project reference."
+                    "The project shall use the "
+                    "selected project reference."
                 ),
 
             "Required Value":
@@ -973,7 +1045,7 @@ def build_standard_requirement_table(
                 "STD-002",
 
             "Requirement Area":
-                "Project Definition",
+                "Project Information",
 
             "Requirement":
                 (
@@ -1000,12 +1072,39 @@ def build_standard_requirement_table(
                 "STD-003",
 
             "Requirement Area":
-                "Product Configuration",
+                "Project Information",
+
+            "Requirement":
+                (
+                    "The ISV system shall be designed "
+                    "for the selected mill type."
+                ),
+
+            "Required Value":
+                mill_type,
+
+            "Unit / Limit":
+                "",
+
+            "Verification Method":
+                "Document review",
+
+            "Notes":
+                "",
+        },
+
+
+        {
+            "Question ID":
+                "STD-004",
+
+            "Requirement Area":
+                "Valve Configuration",
 
             "Requirement":
                 (
                     "The ISV system shall use the "
-                    "selected product variant."
+                    "selected ISV product variant."
                 ),
 
             "Required Value":
@@ -1024,57 +1123,31 @@ def build_standard_requirement_table(
 
         {
             "Question ID":
-                "STD-004",
-
-            "Requirement Area":
-                "Mechanical",
-
-            "Requirement":
-                (
-                    "The ISV spraybar shall provide "
-                    "the specified number of spray zones."
-                ),
-
-            "Required Value":
-                str(
-                    number_of_spray_zones
-                ),
-
-            "Unit / Limit":
-                "zones",
-
-            "Verification Method":
-                "Drawing review",
-
-            "Notes":
-                "",
-        },
-
-
-        {
-            "Question ID":
                 "STD-005",
 
             "Requirement Area":
-                "Mechanical",
+                "Valve Configuration",
 
             "Requirement":
                 (
-                    "The ISV spraybar shall have "
-                    "the specified overall length."
+                    "The ISV - MK3 valve configuration "
+                    "shall use the selected configuration."
                 ),
 
             "Required Value":
-                f"{spraybar_length:g}",
+                mk3_configuration,
 
             "Unit / Limit":
-                "mm",
+                "",
 
             "Verification Method":
-                "Drawing review",
+                "Design review",
 
             "Notes":
-                "",
+                (
+                    "Not applicable when an ISV product "
+                    "variant other than ISV - MK3 is selected."
+                ),
         },
 
 
@@ -1083,19 +1156,19 @@ def build_standard_requirement_table(
                 "STD-006",
 
             "Requirement Area":
-                "Mechanical",
+                "Valve Configuration",
 
             "Requirement":
                 (
-                    "The ISV spray zones shall use "
-                    "the specified zone pitch."
+                    "The ISV spraybar shall use the "
+                    "selected valve pitching configuration."
                 ),
 
             "Required Value":
-                f"{zone_pitch:g}",
+                pitching_type,
 
             "Unit / Limit":
-                "mm",
+                "",
 
             "Verification Method":
                 "Drawing review",
@@ -1110,22 +1183,24 @@ def build_standard_requirement_table(
                 "STD-007",
 
             "Requirement Area":
-                "Fluid",
+                "Valve Configuration",
 
             "Requirement":
                 (
-                    "The ISV system shall operate "
-                    "using the specified fluid."
+                    "The ISV spraybar shall contain "
+                    "the specified total number of valves."
                 ),
 
             "Required Value":
-                operating_fluid,
+                str(
+                    total_valves
+                ),
 
             "Unit / Limit":
-                "",
+                "valves",
 
             "Verification Method":
-                "Document review",
+                "Drawing review",
 
             "Notes":
                 "",
@@ -1137,22 +1212,34 @@ def build_standard_requirement_table(
                 "STD-008",
 
             "Requirement Area":
-                "Fluid",
+                "Valve Configuration",
 
             "Requirement":
                 (
-                    "The ISV system shall be designed "
-                    "for the specified maximum operating pressure."
+                    "The ISV spraybar shall use the "
+                    "specified uniform valve pitch."
                 ),
 
             "Required Value":
-                f"{maximum_pressure:g}",
+                (
+                    f"{uniform_pitch:g}"
+                    if pitching_type
+                    == "Uniform pitching"
+                    else
+                    "Not applicable"
+                ),
 
             "Unit / Limit":
-                "bar",
+                (
+                    "mm"
+                    if pitching_type
+                    == "Uniform pitching"
+                    else
+                    ""
+                ),
 
             "Verification Method":
-                "Design review",
+                "Drawing review",
 
             "Notes":
                 "",
@@ -1164,22 +1251,37 @@ def build_standard_requirement_table(
                 "STD-009",
 
             "Requirement Area":
-                "Fluid",
+                "Valve Configuration",
 
             "Requirement":
                 (
-                    "The ISV system shall support "
-                    "the specified minimum flow rate."
+                    "The ISV spraybar shall contain "
+                    "the specified number of edge valves "
+                    "on each side."
                 ),
 
             "Required Value":
-                f"{minimum_flow_rate:g}",
+                (
+                    str(
+                        edge_valves_per_side
+                    )
+                    if pitching_type
+                    == "Hybrid pitching"
+                    else
+                    "Not applicable"
+                ),
 
             "Unit / Limit":
-                "litres per minute",
+                (
+                    "valves per side"
+                    if pitching_type
+                    == "Hybrid pitching"
+                    else
+                    ""
+                ),
 
             "Verification Method":
-                "Calculation / design review",
+                "Drawing review",
 
             "Notes":
                 "",
@@ -1191,22 +1293,34 @@ def build_standard_requirement_table(
                 "STD-010",
 
             "Requirement Area":
-                "Electrical",
+                "Valve Configuration",
 
             "Requirement":
                 (
-                    "The ISV solenoid valves shall use "
-                    "the specified operating voltage."
+                    "The ISV spraybar edge valves "
+                    "shall use the specified pitch."
                 ),
 
             "Required Value":
-                f"{solenoid_voltage:g}",
+                (
+                    f"{edge_pitch:g}"
+                    if pitching_type
+                    == "Hybrid pitching"
+                    else
+                    "Not applicable"
+                ),
 
             "Unit / Limit":
-                "V",
+                (
+                    "mm"
+                    if pitching_type
+                    == "Hybrid pitching"
+                    else
+                    ""
+                ),
 
             "Verification Method":
-                "Document review",
+                "Drawing review",
 
             "Notes":
                 "",
@@ -1218,22 +1332,36 @@ def build_standard_requirement_table(
                 "STD-011",
 
             "Requirement Area":
-                "Controls",
+                "Valve Configuration",
 
             "Requirement":
                 (
-                    "The ISV system shall use "
-                    "the specified control interface."
+                    "The ISV spraybar shall contain "
+                    "the specified number of centre valves."
                 ),
 
             "Required Value":
-                control_interface,
+                (
+                    str(
+                        centre_valves
+                    )
+                    if pitching_type
+                    == "Hybrid pitching"
+                    else
+                    "Not applicable"
+                ),
 
             "Unit / Limit":
-                "",
+                (
+                    "valves"
+                    if pitching_type
+                    == "Hybrid pitching"
+                    else
+                    ""
+                ),
 
             "Verification Method":
-                "Design review",
+                "Drawing review",
 
             "Notes":
                 "",
@@ -1245,19 +1373,31 @@ def build_standard_requirement_table(
                 "STD-012",
 
             "Requirement Area":
-                "Installation",
+                "Valve Configuration",
 
             "Requirement":
                 (
-                    "The ISV spraybar shall be configured "
-                    "for the specified installation side."
+                    "The ISV spraybar centre valves "
+                    "shall use the specified pitch."
                 ),
 
             "Required Value":
-                installation_side,
+                (
+                    f"{centre_pitch:g}"
+                    if pitching_type
+                    == "Hybrid pitching"
+                    else
+                    "Not applicable"
+                ),
 
             "Unit / Limit":
-                "",
+                (
+                    "mm"
+                    if pitching_type
+                    == "Hybrid pitching"
+                    else
+                    ""
+                ),
 
             "Verification Method":
                 "Drawing review",
@@ -1272,26 +1412,22 @@ def build_standard_requirement_table(
                 "STD-013",
 
             "Requirement Area":
-                "Environment",
+                "Operating Fluid",
 
             "Requirement":
                 (
-                    "The ISV system shall operate "
-                    "within the specified ambient temperature range."
+                    "The ISV system shall be designed "
+                    "for operation using the specified fluid."
                 ),
 
             "Required Value":
-                (
-                    f"{minimum_temperature:g} "
-                    f"to "
-                    f"{maximum_temperature:g}"
-                ),
+                operating_fluid,
 
             "Unit / Limit":
-                "°C",
+                "",
 
             "Verification Method":
-                "Document review",
+                "Design review",
 
             "Notes":
                 "",
@@ -1303,25 +1439,30 @@ def build_standard_requirement_table(
                 "STD-014",
 
             "Requirement Area":
-                "Documentation",
+                "Electrical",
 
             "Requirement":
                 (
-                    "The project shall provide a customer "
-                    "approval drawing when required."
+                    "The ISV electrical configuration "
+                    "shall comply with the electrical "
+                    "requirements applicable to the "
+                    "selected valve variant."
                 ),
 
             "Required Value":
-                approval_drawing_required,
+                electrical_requirement,
 
             "Unit / Limit":
-                "Yes / No",
+                "",
 
             "Verification Method":
-                "Document review",
+                "Electrical design review",
 
             "Notes":
-                "",
+                (
+                    "Automatically generated from "
+                    "the selected product variant."
+                ),
         },
 
 
@@ -1334,27 +1475,60 @@ def build_standard_requirement_table(
 
             "Requirement":
                 (
-                    "The project shall provide manufacturing "
-                    "drawings when required."
+                    "The project shall provide "
+                    "customer approval drawings."
                 ),
 
             "Required Value":
-                manufacturing_drawings_required,
+                "Required",
 
             "Unit / Limit":
-                "Yes / No",
+                "",
 
             "Verification Method":
                 "Document review",
 
             "Notes":
+                (
+                    "Automatically applicable "
+                    "to all projects."
+                ),
+        },
+
+
+        {
+            "Question ID":
+                "STD-016",
+
+            "Requirement Area":
+                "Documentation",
+
+            "Requirement":
+                (
+                    "The project shall provide "
+                    "manufacturing drawings."
+                ),
+
+            "Required Value":
+                "Required",
+
+            "Unit / Limit":
                 "",
+
+            "Verification Method":
+                "Document review",
+
+            "Notes":
+                (
+                    "Automatically applicable "
+                    "to all projects."
+                ),
         },
     ]
 
 
     return pd.DataFrame(
-        standard_requirements
+        requirements
     )
 
 
@@ -1376,9 +1550,8 @@ st.title(
 
 st.write(
     """
-    Capture project-specific stakeholder requirements and
-    project standard requirements in a structured and
-    traceable format.
+    Capture project requirements and maintain controlled,
+    project-specific standard requirement revisions.
     """
 )
 
@@ -1411,9 +1584,9 @@ with project_specific_tab:
 
     st.write(
         """
-        Select the type of requirement you want to add and
-        answer the guided questions. The completed requirement
-        will be generated automatically.
+        Select the type of requirement and answer the guided
+        questions. The requirement statement is generated
+        automatically.
         """
     )
 
@@ -1426,9 +1599,9 @@ with project_specific_tab:
     )
 
 
-    # ========================================================
-    # PROJECT REQUIREMENT DETAILS
-    # ========================================================
+    # --------------------------------------------------------
+    # REQUIREMENT DETAILS
+    # --------------------------------------------------------
 
     st.subheader(
         "1. Requirement Details"
@@ -1487,9 +1660,9 @@ with project_specific_tab:
         )
 
 
-    # ========================================================
-    # PROJECT REQUIREMENT TYPE
-    # ========================================================
+    # --------------------------------------------------------
+    # REQUIREMENT TYPE
+    # --------------------------------------------------------
 
     st.divider()
 
@@ -1510,9 +1683,9 @@ with project_specific_tab:
     )
 
 
-    # ========================================================
-    # PROJECT REQUIREMENT INPUT
-    # ========================================================
+    # --------------------------------------------------------
+    # GUIDED INPUT
+    # --------------------------------------------------------
 
     st.divider()
 
@@ -1532,10 +1705,6 @@ with project_specific_tab:
 
     database_category = "Other"
 
-
-    # --------------------------------------------------------
-    # OPERATING CONDITION
-    # --------------------------------------------------------
 
     if (
         selected_requirement_category
@@ -1598,31 +1767,12 @@ with project_specific_tab:
         )
 
 
-        equipment_preview = (
-            equipment_name.strip()
-            or
-            "[equipment or system]"
-        )
-
-
-        action_preview = (
-            required_action.strip()
-            or
-            "[required action]"
-        )
-
-
-        condition_preview = (
-            operating_condition.strip()
-            or
-            "[operating condition]"
-        )
-
-
         requirement_preview = (
-            f"The {equipment_preview} shall "
-            f"{action_preview} "
-            f"{condition_preview}."
+            f"The "
+            f"{equipment_name.strip() or '[equipment or system]'} "
+            f"shall "
+            f"{required_action.strip() or '[required action]'} "
+            f"{operating_condition.strip() or '[operating condition]'}."
         )
 
 
@@ -1639,10 +1789,6 @@ with project_specific_tab:
             f"Condition: {operating_condition.strip()}"
         )
 
-
-    # --------------------------------------------------------
-    # CAPACITY OR QUANTITY
-    # --------------------------------------------------------
 
     elif (
         selected_requirement_category
@@ -1709,20 +1855,6 @@ with project_specific_tab:
         )
 
 
-        equipment_preview = (
-            equipment_name.strip()
-            or
-            "[equipment or system]"
-        )
-
-
-        action_preview = (
-            required_action.strip()
-            or
-            "[required action]"
-        )
-
-
         quantity_preview = (
             str(
                 minimum_quantity
@@ -1733,19 +1865,14 @@ with project_specific_tab:
         )
 
 
-        item_preview = (
-            item_name.strip()
-            or
-            "[item being counted]"
-        )
-
-
         requirement_preview = (
-            f"The {equipment_preview} shall "
-            f"{action_preview} "
+            f"The "
+            f"{equipment_name.strip() or '[equipment or system]'} "
+            f"shall "
+            f"{required_action.strip() or '[required action]'} "
             f"a minimum of "
             f"{quantity_preview} "
-            f"{item_preview}."
+            f"{item_name.strip() or '[item]'}."
         )
 
 
@@ -1766,588 +1893,17 @@ with project_specific_tab:
         )
 
 
-    # --------------------------------------------------------
-    # PERFORMANCE LEVEL
-    # --------------------------------------------------------
-
-    elif (
-        selected_requirement_category
-        == "Performance level"
-    ):
-
-
-        database_category = "Performance"
-
-
-        input_column_1, input_column_2 = (
-            st.columns(2)
-        )
-
-
-        with input_column_1:
-
-
-            equipment_name = st.text_input(
-                (
-                    "What equipment or system "
-                    "does this apply to? *"
-                ),
-                value="ISV spraybar",
-                key="performance_equipment",
-            )
-
-
-            required_action = st.text_input(
-                "What must it do? *",
-                placeholder=(
-                    "Example: deliver cooling fluid"
-                ),
-                key="performance_action",
-            )
-
-
-        with input_column_2:
-
-
-            required_value = st.number_input(
-                (
-                    "What is the minimum "
-                    "required value? *"
-                ),
-                min_value=0.0,
-                step=1.0,
-                key="performance_value",
-            )
-
-
-            engineering_unit = st.text_input(
-                "What unit is used? *",
-                placeholder=(
-                    "Example: litres per minute"
-                ),
-                key="performance_unit",
-            )
-
-
-        required_inputs_complete = all(
-            [
-                equipment_name.strip(),
-                required_action.strip(),
-                required_value > 0,
-                engineering_unit.strip(),
-            ]
-        )
-
-
-        value_preview = (
-            f"{required_value:g}"
-            if required_value > 0
-            else
-            "[minimum value]"
-        )
-
-
-        requirement_preview = (
-            f"The "
-            f"{equipment_name.strip() or '[equipment or system]'} "
-            f"shall "
-            f"{required_action.strip() or '[required action]'} "
-            f"at a minimum value of "
-            f"{value_preview} "
-            f"{engineering_unit.strip() or '[unit]'}."
-        )
-
-
-        generated_requirement = (
-            f"The {equipment_name.strip()} shall "
-            f"{required_action.strip()} "
-            f"at a minimum value of "
-            f"{required_value:g} "
-            f"{engineering_unit.strip()}."
-        )
-
-
-        stakeholder_input = (
-            f"Equipment: {equipment_name.strip()}\n"
-            f"Action: {required_action.strip()}\n"
-            f"Value: {required_value:g}\n"
-            f"Unit: {engineering_unit.strip()}"
-        )
-
-
-    # --------------------------------------------------------
-    # RESPONSE TIME
-    # --------------------------------------------------------
-
-    elif (
-        selected_requirement_category
-        == "Response time"
-    ):
-
-
-        database_category = "Performance"
-
-
-        input_column_1, input_column_2 = (
-            st.columns(2)
-        )
-
-
-        with input_column_1:
-
-
-            equipment_name = st.text_input(
-                (
-                    "What equipment or system "
-                    "does this apply to? *"
-                ),
-                value="ISV spraybar",
-                key="response_equipment",
-            )
-
-
-            required_action = st.text_input(
-                "What action must happen? *",
-                placeholder=(
-                    "Example: begin coolant delivery"
-                ),
-                key="response_action",
-            )
-
-
-            trigger_event = st.text_input(
-                "What triggers the action? *",
-                placeholder=(
-                    "Example: receiving a control signal"
-                ),
-                key="response_trigger",
-            )
-
-
-        with input_column_2:
-
-
-            maximum_time = st.number_input(
-                (
-                    "What is the maximum "
-                    "permitted time? *"
-                ),
-                min_value=0.0,
-                step=0.1,
-                key="response_time",
-            )
-
-
-            time_unit = st.selectbox(
-                "Time unit *",
-                options=[
-                    "milliseconds",
-                    "seconds",
-                    "minutes",
-                    "hours",
-                ],
-                key="response_unit",
-            )
-
-
-        required_inputs_complete = all(
-            [
-                equipment_name.strip(),
-                required_action.strip(),
-                trigger_event.strip(),
-                maximum_time > 0,
-            ]
-        )
-
-
-        time_preview = (
-            f"{maximum_time:g}"
-            if maximum_time > 0
-            else
-            "[maximum time]"
-        )
-
-
-        requirement_preview = (
-            f"The "
-            f"{equipment_name.strip() or '[equipment or system]'} "
-            f"shall "
-            f"{required_action.strip() or '[required action]'} "
-            f"within "
-            f"{time_preview} "
-            f"{time_unit} of "
-            f"{trigger_event.strip() or '[trigger event]'}."
-        )
-
-
-        generated_requirement = (
-            f"The {equipment_name.strip()} shall "
-            f"{required_action.strip()} "
-            f"within "
-            f"{maximum_time:g} "
-            f"{time_unit} of "
-            f"{trigger_event.strip()}."
-        )
-
-
-        stakeholder_input = (
-            f"Equipment: {equipment_name.strip()}\n"
-            f"Action: {required_action.strip()}\n"
-            f"Trigger: {trigger_event.strip()}\n"
-            f"Time: {maximum_time:g} {time_unit}"
-        )
-
-
-    # --------------------------------------------------------
-    # COMPATIBILITY OR INTERFACE
-    # --------------------------------------------------------
-
-    elif (
-        selected_requirement_category
-        == "Compatibility or interface"
-    ):
-
-
-        database_category = "Interface"
-
-
-        input_column_1, input_column_2 = (
-            st.columns(2)
-        )
-
-
-        with input_column_1:
-
-
-            equipment_name = st.text_input(
-                (
-                    "What equipment or system "
-                    "does this apply to? *"
-                ),
-                value="ISV spraybar",
-                key="interface_equipment",
-            )
-
-
-            external_system = st.text_input(
-                (
-                    "What other equipment "
-                    "must it connect to? *"
-                ),
-                placeholder=(
-                    "Example: mill control system"
-                ),
-                key="interface_external_system",
-            )
-
-
-        with input_column_2:
-
-
-            interface_description = st.text_input(
-                (
-                    "What connection or "
-                    "interface is required? *"
-                ),
-                placeholder=(
-                    "Example: 64 digital outputs"
-                ),
-                key="interface_description",
-            )
-
-
-        required_inputs_complete = all(
-            [
-                equipment_name.strip(),
-                external_system.strip(),
-                interface_description.strip(),
-            ]
-        )
-
-
-        requirement_preview = (
-            f"The "
-            f"{equipment_name.strip() or '[equipment or system]'} "
-            f"shall interface with the "
-            f"{external_system.strip() or '[external system]'} "
-            f"using "
-            f"{interface_description.strip() or '[interface]'}."
-        )
-
-
-        generated_requirement = (
-            f"The {equipment_name.strip()} "
-            f"shall interface with the "
-            f"{external_system.strip()} "
-            f"using "
-            f"{interface_description.strip()}."
-        )
-
-
-        stakeholder_input = (
-            f"Equipment: {equipment_name.strip()}\n"
-            f"External system: {external_system.strip()}\n"
-            f"Interface: {interface_description.strip()}"
-        )
-
-
-    # --------------------------------------------------------
-    # PRODUCT TYPE OR STANDARD
-    # --------------------------------------------------------
-
-    elif (
-        selected_requirement_category
-        == "Product type or standard"
-    ):
-
-
-        database_category = "Specification"
-
-
-        input_column_1, input_column_2 = (
-            st.columns(2)
-        )
-
-
-        with input_column_1:
-
-
-            equipment_name = st.text_input(
-                (
-                    "What equipment or system "
-                    "does this apply to? *"
-                ),
-                value="ISV spraybar",
-                key="standard_equipment",
-            )
-
-
-            specified_item = st.text_input(
-                "What item is being specified? *",
-                placeholder="Example: cooling fluid",
-                key="standard_item",
-            )
-
-
-        with input_column_2:
-
-
-            required_standard = st.text_input(
-                (
-                    "What type, grade, or "
-                    "standard is required? *"
-                ),
-                placeholder="Example: ISO VG 32",
-                key="standard_grade",
-            )
-
-
-            operating_limit = st.text_input(
-                "Are there any operating limits?",
-                placeholder=(
-                    "Example: at a maximum pressure "
-                    "of 10 bar"
-                ),
-                key="standard_limit",
-            )
-
-
-        required_inputs_complete = all(
-            [
-                equipment_name.strip(),
-                specified_item.strip(),
-                required_standard.strip(),
-            ]
-        )
-
-
-        requirement_preview = (
-            f"The "
-            f"{equipment_name.strip() or '[equipment or system]'} "
-            f"shall use "
-            f"{required_standard.strip() or '[type or standard]'} "
-            f"{specified_item.strip() or '[specified item]'} "
-            f"{operating_limit.strip() or '[optional operating limit]'}."
-        )
-
-
-        generated_requirement = (
-            f"The {equipment_name.strip()} "
-            f"shall use "
-            f"{required_standard.strip()} "
-            f"{specified_item.strip()}"
-        )
-
-
-        if operating_limit.strip():
-
-            generated_requirement += (
-                f" {operating_limit.strip()}"
-            )
-
-
-        generated_requirement += "."
-
-
-        stakeholder_input = (
-            f"Equipment: {equipment_name.strip()}\n"
-            f"Item: {specified_item.strip()}\n"
-            f"Standard: {required_standard.strip()}\n"
-            f"Limit: {operating_limit.strip()}"
-        )
-
-
-    # --------------------------------------------------------
-    # RELIABILITY OR MAINTENANCE
-    # --------------------------------------------------------
-
-    elif (
-        selected_requirement_category
-        == "Reliability or maintenance"
-    ):
-
-
-        database_category = "Maintenance"
-
-
-        input_column_1, input_column_2 = (
-            st.columns(2)
-        )
-
-
-        with input_column_1:
-
-
-            equipment_name = st.text_input(
-                (
-                    "What equipment or system "
-                    "does this apply to? *"
-                ),
-                value="ISV spraybar",
-                key="reliability_equipment",
-            )
-
-
-            required_action = st.text_input(
-                "What must continue operating? *",
-                placeholder="Example: operate",
-                key="reliability_action",
-            )
-
-
-        with input_column_2:
-
-
-            minimum_duration = st.number_input(
-                (
-                    "What is the minimum "
-                    "required duration? *"
-                ),
-                min_value=0.0,
-                step=100.0,
-                key="reliability_duration",
-            )
-
-
-            duration_unit = st.text_input(
-                "What unit is used? *",
-                placeholder=(
-                    "Example: operating hours"
-                ),
-                key="reliability_unit",
-            )
-
-
-            maintenance_condition = st.text_input(
-                (
-                    "What maintenance "
-                    "limitation applies?"
-                ),
-                placeholder=(
-                    "Example: without planned maintenance"
-                ),
-                key="reliability_condition",
-            )
-
-
-        required_inputs_complete = all(
-            [
-                equipment_name.strip(),
-                required_action.strip(),
-                minimum_duration > 0,
-                duration_unit.strip(),
-            ]
-        )
-
-
-        duration_preview = (
-            f"{minimum_duration:g}"
-            if minimum_duration > 0
-            else
-            "[minimum duration]"
-        )
-
-
-        requirement_preview = (
-            f"The "
-            f"{equipment_name.strip() or '[equipment or system]'} "
-            f"shall "
-            f"{required_action.strip() or '[required action]'} "
-            f"for a minimum of "
-            f"{duration_preview} "
-            f"{duration_unit.strip() or '[unit]'} "
-            f"{maintenance_condition.strip() or '[optional maintenance condition]'}."
-        )
-
-
-        generated_requirement = (
-            f"The {equipment_name.strip()} "
-            f"shall "
-            f"{required_action.strip()} "
-            f"for a minimum of "
-            f"{minimum_duration:g} "
-            f"{duration_unit.strip()}"
-        )
-
-
-        if maintenance_condition.strip():
-
-            generated_requirement += (
-                f" {maintenance_condition.strip()}"
-            )
-
-
-        generated_requirement += "."
-
-
-        stakeholder_input = (
-            f"Equipment: {equipment_name.strip()}\n"
-            f"Action: {required_action.strip()}\n"
-            f"Duration: {minimum_duration:g} "
-            f"{duration_unit.strip()}\n"
-            f"Maintenance: "
-            f"{maintenance_condition.strip()}"
-        )
-
-
-    # --------------------------------------------------------
-    # OTHER REQUIREMENT
-    # --------------------------------------------------------
-
     else:
-
-
-        database_category = "Other"
 
 
         stakeholder_description = (
             st.text_area(
                 "Describe what is needed *",
                 placeholder=(
-                    "Example: The spraybar must be "
-                    "accessible from the operator side."
+                    "Describe the requirement "
+                    "in your own words."
                 ),
-                key="other_description",
+                key="general_project_requirement",
             )
         )
 
@@ -2374,9 +1930,9 @@ with project_specific_tab:
         )
 
 
-    # ========================================================
-    # LIVE PROJECT REQUIREMENT PREVIEW
-    # ========================================================
+    # --------------------------------------------------------
+    # LIVE PREVIEW
+    # --------------------------------------------------------
 
     st.divider()
 
@@ -2394,6 +1950,7 @@ with project_specific_tab:
 
     if required_inputs_complete:
 
+
         st.success(
             (
                 "The requirement is complete "
@@ -2401,7 +1958,9 @@ with project_specific_tab:
             )
         )
 
+
     else:
+
 
         st.info(
             (
@@ -2411,9 +1970,9 @@ with project_specific_tab:
         )
 
 
-    # ========================================================
-    # SAVE PROJECT REQUIREMENT
-    # ========================================================
+    # --------------------------------------------------------
+    # SUBMIT PROJECT REQUIREMENT
+    # --------------------------------------------------------
 
     st.divider()
 
@@ -2434,31 +1993,31 @@ with project_specific_tab:
     if submit_project_requirement:
 
 
-        missing_fields = []
+        errors = []
 
 
         if not requirement_title.strip():
 
-            missing_fields.append(
+            errors.append(
                 "Requirement title"
             )
 
 
         if not submitted_by.strip():
 
-            missing_fields.append(
+            errors.append(
                 "Submitted by"
             )
 
 
         if not required_inputs_complete:
 
-            missing_fields.append(
+            errors.append(
                 "All required questions"
             )
 
 
-        if missing_fields:
+        if errors:
 
 
             st.error(
@@ -2466,7 +2025,7 @@ with project_specific_tab:
                     "Please complete: "
                     +
                     ", ".join(
-                        missing_fields
+                        errors
                     )
                 )
             )
@@ -2511,9 +2070,9 @@ with project_specific_tab:
             )
 
 
-    # ========================================================
-    # PROJECT REQUIREMENTS DASHBOARD
-    # ========================================================
+    # --------------------------------------------------------
+    # PROJECT REQUIREMENTS TABLE
+    # --------------------------------------------------------
 
     project_requirements = (
         load_project_requirements()
@@ -2540,41 +2099,6 @@ with project_specific_tab:
 
 
     else:
-
-
-        total_requirements = len(
-            project_requirements
-        )
-
-
-        pending_requirements = (
-            project_requirements[
-                "status"
-            ]
-            .eq(
-                "Pending"
-            )
-            .sum()
-        )
-
-
-        metric_1, metric_2 = (
-            st.columns(2)
-        )
-
-
-        metric_1.metric(
-            "Project Requirements",
-            total_requirements,
-        )
-
-
-        metric_2.metric(
-            "Pending Review",
-            int(
-                pending_requirements
-            ),
-        )
 
 
         project_display = (
@@ -2632,19 +2156,17 @@ with standard_requirements_tab:
 
     st.write(
         """
-        Complete the guided project questions below. The
+        Complete the guided ISV project questions. The
         application converts the answers into a standard
-        requirements table. When committed, the complete table
-        is saved as a locked project revision.
+        requirements table. Committed revisions are locked.
         """
     )
 
 
     st.info(
         """
-        The first committed revision for a project is
-        **Revision 00**. Each later revision starts using the
-        values from the latest locked revision.
+        The first revision for each project is **Revision 00**.
+        New revisions begin using the latest committed values.
         """
     )
 
@@ -2682,7 +2204,7 @@ with standard_requirements_tab:
 
     # ========================================================
     # SECTION 2
-    # COMPACT REVISION HISTORY
+    # REVISION HISTORY
     # ========================================================
 
     st.divider()
@@ -2713,15 +2235,6 @@ with standard_requirements_tab:
 
 
     else:
-
-
-        st.write(
-            (
-                "The table below shows each locked revision "
-                "and the question IDs changed from the "
-                "previous revision."
-            )
-        )
 
 
         st.dataframe(
@@ -2778,9 +2291,9 @@ with standard_requirements_tab:
 
     st.write(
         (
-            f"The answers below will create "
-            f"Revision **{next_revision_number}** "
-            f"for project **{standard_project}**."
+            f"These answers will create Revision "
+            f"**{next_revision_number}** for "
+            f"**{standard_project}**."
         )
     )
 
@@ -2795,572 +2308,537 @@ with standard_requirements_tab:
     ):
 
 
-        customer_name = st.text_input(
-            "Customer name *",
-            value=get_text_value(
-                latest_standard_values,
-                "STD-002",
-            ),
-            placeholder=(
-                "Enter the customer name"
-            ),
-            key=(
-                f"std_customer_"
-                f"{standard_project}"
-            ),
+        project_column_1, project_column_2 = (
+            st.columns(2)
         )
 
 
-        product_options = [
-            "MK1",
-            "MK2",
-            "MK3",
-            "Other",
-        ]
+        with project_column_1:
 
 
-        saved_product = get_text_value(
-            latest_standard_values,
-            "STD-003",
-            "MK3",
+            customer_name = st.text_input(
+                "Customer name *",
+                value=get_text_value(
+                    latest_standard_values,
+                    "STD-002",
+                ),
+                placeholder=(
+                    "Enter the customer name"
+                ),
+                key=(
+                    f"customer_"
+                    f"{standard_project}"
+                ),
+            )
+
+
+        saved_mill_type = (
+            get_text_value(
+                latest_standard_values,
+                "STD-003",
+                "FFM",
+            )
+        )
+
+
+        with project_column_2:
+
+
+            mill_type_selection = (
+                st.selectbox(
+                    "Mill type *",
+                    options=MILL_TYPES,
+                    index=selectbox_index(
+                        MILL_TYPES,
+                        (
+                            saved_mill_type
+                            if saved_mill_type
+                            in MILL_TYPES
+                            else
+                            "Other"
+                        ),
+                        0,
+                    ),
+                    key=(
+                        f"mill_type_"
+                        f"{standard_project}"
+                    ),
+                )
+            )
+
+
+        if mill_type_selection == "Other":
+
+
+            default_other_mill = (
+                saved_mill_type
+                if saved_mill_type
+                not in MILL_TYPES
+                else
+                ""
+            )
+
+
+            other_mill_type = st.text_input(
+                "Specify the mill type *",
+                value=default_other_mill,
+                key=(
+                    f"other_mill_"
+                    f"{standard_project}"
+                ),
+            )
+
+
+            final_mill_type = (
+                other_mill_type.strip()
+            )
+
+
+        else:
+
+
+            final_mill_type = (
+                mill_type_selection
+            )
+
+
+    # --------------------------------------------------------
+    # VALVE CONFIGURATION
+    # --------------------------------------------------------
+
+    with st.expander(
+        "Valve Configuration",
+        expanded=True,
+    ):
+
+
+        saved_product_variant = (
+            get_text_value(
+                latest_standard_values,
+                "STD-004",
+                "ISV - MK3",
+            )
         )
 
 
         product_variant = st.selectbox(
             "ISV product variant *",
-            options=product_options,
+            options=ISV_PRODUCT_VARIANTS,
             index=selectbox_index(
-                product_options,
-                saved_product,
-                2,
+                ISV_PRODUCT_VARIANTS,
+                saved_product_variant,
+                0,
             ),
             key=(
-                f"std_variant_"
+                f"product_variant_"
                 f"{standard_project}"
             ),
         )
 
 
-    # --------------------------------------------------------
-    # MECHANICAL REQUIREMENTS
-    # --------------------------------------------------------
-
-    with st.expander(
-        "Mechanical Requirements",
-        expanded=True,
-    ):
+        if product_variant == "ISV - MK3":
 
 
-        mechanical_column_1, mechanical_column_2 = (
-            st.columns(2)
-        )
-
-
-        with mechanical_column_1:
-
-
-            number_of_spray_zones = (
-                st.number_input(
-                    "Number of spray zones *",
-                    min_value=1,
-                    step=1,
-                    value=max(
-                        1,
-                        get_integer_value(
-                            latest_standard_values,
-                            "STD-004",
-                            64,
-                        ),
-                    ),
-                    key=(
-                        f"std_zones_"
-                        f"{standard_project}"
-                    ),
-                )
-            )
-
-
-            spraybar_length = st.number_input(
-                "Spraybar overall length *",
-                min_value=0.0,
-                step=10.0,
-                value=get_float_value(
+            saved_mk3_configuration = (
+                get_text_value(
                     latest_standard_values,
                     "STD-005",
-                    0.0,
-                ),
-                help="Value in millimetres.",
-                key=(
-                    f"std_length_"
-                    f"{standard_project}"
-                ),
-            )
-
-
-        with mechanical_column_2:
-
-
-            zone_pitch = st.number_input(
-                "Zone pitch *",
-                min_value=0.0,
-                step=1.0,
-                value=get_float_value(
-                    latest_standard_values,
-                    "STD-006",
-                    0.0,
-                ),
-                help="Value in millimetres.",
-                key=(
-                    f"std_pitch_"
-                    f"{standard_project}"
-                ),
-            )
-
-
-    # --------------------------------------------------------
-    # FLUID REQUIREMENTS
-    # --------------------------------------------------------
-
-    with st.expander(
-        "Fluid Requirements",
-        expanded=True,
-    ):
-
-
-        fluid_column_1, fluid_column_2 = (
-            st.columns(2)
-        )
-
-
-        fluid_options = [
-            "Water",
-            "Water / oil emulsion",
-            "Rolling oil",
-            "Other",
-        ]
-
-
-        saved_fluid = get_text_value(
-            latest_standard_values,
-            "STD-007",
-            "Water",
-        )
-
-
-        with fluid_column_1:
-
-
-            operating_fluid = st.selectbox(
-                "Operating fluid *",
-                options=fluid_options,
-                index=selectbox_index(
-                    fluid_options,
-                    saved_fluid,
-                    0,
-                ),
-                key=(
-                    f"std_fluid_"
-                    f"{standard_project}"
-                ),
-            )
-
-
-            maximum_pressure = (
-                st.number_input(
-                    (
-                        "Maximum operating "
-                        "pressure *"
-                    ),
-                    min_value=0.0,
-                    step=0.5,
-                    value=get_float_value(
-                        latest_standard_values,
-                        "STD-008",
-                        0.0,
-                    ),
-                    help="Value in bar.",
-                    key=(
-                        f"std_pressure_"
-                        f"{standard_project}"
-                    ),
+                    "Standard",
                 )
             )
 
 
-        with fluid_column_2:
-
-
-            minimum_flow_rate = (
-                st.number_input(
-                    "Minimum flow rate *",
-                    min_value=0.0,
-                    step=1.0,
-                    value=get_float_value(
-                        latest_standard_values,
-                        "STD-009",
-                        0.0,
-                    ),
-                    help=(
-                        "Value in litres per minute."
-                    ),
-                    key=(
-                        f"std_flow_"
-                        f"{standard_project}"
-                    ),
-                )
-            )
-
-
-    # --------------------------------------------------------
-    # ELECTRICAL AND CONTROLS
-    # --------------------------------------------------------
-
-    with st.expander(
-        "Electrical and Control Requirements",
-        expanded=True,
-    ):
-
-
-        electrical_column_1, electrical_column_2 = (
-            st.columns(2)
-        )
-
-
-        with electrical_column_1:
-
-
-            solenoid_voltage = (
-                st.number_input(
-                    "Solenoid valve voltage *",
-                    min_value=0.0,
-                    step=1.0,
-                    value=get_float_value(
-                        latest_standard_values,
-                        "STD-010",
-                        24.0,
-                    ),
-                    help="Value in volts.",
-                    key=(
-                        f"std_voltage_"
-                        f"{standard_project}"
-                    ),
-                )
-            )
-
-
-        control_options = [
-            "Digital outputs",
-            "PLC interface",
-            "Remote I/O",
-            "Fieldbus",
-            "Other",
-        ]
-
-
-        saved_control = get_text_value(
-            latest_standard_values,
-            "STD-011",
-            "Digital outputs",
-        )
-
-
-        with electrical_column_2:
-
-
-            control_interface = (
+            mk3_configuration = (
                 st.selectbox(
-                    "Control interface type *",
-                    options=control_options,
+                    "MK3 configuration *",
+                    options=(
+                        MK3_CONFIGURATIONS
+                    ),
                     index=selectbox_index(
-                        control_options,
-                        saved_control,
+                        MK3_CONFIGURATIONS,
+                        saved_mk3_configuration,
                         0,
                     ),
                     key=(
-                        f"std_control_"
+                        f"mk3_configuration_"
                         f"{standard_project}"
                     ),
                 )
             )
 
 
+        else:
+
+
+            mk3_configuration = (
+                "Not applicable"
+            )
+
+
+        st.caption(
+            (
+                "Electrical requirements are generated "
+                "automatically from the selected valve type."
+            )
+        )
+
+
     # --------------------------------------------------------
-    # INSTALLATION REQUIREMENTS
+    # VALVE PITCHING
     # --------------------------------------------------------
 
     with st.expander(
-        "Installation Requirements",
+        "Valve Pitching",
         expanded=True,
     ):
 
 
-        installation_options = [
-            "Operator side",
-            "Drive side",
-            "Both sides",
-            "To be confirmed",
-        ]
-
-
-        saved_installation = get_text_value(
-            latest_standard_values,
-            "STD-012",
-            "To be confirmed",
-        )
-
-
-        installation_side = (
-            st.selectbox(
-                "Installation side *",
-                options=installation_options,
-                index=selectbox_index(
-                    installation_options,
-                    saved_installation,
-                    3,
-                ),
-                key=(
-                    f"std_installation_"
-                    f"{standard_project}"
-                ),
-            )
-        )
-
-
-    # --------------------------------------------------------
-    # ENVIRONMENTAL REQUIREMENTS
-    # --------------------------------------------------------
-
-    with st.expander(
-        "Environmental Requirements",
-        expanded=True,
-    ):
-
-
-        environment_column_1, environment_column_2 = (
-            st.columns(2)
-        )
-
-
-        temperature_range = get_text_value(
-            latest_standard_values,
-            "STD-013",
-            "",
-        )
-
-
-        saved_minimum_temperature = 0.0
-
-        saved_maximum_temperature = 0.0
-
-
-        if " to " in temperature_range:
-
-
-            temperature_parts = (
-                temperature_range.split(
-                    " to "
-                )
-            )
-
-
-            try:
-
-                saved_minimum_temperature = float(
-                    temperature_parts[0]
-                )
-
-                saved_maximum_temperature = float(
-                    temperature_parts[1]
-                )
-
-            except (
-                ValueError,
-                IndexError,
-            ):
-
-                pass
-
-
-        with environment_column_1:
-
-
-            minimum_temperature = (
-                st.number_input(
-                    (
-                        "Minimum ambient "
-                        "temperature *"
-                    ),
-                    step=1.0,
-                    value=(
-                        saved_minimum_temperature
-                    ),
-                    help="Value in °C.",
-                    key=(
-                        f"std_min_temp_"
-                        f"{standard_project}"
-                    ),
-                )
-            )
-
-
-        with environment_column_2:
-
-
-            maximum_temperature = (
-                st.number_input(
-                    (
-                        "Maximum ambient "
-                        "temperature *"
-                    ),
-                    step=1.0,
-                    value=(
-                        saved_maximum_temperature
-                    ),
-                    help="Value in °C.",
-                    key=(
-                        f"std_max_temp_"
-                        f"{standard_project}"
-                    ),
-                )
-            )
-
-
-    # --------------------------------------------------------
-    # DOCUMENTATION REQUIREMENTS
-    # --------------------------------------------------------
-
-    with st.expander(
-        "Documentation Requirements",
-        expanded=True,
-    ):
-
-
-        document_column_1, document_column_2 = (
-            st.columns(2)
-        )
-
-
-        yes_no_options = [
-            "Yes",
-            "No",
-        ]
-
-
-        saved_approval = get_text_value(
-            latest_standard_values,
-            "STD-014",
-            "Yes",
-        )
-
-
-        saved_manufacturing = (
+        saved_pitching_type = (
             get_text_value(
                 latest_standard_values,
-                "STD-015",
-                "Yes",
+                "STD-006",
+                "Uniform pitching",
             )
         )
 
 
-        with document_column_1:
+        pitching_type = st.selectbox(
+            "Pitch configuration *",
+            options=PITCHING_TYPES,
+            index=selectbox_index(
+                PITCHING_TYPES,
+                saved_pitching_type,
+                0,
+            ),
+            key=(
+                f"pitching_type_"
+                f"{standard_project}"
+            ),
+        )
 
 
-            approval_drawing_required = (
-                st.selectbox(
-                    (
-                        "Customer approval "
-                        "drawing required? *"
-                    ),
-                    options=yes_no_options,
-                    index=selectbox_index(
-                        yes_no_options,
-                        saved_approval,
-                        0,
-                    ),
-                    key=(
-                        f"std_approval_"
-                        f"{standard_project}"
-                    ),
+        if pitching_type == "Uniform pitching":
+
+
+            pitching_column_1, pitching_column_2 = (
+                st.columns(2)
+            )
+
+
+            with pitching_column_1:
+
+
+                total_valves = (
+                    st.number_input(
+                        "Total number of valves *",
+                        min_value=1,
+                        step=1,
+                        value=max(
+                            1,
+                            get_integer_value(
+                                latest_standard_values,
+                                "STD-007",
+                                64,
+                            ),
+                        ),
+                        key=(
+                            f"total_valves_"
+                            f"{standard_project}"
+                        ),
+                    )
+                )
+
+
+            with pitching_column_2:
+
+
+                uniform_pitch = (
+                    st.number_input(
+                        "Uniform valve pitch *",
+                        min_value=0.0,
+                        step=1.0,
+                        value=get_float_value(
+                            latest_standard_values,
+                            "STD-008",
+                            52.0,
+                        ),
+                        help="Value in millimetres.",
+                        key=(
+                            f"uniform_pitch_"
+                            f"{standard_project}"
+                        ),
+                    )
+                )
+
+
+            edge_valves_per_side = 0
+
+            edge_pitch = 0.0
+
+            centre_valves = 0
+
+            centre_pitch = 0.0
+
+
+        else:
+
+
+            hybrid_column_1, hybrid_column_2 = (
+                st.columns(2)
+            )
+
+
+            with hybrid_column_1:
+
+
+                edge_valves_per_side = (
+                    st.number_input(
+                        (
+                            "Number of edge valves "
+                            "per side *"
+                        ),
+                        min_value=1,
+                        step=1,
+                        value=max(
+                            1,
+                            get_integer_value(
+                                latest_standard_values,
+                                "STD-009",
+                                12,
+                            ),
+                        ),
+                        key=(
+                            f"edge_valves_"
+                            f"{standard_project}"
+                        ),
+                    )
+                )
+
+
+                edge_pitch = (
+                    st.number_input(
+                        "Edge valve pitch *",
+                        min_value=0.0,
+                        step=1.0,
+                        value=get_float_value(
+                            latest_standard_values,
+                            "STD-010",
+                            26.0,
+                        ),
+                        help="Value in millimetres.",
+                        key=(
+                            f"edge_pitch_"
+                            f"{standard_project}"
+                        ),
+                    )
+                )
+
+
+            with hybrid_column_2:
+
+
+                centre_valves = (
+                    st.number_input(
+                        "Number of centre valves *",
+                        min_value=1,
+                        step=1,
+                        value=max(
+                            1,
+                            get_integer_value(
+                                latest_standard_values,
+                                "STD-011",
+                                20,
+                            ),
+                        ),
+                        key=(
+                            f"centre_valves_"
+                            f"{standard_project}"
+                        ),
+                    )
+                )
+
+
+                centre_pitch = (
+                    st.number_input(
+                        "Centre valve pitch *",
+                        min_value=0.0,
+                        step=1.0,
+                        value=get_float_value(
+                            latest_standard_values,
+                            "STD-012",
+                            52.0,
+                        ),
+                        help="Value in millimetres.",
+                        key=(
+                            f"centre_pitch_"
+                            f"{standard_project}"
+                        ),
+                    )
+                )
+
+
+            total_valves = (
+                (
+                    edge_valves_per_side
+                    * 2
+                )
+                +
+                centre_valves
+            )
+
+
+            uniform_pitch = 0.0
+
+
+            st.metric(
+                "Calculated total valves",
+                total_valves,
+            )
+
+
+            st.caption(
+                (
+                    f"{edge_valves_per_side} valves "
+                    f"on the left edge + "
+                    f"{centre_valves} centre valves + "
+                    f"{edge_valves_per_side} valves "
+                    f"on the right edge."
                 )
             )
 
 
-        with document_column_2:
+    # --------------------------------------------------------
+    # OPERATING FLUID
+    # --------------------------------------------------------
+
+    with st.expander(
+        "Operating Fluid",
+        expanded=True,
+    ):
 
 
-            manufacturing_drawings_required = (
-                st.selectbox(
-                    (
-                        "Manufacturing drawings "
-                        "required? *"
-                    ),
-                    options=yes_no_options,
-                    index=selectbox_index(
-                        yes_no_options,
-                        saved_manufacturing,
-                        0,
-                    ),
-                    key=(
-                        f"std_manufacturing_"
-                        f"{standard_project}"
-                    ),
-                )
+        saved_fluid = (
+            get_text_value(
+                latest_standard_values,
+                "STD-013",
+                "Water",
+            )
+        )
+
+
+        fluid_selection = st.selectbox(
+            "Operating fluid *",
+            options=OPERATING_FLUIDS,
+            index=selectbox_index(
+                OPERATING_FLUIDS,
+                (
+                    saved_fluid
+                    if saved_fluid
+                    in OPERATING_FLUIDS
+                    else
+                    "Other"
+                ),
+                0,
+            ),
+            key=(
+                f"operating_fluid_"
+                f"{standard_project}"
+            ),
+        )
+
+
+        if fluid_selection == "Other":
+
+
+            default_other_fluid = (
+                saved_fluid
+                if saved_fluid
+                not in OPERATING_FLUIDS
+                else
+                ""
+            )
+
+
+            other_fluid = st.text_input(
+                "Specify the operating fluid *",
+                value=default_other_fluid,
+                key=(
+                    f"other_fluid_"
+                    f"{standard_project}"
+                ),
+            )
+
+
+            final_operating_fluid = (
+                other_fluid.strip()
+            )
+
+
+        else:
+
+
+            final_operating_fluid = (
+                fluid_selection
             )
 
 
     # ========================================================
-    # GENERATE STANDARD REQUIREMENTS TABLE
+    # GENERATE STANDARD REQUIREMENTS
     # ========================================================
 
     generated_standard_requirements = (
         build_standard_requirement_table(
+
             project_name=(
                 standard_project
             ),
+
             customer_name=(
                 customer_name.strip()
             ),
+
+            mill_type=(
+                final_mill_type
+            ),
+
             product_variant=(
                 product_variant
             ),
-            number_of_spray_zones=(
-                number_of_spray_zones
+
+            mk3_configuration=(
+                mk3_configuration
             ),
-            spraybar_length=(
-                spraybar_length
+
+            pitching_type=(
+                pitching_type
             ),
-            zone_pitch=(
-                zone_pitch
+
+            total_valves=(
+                total_valves
             ),
+
+            uniform_pitch=(
+                uniform_pitch
+            ),
+
+            edge_valves_per_side=(
+                edge_valves_per_side
+            ),
+
+            edge_pitch=(
+                edge_pitch
+            ),
+
+            centre_valves=(
+                centre_valves
+            ),
+
+            centre_pitch=(
+                centre_pitch
+            ),
+
             operating_fluid=(
-                operating_fluid
-            ),
-            maximum_pressure=(
-                maximum_pressure
-            ),
-            minimum_flow_rate=(
-                minimum_flow_rate
-            ),
-            solenoid_voltage=(
-                solenoid_voltage
-            ),
-            control_interface=(
-                control_interface
-            ),
-            installation_side=(
-                installation_side
-            ),
-            minimum_temperature=(
-                minimum_temperature
-            ),
-            maximum_temperature=(
-                maximum_temperature
-            ),
-            approval_drawing_required=(
-                approval_drawing_required
-            ),
-            manufacturing_drawings_required=(
-                manufacturing_drawings_required
+                final_operating_fluid
             ),
         )
     )
@@ -3368,7 +2846,7 @@ with standard_requirements_tab:
 
     # ========================================================
     # SECTION 4
-    # REVIEW GENERATED TABLE
+    # GENERATED REQUIREMENT TABLE
     # ========================================================
 
     st.divider()
@@ -3381,8 +2859,8 @@ with standard_requirements_tab:
 
     st.write(
         """
-        This table has been generated automatically from the
-        answers in Section 3. It is read-only.
+        This read-only table has been generated from the
+        project answers above.
         """
     )
 
@@ -3451,7 +2929,7 @@ with standard_requirements_tab:
             "Committed by *",
             placeholder="Enter your name",
             key=(
-                f"std_committed_by_"
+                f"committed_by_"
                 f"{standard_project}"
             ),
         )
@@ -3466,7 +2944,7 @@ with standard_requirements_tab:
                 "Example: Initial project baseline"
             ),
             key=(
-                f"std_revision_comment_"
+                f"revision_comment_"
                 f"{standard_project}"
             ),
         )
@@ -3481,7 +2959,7 @@ with standard_requirements_tab:
     )
 
 
-    commit_revision_button = st.button(
+    commit_button = st.button(
         (
             f"Commit Locked Revision "
             f"{next_revision_number}"
@@ -3489,71 +2967,83 @@ with standard_requirements_tab:
         type="primary",
         use_container_width=True,
         key=(
-            f"commit_standard_revision_"
+            f"commit_revision_"
             f"{standard_project}"
         ),
     )
 
 
-    if commit_revision_button:
+    if commit_button:
 
 
-        commit_errors = []
+        errors = []
 
 
         if not customer_name.strip():
 
-            commit_errors.append(
+            errors.append(
                 "Customer name"
+            )
+
+
+        if not final_mill_type.strip():
+
+            errors.append(
+                "Mill type"
+            )
+
+
+        if not final_operating_fluid.strip():
+
+            errors.append(
+                "Operating fluid"
             )
 
 
         if not committed_by.strip():
 
-            commit_errors.append(
+            errors.append(
                 "Committed by"
             )
 
 
-        if spraybar_length <= 0:
+        if (
+            pitching_type
+            == "Uniform pitching"
+            and
+            uniform_pitch <= 0
+        ):
 
-            commit_errors.append(
-                "Spraybar overall length"
+            errors.append(
+                "Uniform valve pitch"
             )
 
 
-        if zone_pitch <= 0:
+        if (
+            pitching_type
+            == "Hybrid pitching"
+            and
+            edge_pitch <= 0
+        ):
 
-            commit_errors.append(
-                "Zone pitch"
+            errors.append(
+                "Edge valve pitch"
             )
 
 
-        if maximum_pressure <= 0:
+        if (
+            pitching_type
+            == "Hybrid pitching"
+            and
+            centre_pitch <= 0
+        ):
 
-            commit_errors.append(
-                "Maximum operating pressure"
+            errors.append(
+                "Centre valve pitch"
             )
 
 
-        if minimum_flow_rate <= 0:
-
-            commit_errors.append(
-                "Minimum flow rate"
-            )
-
-
-        if maximum_temperature <= minimum_temperature:
-
-            commit_errors.append(
-                (
-                    "Maximum ambient temperature "
-                    "must be greater than the minimum"
-                )
-            )
-
-
-        if commit_errors:
+        if errors:
 
 
             st.error(
@@ -3562,7 +3052,7 @@ with standard_requirements_tab:
                     "Please complete or correct: "
                     +
                     ", ".join(
-                        commit_errors
+                        errors
                     )
                 )
             )
@@ -3575,18 +3065,23 @@ with standard_requirements_tab:
 
 
                 commit_standard_revision(
+
                     project_name=(
                         standard_project
                     ),
+
                     revision_number=(
                         next_revision_number
                     ),
+
                     committed_by=(
                         committed_by.strip()
                     ),
+
                     revision_comment=(
                         revision_comment.strip()
                     ),
+
                     requirements_dataframe=(
                         generated_standard_requirements
                     ),
@@ -3612,7 +3107,7 @@ with standard_requirements_tab:
                 st.error(
                     (
                         "The revision could not be committed "
-                        "because this revision number already "
+                        "because the revision number already "
                         "exists. Refresh the page and try again."
                     )
                 )
