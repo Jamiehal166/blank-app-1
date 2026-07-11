@@ -12,8 +12,9 @@ import streamlit as st
 
 st.set_page_config(
     page_title="ISV Requirements Management",
-    page_icon="📋",
+    page_icon="⬢",
     layout="wide",
+    initial_sidebar_state="expanded",
 )
 
 
@@ -23,13 +24,11 @@ st.set_page_config(
 
 DATABASE_FILE = Path("isv_requirements.db")
 
-
 ALLOWED_PROJECTS = [
     "S.TM10735",
     "S.TM11089",
     "S.TM11113",
 ]
-
 
 PROJECT_REQUIREMENT_CATEGORIES = [
     "Operating condition",
@@ -42,7 +41,6 @@ PROJECT_REQUIREMENT_CATEGORIES = [
     "Other requirement",
 ]
 
-
 VERIFICATION_POINTS = [
     "Requirements review",
     "Concept design review",
@@ -53,7 +51,6 @@ VERIFICATION_POINTS = [
     "Site commissioning",
     "Final project acceptance",
 ]
-
 
 VERIFICATION_METHODS = [
     "Document review",
@@ -68,7 +65,6 @@ VERIFICATION_METHODS = [
     "Demonstration",
 ]
 
-
 MILL_TYPES = [
     "FFM",
     "FIM",
@@ -78,7 +74,6 @@ MILL_TYPES = [
     "Other",
 ]
 
-
 ISV_PRODUCT_VARIANTS = [
     "ISV - MK3",
     "ISV - E",
@@ -86,19 +81,16 @@ ISV_PRODUCT_VARIANTS = [
     "ISV - EX",
 ]
 
-
 MK3_CONFIGURATIONS = [
     "Standard",
     "Narrow",
     "Narrow reduced outlet",
 ]
 
-
 PITCHING_TYPES = [
     "Uniform pitching",
     "Hybrid pitching",
 ]
-
 
 OPERATING_FLUIDS = [
     "Water",
@@ -107,16 +99,758 @@ OPERATING_FLUIDS = [
     "Other",
 ]
 
+ENGINEERING_DELIVERABLES = [
+    "Requirements baseline committed",
+    "Initial layout complete",
+    "Layout issued internally",
+    "Layout sent to customer",
+    "Layout approved",
+    "Detailed design complete",
+    "Manufacturing drawings issued",
+    "Detailing sent to manufacture",
+]
+
 
 # ============================================================
-# DATABASE CONNECTION
+# CUSTOM DARK DASHBOARD THEME
+# ============================================================
+
+st.markdown(
+    """
+    <style>
+
+    /* --------------------------------------------------------
+       GLOBAL
+    -------------------------------------------------------- */
+
+    :root {
+        --page-bg: #050b18;
+        --panel-bg: rgba(12, 25, 52, 0.88);
+        --panel-bg-soft: rgba(16, 31, 63, 0.72);
+        --panel-border: rgba(115, 151, 220, 0.22);
+        --text-main: #f5f7ff;
+        --text-soft: #aeb9d2;
+        --purple: #8d55ff;
+        --purple-light: #b96cff;
+        --cyan: #18d9ff;
+        --blue: #2586ff;
+        --green: #36e4a0;
+        --orange: #ff9d32;
+    }
+
+    html,
+    body,
+    [class*="css"] {
+        font-family:
+            Inter,
+            "Segoe UI",
+            Arial,
+            sans-serif;
+    }
+
+    .stApp {
+        background:
+            radial-gradient(
+                circle at 82% 8%,
+                rgba(0, 198, 255, 0.11),
+                transparent 25%
+            ),
+            radial-gradient(
+                circle at 8% 12%,
+                rgba(130, 70, 255, 0.14),
+                transparent 24%
+            ),
+            linear-gradient(
+                145deg,
+                #050a15 0%,
+                #071328 50%,
+                #061022 100%
+            );
+        color: var(--text-main);
+    }
+
+    .block-container {
+        max-width: 1550px;
+        padding-top: 1.4rem;
+        padding-bottom: 4rem;
+        padding-left: 2rem;
+        padding-right: 2rem;
+    }
+
+    #MainMenu {
+        visibility: hidden;
+    }
+
+    footer {
+        visibility: hidden;
+    }
+
+    header {
+        background: transparent !important;
+    }
+
+
+    /* --------------------------------------------------------
+       SIDEBAR
+    -------------------------------------------------------- */
+
+    section[data-testid="stSidebar"] {
+        background:
+            linear-gradient(
+                180deg,
+                rgba(10, 24, 55, 0.98) 0%,
+                rgba(7, 17, 38, 0.98) 100%
+            );
+        border-right:
+            1px solid rgba(106, 133, 197, 0.24);
+        box-shadow:
+            18px 0 45px rgba(0, 0, 0, 0.28);
+    }
+
+    section[data-testid="stSidebar"] > div {
+        padding-top: 1rem;
+    }
+
+    section[data-testid="stSidebar"]
+    div[data-testid="stRadio"] label {
+        border:
+            1px solid transparent;
+        border-radius:
+            14px;
+        padding:
+            0.8rem 0.9rem;
+        margin:
+            0.18rem 0;
+        color:
+            #cbd5ea;
+        transition:
+            all 0.2s ease;
+    }
+
+    section[data-testid="stSidebar"]
+    div[data-testid="stRadio"] label:hover {
+        background:
+            rgba(79, 116, 255, 0.13);
+        border-color:
+            rgba(79, 116, 255, 0.28);
+    }
+
+    section[data-testid="stSidebar"]
+    div[data-testid="stRadio"]
+    label:has(input:checked) {
+        background:
+            linear-gradient(
+                135deg,
+                rgba(126, 70, 255, 0.72),
+                rgba(34, 112, 255, 0.50)
+            );
+        border-color:
+            rgba(160, 108, 255, 0.65);
+        box-shadow:
+            0 0 24px rgba(125, 74, 255, 0.22);
+        color:
+            white;
+    }
+
+
+    /* --------------------------------------------------------
+       HEADINGS
+    -------------------------------------------------------- */
+
+    h1 {
+        color:
+            #ffffff;
+        letter-spacing:
+            -0.04em;
+        font-weight:
+            760;
+    }
+
+    h2,
+    h3 {
+        color:
+            #f5f7ff;
+        letter-spacing:
+            -0.02em;
+    }
+
+    p,
+    span,
+    label {
+        color:
+            #d8e0f2;
+    }
+
+
+    /* --------------------------------------------------------
+       FORM CONTROLS
+    -------------------------------------------------------- */
+
+    div[data-baseweb="input"] > div,
+    div[data-baseweb="select"] > div,
+    div[data-baseweb="textarea"] > div {
+        background:
+            rgba(6, 17, 39, 0.78) !important;
+        border:
+            1px solid rgba(108, 139, 201, 0.38) !important;
+        border-radius:
+            11px !important;
+        box-shadow:
+            inset 0 0 0 1px rgba(255, 255, 255, 0.015);
+    }
+
+    div[data-baseweb="input"] > div:focus-within,
+    div[data-baseweb="select"] > div:focus-within,
+    div[data-baseweb="textarea"] > div:focus-within {
+        border-color:
+            rgba(72, 211, 255, 0.85) !important;
+        box-shadow:
+            0 0 0 2px rgba(35, 196, 255, 0.10),
+            0 0 18px rgba(35, 196, 255, 0.10);
+    }
+
+    input,
+    textarea {
+        color:
+            white !important;
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+        color:
+            #76839f !important;
+    }
+
+    div[data-baseweb="select"] span {
+        color:
+            #ecf2ff !important;
+    }
+
+    div[data-testid="stNumberInput"] input {
+        color:
+            white !important;
+    }
+
+
+    /* --------------------------------------------------------
+       BUTTONS
+    -------------------------------------------------------- */
+
+    .stButton > button {
+        width:
+            100%;
+        min-height:
+            3rem;
+        border:
+            1px solid rgba(121, 91, 255, 0.60);
+        border-radius:
+            12px;
+        background:
+            linear-gradient(
+                105deg,
+                #7a35f6 0%,
+                #6956ff 42%,
+                #169ff6 72%,
+                #05d6d6 100%
+            );
+        color:
+            white;
+        font-weight:
+            720;
+        box-shadow:
+            0 0 20px rgba(101, 62, 255, 0.24),
+            0 0 20px rgba(0, 202, 255, 0.12);
+        transition:
+            transform 0.15s ease,
+            box-shadow 0.15s ease;
+    }
+
+    .stButton > button:hover {
+        transform:
+            translateY(-1px);
+        color:
+            white;
+        border-color:
+            rgba(80, 225, 255, 0.82);
+        box-shadow:
+            0 0 28px rgba(111, 70, 255, 0.33),
+            0 0 22px rgba(0, 216, 255, 0.21);
+    }
+
+
+    /* --------------------------------------------------------
+       EXPANDERS
+    -------------------------------------------------------- */
+
+    details[data-testid="stExpander"] {
+        background:
+            linear-gradient(
+                145deg,
+                rgba(14, 28, 58, 0.90),
+                rgba(7, 20, 44, 0.86)
+            );
+        border:
+            1px solid rgba(96, 132, 205, 0.26);
+        border-radius:
+            14px;
+        margin-bottom:
+            0.85rem;
+        box-shadow:
+            0 12px 30px rgba(0, 0, 0, 0.16);
+    }
+
+    details[data-testid="stExpander"] summary {
+        font-weight:
+            700;
+        color:
+            #f4f7ff;
+    }
+
+
+    /* --------------------------------------------------------
+       DATAFRAMES
+    -------------------------------------------------------- */
+
+    div[data-testid="stDataFrame"] {
+        border:
+            1px solid rgba(92, 128, 202, 0.28);
+        border-radius:
+            14px;
+        overflow:
+            hidden;
+        background:
+            rgba(7, 18, 40, 0.74);
+        box-shadow:
+            0 12px 28px rgba(0, 0, 0, 0.18);
+    }
+
+
+    /* --------------------------------------------------------
+       TABS
+    -------------------------------------------------------- */
+
+    button[data-baseweb="tab"] {
+        border-radius:
+            10px;
+        color:
+            #9ba9c5;
+    }
+
+    button[data-baseweb="tab"][aria-selected="true"] {
+        color:
+            white;
+        background:
+            rgba(94, 67, 255, 0.28);
+    }
+
+
+    /* --------------------------------------------------------
+       STREAMLIT METRICS
+    -------------------------------------------------------- */
+
+    div[data-testid="stMetric"] {
+        background:
+            linear-gradient(
+                145deg,
+                rgba(20, 38, 77, 0.94),
+                rgba(11, 25, 55, 0.88)
+            );
+        border:
+            1px solid rgba(103, 137, 210, 0.28);
+        border-radius:
+            15px;
+        padding:
+            1.05rem;
+        min-height:
+            125px;
+        box-shadow:
+            0 16px 30px rgba(0, 0, 0, 0.18);
+    }
+
+    div[data-testid="stMetricLabel"] {
+        color:
+            #bac6dc;
+    }
+
+    div[data-testid="stMetricValue"] {
+        color:
+            white;
+        font-size:
+            2rem;
+        font-weight:
+            760;
+    }
+
+
+    /* --------------------------------------------------------
+       PROGRESS
+    -------------------------------------------------------- */
+
+    div[data-testid="stProgress"] > div > div {
+        background:
+            linear-gradient(
+                90deg,
+                #7c46ff,
+                #1fb3ff,
+                #1be8cf
+            );
+    }
+
+
+    /* --------------------------------------------------------
+       CUSTOM PANELS
+    -------------------------------------------------------- */
+
+    .app-shell-title {
+        display:
+            flex;
+        align-items:
+            center;
+        gap:
+            0.9rem;
+        margin-bottom:
+            1.1rem;
+    }
+
+    .app-icon {
+        width:
+            48px;
+        height:
+            48px;
+        border-radius:
+            14px;
+        display:
+            flex;
+        align-items:
+            center;
+        justify-content:
+            center;
+        font-size:
+            1.55rem;
+        background:
+            linear-gradient(
+                145deg,
+                #9a49ff,
+                #315cff,
+                #10d9f3
+            );
+        box-shadow:
+            0 0 28px rgba(92, 92, 255, 0.40);
+    }
+
+    .app-shell-title h1 {
+        margin:
+            0;
+        font-size:
+            2.05rem;
+    }
+
+    .page-subtitle {
+        color:
+            #95a5c3;
+        margin-top:
+            -0.5rem;
+        margin-bottom:
+            1.3rem;
+    }
+
+    .glass-card {
+        background:
+            linear-gradient(
+                145deg,
+                rgba(16, 32, 68, 0.92),
+                rgba(7, 20, 45, 0.84)
+            );
+        border:
+            1px solid rgba(102, 139, 210, 0.26);
+        border-radius:
+            15px;
+        padding:
+            1rem 1.1rem;
+        margin-bottom:
+            0.9rem;
+        box-shadow:
+            0 16px 34px rgba(0, 0, 0, 0.18);
+    }
+
+    .glass-card-purple {
+        background:
+            linear-gradient(
+                145deg,
+                rgba(42, 29, 85, 0.88),
+                rgba(14, 27, 59, 0.88)
+            );
+        border:
+            1px solid rgba(145, 93, 255, 0.46);
+        border-radius:
+            15px;
+        padding:
+            1rem 1.1rem;
+        margin-bottom:
+            0.9rem;
+        box-shadow:
+            0 0 28px rgba(117, 67, 255, 0.10);
+    }
+
+    .glass-card-cyan {
+        background:
+            linear-gradient(
+                145deg,
+                rgba(4, 38, 68, 0.86),
+                rgba(7, 21, 47, 0.90)
+            );
+        border:
+            1px solid rgba(28, 209, 255, 0.46);
+        border-radius:
+            15px;
+        padding:
+            1rem 1.1rem;
+        margin-bottom:
+            0.9rem;
+        box-shadow:
+            0 0 28px rgba(20, 199, 255, 0.09);
+    }
+
+    .card-heading {
+        display:
+            flex;
+        align-items:
+            center;
+        gap:
+            0.6rem;
+        color:
+            white;
+        font-size:
+            1.02rem;
+        font-weight:
+            730;
+        margin-bottom:
+            0.65rem;
+    }
+
+    .section-number {
+        display:
+            inline-flex;
+        align-items:
+            center;
+        justify-content:
+            center;
+        width:
+            27px;
+        height:
+            27px;
+        border-radius:
+            8px;
+        color:
+            white;
+        font-weight:
+            800;
+        background:
+            linear-gradient(
+                145deg,
+                #8c49ff,
+                #4f55ff
+            );
+        box-shadow:
+            0 0 14px rgba(126, 70, 255, 0.28);
+    }
+
+    .metric-card {
+        min-height:
+            138px;
+        border-radius:
+            16px;
+        padding:
+            1.2rem;
+        border:
+            1px solid rgba(109, 145, 217, 0.28);
+        background:
+            linear-gradient(
+                145deg,
+                rgba(21, 40, 80, 0.96),
+                rgba(10, 24, 52, 0.90)
+            );
+        box-shadow:
+            0 15px 34px rgba(0, 0, 0, 0.20);
+    }
+
+    .metric-label {
+        color:
+            #b7c3db;
+        font-size:
+            0.93rem;
+    }
+
+    .metric-value {
+        color:
+            white;
+        font-size:
+            2.55rem;
+        font-weight:
+            780;
+        line-height:
+            1.1;
+        margin-top:
+            0.65rem;
+    }
+
+    .metric-purple {
+        border-color:
+            rgba(151, 86, 255, 0.48);
+        box-shadow:
+            0 0 30px rgba(130, 73, 255, 0.09);
+    }
+
+    .metric-green {
+        border-color:
+            rgba(57, 227, 166, 0.40);
+        box-shadow:
+            0 0 30px rgba(57, 227, 166, 0.06);
+    }
+
+    .metric-orange {
+        border-color:
+            rgba(255, 158, 50, 0.42);
+        box-shadow:
+            0 0 30px rgba(255, 158, 50, 0.06);
+    }
+
+    .metric-blue {
+        border-color:
+            rgba(37, 142, 255, 0.48);
+        box-shadow:
+            0 0 30px rgba(37, 142, 255, 0.08);
+    }
+
+    .small-badge {
+        display:
+            inline-block;
+        border:
+            1px solid rgba(92, 190, 255, 0.36);
+        border-radius:
+            9px;
+        padding:
+            0.32rem 0.65rem;
+        color:
+            #8bdbff;
+        background:
+            rgba(19, 84, 134, 0.18);
+        font-size:
+            0.82rem;
+        font-weight:
+            700;
+    }
+
+    .preview-panel {
+        background:
+            #061329;
+        border:
+            1px solid rgba(24, 217, 255, 0.58);
+        border-radius:
+            13px;
+        padding:
+            1.1rem;
+        color:
+            #8de6ff;
+        font-family:
+            "SFMono-Regular",
+            Consolas,
+            monospace;
+        line-height:
+            1.75;
+        box-shadow:
+            inset 0 0 20px rgba(0, 184, 255, 0.04),
+            0 0 25px rgba(0, 190, 255, 0.08);
+        white-space:
+            pre-wrap;
+    }
+
+    .sidebar-brand {
+        margin:
+            0.2rem 0 2.2rem 0;
+    }
+
+    .sidebar-logo-row {
+        display:
+            flex;
+        align-items:
+            center;
+        gap:
+            0.8rem;
+    }
+
+    .sidebar-logo {
+        width:
+            43px;
+        height:
+            43px;
+        border-radius:
+            12px;
+        display:
+            flex;
+        align-items:
+            center;
+        justify-content:
+            center;
+        font-size:
+            1.5rem;
+        background:
+            linear-gradient(
+                145deg,
+                #a044ff,
+                #315cff,
+                #04d9ff
+            );
+        box-shadow:
+            0 0 24px rgba(82, 89, 255, 0.42);
+    }
+
+    .sidebar-brand-name {
+        color:
+            white;
+        font-size:
+            1.65rem;
+        font-weight:
+            800;
+        line-height:
+            1;
+    }
+
+    .sidebar-brand-sub {
+        color:
+            #abb8d2;
+        font-size:
+            0.86rem;
+        line-height:
+            1.2;
+        margin-top:
+            0.25rem;
+    }
+
+    .sidebar-footer {
+        margin-top:
+            3rem;
+        padding-top:
+            1rem;
+        border-top:
+            1px solid rgba(104, 133, 193, 0.20);
+        color:
+            #aebad1;
+        font-size:
+            0.84rem;
+    }
+
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+
+# ============================================================
+# DATABASE
 # ============================================================
 
 def get_database_connection():
-    """
-    Open a SQLite database connection.
-    """
-
     connection = sqlite3.connect(
         DATABASE_FILE
     )
@@ -128,25 +862,17 @@ def get_database_connection():
     return connection
 
 
-# ============================================================
-# DATABASE HELPERS
-# ============================================================
-
 def get_existing_columns(
     connection,
     table_name,
 ):
-    """
-    Return the existing columns for a database table.
-    """
-
-    table_information = connection.execute(
+    rows = connection.execute(
         f"PRAGMA table_info({table_name})"
     ).fetchall()
 
     return [
-        column[1]
-        for column in table_information
+        row[1]
+        for row in rows
     ]
 
 
@@ -154,12 +880,8 @@ def add_column_if_missing(
     connection,
     table_name,
     column_name,
-    column_definition,
+    definition,
 ):
-    """
-    Add a new column without deleting existing data.
-    """
-
     existing_columns = get_existing_columns(
         connection,
         table_name,
@@ -170,28 +892,13 @@ def add_column_if_missing(
         connection.execute(
             f"""
             ALTER TABLE {table_name}
-            ADD COLUMN {column_name} {column_definition}
+            ADD COLUMN {column_name} {definition}
             """
         )
 
 
-# ============================================================
-# DATABASE SETUP
-# ============================================================
-
 def create_or_update_database():
-    """
-    Create or update all application tables.
-
-    Existing records are preserved.
-    """
-
     connection = get_database_connection()
-
-
-    # --------------------------------------------------------
-    # PROJECT-SPECIFIC REQUIREMENTS
-    # --------------------------------------------------------
 
     connection.execute(
         """
@@ -214,14 +921,12 @@ def create_or_update_database():
         """
     )
 
-
     add_column_if_missing(
         connection,
         "requirements",
         "boilerplate_name",
         "TEXT",
     )
-
 
     add_column_if_missing(
         connection,
@@ -230,7 +935,6 @@ def create_or_update_database():
         "TEXT",
     )
 
-
     add_column_if_missing(
         connection,
         "requirements",
@@ -238,18 +942,12 @@ def create_or_update_database():
         "TEXT",
     )
 
-
     add_column_if_missing(
         connection,
         "requirements",
         "verification_method",
         "TEXT",
     )
-
-
-    # --------------------------------------------------------
-    # STANDARD REQUIREMENT REVISION HEADERS
-    # --------------------------------------------------------
 
     connection.execute(
         """
@@ -265,11 +963,6 @@ def create_or_update_database():
         )
         """
     )
-
-
-    # --------------------------------------------------------
-    # STANDARD REQUIREMENT REVISION ITEMS
-    # --------------------------------------------------------
 
     connection.execute(
         """
@@ -291,14 +984,12 @@ def create_or_update_database():
         """
     )
 
-
     add_column_if_missing(
         connection,
         "standard_requirement_items",
         "verification_point",
         "TEXT",
     )
-
 
     add_column_if_missing(
         connection,
@@ -307,14 +998,45 @@ def create_or_update_database():
         "TEXT",
     )
 
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS requirement_completion (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            project_name TEXT NOT NULL,
+            requirement_source TEXT NOT NULL,
+            requirement_reference TEXT NOT NULL,
+            is_complete INTEGER NOT NULL DEFAULT 0,
+            evidence_comment TEXT,
+            UNIQUE(
+                project_name,
+                requirement_source,
+                requirement_reference
+            )
+        )
+        """
+    )
+
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS engineering_deliverables (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            project_name TEXT NOT NULL,
+            deliverable_name TEXT NOT NULL,
+            is_complete INTEGER NOT NULL DEFAULT 0,
+            UNIQUE(
+                project_name,
+                deliverable_name
+            )
+        )
+        """
+    )
 
     connection.commit()
-
     connection.close()
 
 
 # ============================================================
-# PROJECT-SPECIFIC REQUIREMENT FUNCTIONS
+# DATABASE QUERIES
 # ============================================================
 
 def save_project_requirement(
@@ -329,12 +1051,7 @@ def save_project_requirement(
     verification_point,
     verification_method,
 ):
-    """
-    Save a project-specific requirement.
-    """
-
     connection = get_database_connection()
-
 
     connection.execute(
         """
@@ -374,22 +1091,16 @@ def save_project_requirement(
         ),
     )
 
-
     connection.commit()
-
     connection.close()
 
 
-def load_project_requirements():
-    """
-    Load all project-specific requirements.
-    """
-
+def load_project_requirements(
+    project_name=None,
+):
     connection = get_database_connection()
 
-
-    requirements = pd.read_sql_query(
-        """
+    query = """
         SELECT
             id,
             project_name,
@@ -406,32 +1117,41 @@ def load_project_requirements():
             verification_method
         FROM requirements
         WHERE requirement_type = 'Customer specific'
-        ORDER BY id DESC
-        """,
-        connection,
-    )
+    """
 
+    parameters = ()
+
+    if project_name:
+
+        query += """
+            AND project_name = ?
+        """
+
+        parameters = (
+            project_name,
+        )
+
+    query += """
+        ORDER BY id DESC
+    """
+
+    dataframe = pd.read_sql_query(
+        query,
+        connection,
+        params=parameters,
+    )
 
     connection.close()
 
-    return requirements
+    return dataframe
 
-
-# ============================================================
-# STANDARD REQUIREMENT REVISION FUNCTIONS
-# ============================================================
 
 def load_standard_revisions(
     project_name,
 ):
-    """
-    Load all standard revisions for a project.
-    """
-
     connection = get_database_connection()
 
-
-    revisions = pd.read_sql_query(
+    dataframe = pd.read_sql_query(
         """
         SELECT
             id,
@@ -451,23 +1171,17 @@ def load_standard_revisions(
         ),
     )
 
-
     connection.close()
 
-    return revisions
+    return dataframe
 
 
 def load_standard_revision_items(
     revision_id,
 ):
-    """
-    Load all requirement items in one locked revision.
-    """
-
     connection = get_database_connection()
 
-
-    items = pd.read_sql_query(
+    dataframe = pd.read_sql_query(
         """
         SELECT
             requirement_id,
@@ -488,100 +1202,99 @@ def load_standard_revision_items(
         ),
     )
 
-
     connection.close()
 
-    return items
-
-
-def get_next_revision_number(
-    project_name,
-):
-    """
-    Return the next two-digit revision number.
-    """
-
-    revisions = load_standard_revisions(
-        project_name
-    )
-
-
-    if revisions.empty:
-
-        return "00"
-
-
-    latest_revision = (
-        revisions["revision_number"]
-        .astype(int)
-        .max()
-    )
-
-
-    return f"{latest_revision + 1:02d}"
+    return dataframe
 
 
 def get_latest_revision_id(
     project_name,
 ):
-    """
-    Return the latest locked revision ID.
-    """
-
     revisions = load_standard_revisions(
         project_name
     )
 
-
     if revisions.empty:
 
         return None
-
 
     return int(
         revisions.iloc[-1]["id"]
     )
 
 
-def load_latest_standard_values(
+def get_latest_revision_number(
     project_name,
 ):
-    """
-    Load values from the latest locked revision.
-
-    These values populate the next revision.
-    """
-
-    latest_revision_id = get_latest_revision_id(
+    revisions = load_standard_revisions(
         project_name
     )
 
+    if revisions.empty:
 
-    if latest_revision_id is None:
+        return "None"
 
-        return {}
-
-
-    latest_items = load_standard_revision_items(
-        latest_revision_id
+    return str(
+        revisions.iloc[-1][
+            "revision_number"
+        ]
     )
 
 
-    latest_values = {}
+def get_next_revision_number(
+    project_name,
+):
+    revisions = load_standard_revisions(
+        project_name
+    )
+
+    if revisions.empty:
+
+        return "00"
+
+    latest_number = (
+        revisions[
+            "revision_number"
+        ]
+        .astype(int)
+        .max()
+    )
+
+    return f"{latest_number + 1:02d}"
 
 
-    for _, row in latest_items.iterrows():
+def load_latest_standard_values(
+    project_name,
+):
+    revision_id = get_latest_revision_id(
+        project_name
+    )
 
-        latest_values[
+    if revision_id is None:
+
+        return {}
+
+    items = load_standard_revision_items(
+        revision_id
+    )
+
+    values = {}
+
+    for _, row in items.iterrows():
+
+        values[
             str(
-                row["requirement_id"]
+                row[
+                    "requirement_id"
+                ]
             )
         ] = str(
-            row["required_value"]
+            row[
+                "required_value"
+            ]
         )
 
-
-    return latest_values
+    return values
 
 
 def commit_standard_revision(
@@ -591,14 +1304,9 @@ def commit_standard_revision(
     revision_comment,
     requirements_dataframe,
 ):
-    """
-    Save and lock one complete standard requirements revision.
-    """
-
     connection = get_database_connection()
 
     cursor = connection.cursor()
-
 
     cursor.execute(
         """
@@ -624,9 +1332,7 @@ def commit_standard_revision(
         ),
     )
 
-
     revision_id = cursor.lastrowid
-
 
     for _, row in requirements_dataframe.iterrows():
 
@@ -652,16 +1358,22 @@ def commit_standard_revision(
                     row["Question ID"]
                 ),
                 str(
-                    row["Requirement Area"]
+                    row[
+                        "Requirement Area"
+                    ]
                 ),
                 str(
                     row["Requirement"]
                 ),
                 str(
-                    row["Required Value"]
+                    row[
+                        "Required Value"
+                    ]
                 ),
                 str(
-                    row["Unit / Limit"]
+                    row[
+                        "Unit / Limit"
+                    ]
                 ),
                 str(
                     row["V&V Point"]
@@ -676,65 +1388,71 @@ def commit_standard_revision(
             ),
         )
 
-
     connection.commit()
-
     connection.close()
 
 
 # ============================================================
-# REVISION COMPARISON
+# REVISION HISTORY
 # ============================================================
 
 def revision_items_to_dictionary(
-    revision_items,
+    dataframe,
 ):
-    """
-    Convert revision items into a comparison dictionary.
-    """
+    result = {}
 
-    revision_dictionary = {}
-
-
-    for _, row in revision_items.iterrows():
+    for _, row in dataframe.iterrows():
 
         question_id = str(
-            row["requirement_id"]
+            row[
+                "requirement_id"
+            ]
         )
 
-
-        revision_dictionary[
+        result[
             question_id
         ] = {
 
             "requirement_area":
                 str(
-                    row["requirement_area"]
+                    row[
+                        "requirement_area"
+                    ]
                 ),
 
             "requirement_text":
                 str(
-                    row["requirement_text"]
+                    row[
+                        "requirement_text"
+                    ]
                 ),
 
             "required_value":
                 str(
-                    row["required_value"]
+                    row[
+                        "required_value"
+                    ]
                 ),
 
             "unit_or_limit":
                 str(
-                    row["unit_or_limit"]
+                    row[
+                        "unit_or_limit"
+                    ]
                 ),
 
             "verification_point":
                 str(
-                    row["verification_point"]
+                    row[
+                        "verification_point"
+                    ]
                 ),
 
             "verification_method":
                 str(
-                    row["verification_method"]
+                    row[
+                        "verification_method"
+                    ]
                 ),
 
             "notes":
@@ -743,91 +1461,74 @@ def revision_items_to_dictionary(
                 ),
         }
 
-
-    return revision_dictionary
+    return result
 
 
 def find_changed_question_ids(
-    previous_revision_items,
-    current_revision_items,
+    previous_items,
+    current_items,
 ):
-    """
-    Find changed, added, or removed question IDs.
-    """
-
-    previous_dictionary = (
+    previous = (
         revision_items_to_dictionary(
-            previous_revision_items
+            previous_items
         )
     )
 
-
-    current_dictionary = (
+    current = (
         revision_items_to_dictionary(
-            current_revision_items
+            current_items
         )
     )
 
-
-    all_question_ids = sorted(
+    all_ids = sorted(
         set(
-            previous_dictionary.keys()
+            previous.keys()
         )
         |
         set(
-            current_dictionary.keys()
+            current.keys()
         )
     )
 
+    changed = []
 
-    changed_question_ids = []
-
-
-    for question_id in all_question_ids:
+    for question_id in all_ids:
 
         if (
-            previous_dictionary.get(
+            previous.get(
                 question_id
             )
             !=
-            current_dictionary.get(
+            current.get(
                 question_id
             )
         ):
 
-            changed_question_ids.append(
+            changed.append(
                 question_id
             )
 
-
-    return changed_question_ids
+    return changed
 
 
 def build_revision_history_summary(
     project_name,
 ):
-    """
-    Build a compact revision history.
-    """
-
     revisions = load_standard_revisions(
         project_name
     )
-
 
     if revisions.empty:
 
         return pd.DataFrame()
 
+    rows = []
 
-    history_rows = []
-
-    previous_revision_items = None
-
+    previous_items = None
 
     for _, revision in revisions.iterrows():
 
-        current_revision_items = (
+        current_items = (
             load_standard_revision_items(
                 int(
                     revision["id"]
@@ -835,43 +1536,32 @@ def build_revision_history_summary(
             )
         )
 
+        if previous_items is None:
 
-        if previous_revision_items is None:
-
-            changed_questions = (
+            changed_text = (
                 "Initial issue"
             )
-
 
         else:
 
             changed_ids = (
                 find_changed_question_ids(
-                    previous_revision_items,
-                    current_revision_items,
+                    previous_items,
+                    current_items,
                 )
             )
 
-
-            if changed_ids:
-
-                changed_questions = (
-                    ", ".join(
-                        changed_ids
-                    )
+            changed_text = (
+                ", ".join(
+                    changed_ids
                 )
+                if changed_ids
+                else
+                "No requirement changes"
+            )
 
-
-            else:
-
-                changed_questions = (
-                    "No requirement changes"
-                )
-
-
-        history_rows.append(
+        rows.append(
             {
-
                 "Revision":
                     str(
                         revision[
@@ -880,34 +1570,174 @@ def build_revision_history_summary(
                     ),
 
                 "Changed Question IDs":
-                    changed_questions,
+                    changed_text,
 
                 "Committed By":
                     revision[
                         "committed_by"
                     ],
 
-                "Committed Date":
-                    revision[
-                        "committed_date"
-                    ],
-
-                "Revision Comment":
+                "Comment":
                     revision[
                         "revision_comment"
                     ],
             }
         )
 
-
-        previous_revision_items = (
-            current_revision_items
+        previous_items = (
+            current_items
         )
 
-
     return pd.DataFrame(
-        history_rows
+        rows
     )
+
+
+# ============================================================
+# DASHBOARD STORAGE
+# ============================================================
+
+def get_requirement_completion(
+    project_name,
+    source,
+    reference,
+):
+    connection = get_database_connection()
+
+    row = connection.execute(
+        """
+        SELECT
+            is_complete,
+            evidence_comment
+        FROM requirement_completion
+        WHERE project_name = ?
+        AND requirement_source = ?
+        AND requirement_reference = ?
+        """,
+        (
+            project_name,
+            source,
+            reference,
+        ),
+    ).fetchone()
+
+    connection.close()
+
+    if row is None:
+
+        return False, ""
+
+    return bool(
+        row[0]
+    ), row[1] or ""
+
+
+def save_requirement_completion(
+    project_name,
+    source,
+    reference,
+    is_complete,
+    evidence_comment,
+):
+    connection = get_database_connection()
+
+    connection.execute(
+        """
+        INSERT INTO requirement_completion (
+            project_name,
+            requirement_source,
+            requirement_reference,
+            is_complete,
+            evidence_comment
+        )
+        VALUES (?, ?, ?, ?, ?)
+        ON CONFLICT(
+            project_name,
+            requirement_source,
+            requirement_reference
+        )
+        DO UPDATE SET
+            is_complete = excluded.is_complete,
+            evidence_comment = excluded.evidence_comment
+        """,
+        (
+            project_name,
+            source,
+            reference,
+            int(
+                is_complete
+            ),
+            evidence_comment,
+        ),
+    )
+
+    connection.commit()
+    connection.close()
+
+
+def get_deliverable_status(
+    project_name,
+    deliverable_name,
+):
+    connection = get_database_connection()
+
+    row = connection.execute(
+        """
+        SELECT is_complete
+        FROM engineering_deliverables
+        WHERE project_name = ?
+        AND deliverable_name = ?
+        """,
+        (
+            project_name,
+            deliverable_name,
+        ),
+    ).fetchone()
+
+    connection.close()
+
+    if row is None:
+
+        return False
+
+    return bool(
+        row[0]
+    )
+
+
+def save_deliverable_status(
+    project_name,
+    deliverable_name,
+    is_complete,
+):
+    connection = get_database_connection()
+
+    connection.execute(
+        """
+        INSERT INTO engineering_deliverables (
+            project_name,
+            deliverable_name,
+            is_complete
+        )
+        VALUES (?, ?, ?)
+        ON CONFLICT(
+            project_name,
+            deliverable_name
+        )
+        DO UPDATE SET
+            is_complete = excluded.is_complete
+        """,
+        (
+            project_name,
+            deliverable_name,
+            int(
+                is_complete
+            ),
+        ),
+    )
+
+    connection.commit()
+    connection.close()
 
 
 # ============================================================
@@ -915,27 +1745,21 @@ def build_revision_history_summary(
 # ============================================================
 
 def get_text_value(
-    latest_values,
+    values,
     question_id,
-    default_value="",
+    default="",
 ):
-    """
-    Return saved text or a default.
-    """
-
-    value = latest_values.get(
+    value = values.get(
         question_id,
-        default_value,
+        default,
     )
-
 
     if value in [
         "None",
         "nan",
     ]:
 
-        return default_value
-
+        return default
 
     return str(
         value
@@ -943,99 +1767,73 @@ def get_text_value(
 
 
 def get_integer_value(
-    latest_values,
+    values,
     question_id,
-    default_value=0,
+    default=0,
 ):
-    """
-    Safely return an integer.
-    """
-
-    value = latest_values.get(
-        question_id,
-        default_value,
-    )
-
-
     try:
 
         return int(
             float(
-                value
+                values.get(
+                    question_id,
+                    default,
+                )
             )
         )
 
-
     except (
         TypeError,
         ValueError,
     ):
 
-        return default_value
+        return default
 
 
 def get_float_value(
-    latest_values,
+    values,
     question_id,
-    default_value=0.0,
+    default=0.0,
 ):
-    """
-    Safely return a float.
-    """
-
-    value = latest_values.get(
-        question_id,
-        default_value,
-    )
-
-
     try:
 
         return float(
-            value
+            values.get(
+                question_id,
+                default,
+            )
         )
-
 
     except (
         TypeError,
         ValueError,
     ):
 
-        return default_value
+        return default
 
 
 def selectbox_index(
     options,
-    saved_value,
+    value,
     default_index=0,
 ):
-    """
-    Return the correct index for a saved dropdown value.
-    """
-
-    if saved_value in options:
+    if value in options:
 
         return options.index(
-            saved_value
+            value
         )
-
 
     return default_index
 
 
 # ============================================================
-# ELECTRICAL REQUIREMENT LOOKUP
+# STANDARD REQUIREMENT GENERATOR
 # ============================================================
 
 def get_electrical_requirement(
     product_variant,
 ):
-    """
-    Return the electrical requirement implied
-    by the selected valve type.
-    """
-
-    electrical_requirements = {
+    mapping = {
 
         "ISV - MK3":
             (
@@ -1062,16 +1860,11 @@ def get_electrical_requirement(
             ),
     }
 
-
-    return electrical_requirements.get(
+    return mapping.get(
         product_variant,
         "Valve-specific electrical requirements",
     )
 
-
-# ============================================================
-# STANDARD REQUIREMENT TABLE GENERATOR
-# ============================================================
 
 def build_standard_requirement_table(
     project_name,
@@ -1088,19 +1881,13 @@ def build_standard_requirement_table(
     centre_pitch,
     operating_fluid,
 ):
-    """
-    Generate the standard requirements table.
-    """
-
     electrical_requirement = (
         get_electrical_requirement(
             product_variant
         )
     )
 
-
     requirements = [
-
 
         {
             "Question ID":
@@ -1111,8 +1898,8 @@ def build_standard_requirement_table(
 
             "Requirement":
                 (
-                    "The project shall use the "
-                    "selected project reference."
+                    "The project shall use "
+                    "the selected project reference."
                 ),
 
             "Required Value":
@@ -1130,7 +1917,6 @@ def build_standard_requirement_table(
             "Notes":
                 "",
         },
-
 
         {
             "Question ID":
@@ -1161,7 +1947,6 @@ def build_standard_requirement_table(
                 "",
         },
 
-
         {
             "Question ID":
                 "STD-003",
@@ -1191,7 +1976,6 @@ def build_standard_requirement_table(
                 "",
         },
 
-
         {
             "Question ID":
                 "STD-004",
@@ -1201,8 +1985,8 @@ def build_standard_requirement_table(
 
             "Requirement":
                 (
-                    "The ISV system shall use the "
-                    "selected ISV product variant."
+                    "The ISV system shall use "
+                    "the selected ISV product variant."
                 ),
 
             "Required Value":
@@ -1220,7 +2004,6 @@ def build_standard_requirement_table(
             "Notes":
                 "",
         },
-
 
         {
             "Question ID":
@@ -1249,11 +2032,10 @@ def build_standard_requirement_table(
 
             "Notes":
                 (
-                    "Not applicable when a non-MK3 "
-                    "variant is selected."
+                    "Not applicable when "
+                    "a non-MK3 variant is selected."
                 ),
         },
-
 
         {
             "Question ID":
@@ -1264,8 +2046,8 @@ def build_standard_requirement_table(
 
             "Requirement":
                 (
-                    "The ISV spraybar shall use the "
-                    "selected valve pitching configuration."
+                    "The ISV spraybar shall use "
+                    "the selected valve pitching configuration."
                 ),
 
             "Required Value":
@@ -1283,7 +2065,6 @@ def build_standard_requirement_table(
             "Notes":
                 "",
         },
-
 
         {
             "Question ID":
@@ -1316,7 +2097,6 @@ def build_standard_requirement_table(
                 "",
         },
 
-
         {
             "Question ID":
                 "STD-008",
@@ -1326,8 +2106,8 @@ def build_standard_requirement_table(
 
             "Requirement":
                 (
-                    "The ISV spraybar shall use the "
-                    "specified uniform valve pitch."
+                    "The ISV spraybar shall use "
+                    "the specified uniform valve pitch."
                 ),
 
             "Required Value":
@@ -1357,7 +2137,6 @@ def build_standard_requirement_table(
             "Notes":
                 "",
         },
-
 
         {
             "Question ID":
@@ -1403,7 +2182,6 @@ def build_standard_requirement_table(
                 "",
         },
 
-
         {
             "Question ID":
                 "STD-010",
@@ -1444,7 +2222,6 @@ def build_standard_requirement_table(
             "Notes":
                 "",
         },
-
 
         {
             "Question ID":
@@ -1489,7 +2266,6 @@ def build_standard_requirement_table(
                 "",
         },
 
-
         {
             "Question ID":
                 "STD-012",
@@ -1531,7 +2307,6 @@ def build_standard_requirement_table(
                 "",
         },
 
-
         {
             "Question ID":
                 "STD-013",
@@ -1560,7 +2335,6 @@ def build_standard_requirement_table(
             "Notes":
                 "",
         },
-
 
         {
             "Question ID":
@@ -1595,7 +2369,6 @@ def build_standard_requirement_table(
                 ),
         },
 
-
         {
             "Question ID":
                 "STD-015",
@@ -1627,7 +2400,6 @@ def build_standard_requirement_table(
                     "to all projects."
                 ),
         },
-
 
         {
             "Question ID":
@@ -1662,221 +2434,333 @@ def build_standard_requirement_table(
         },
     ]
 
-
     return pd.DataFrame(
         requirements
     )
 
 
 # ============================================================
-# INITIALISE DATABASE
+# UI HELPERS
+# ============================================================
+
+def render_page_heading(
+    icon,
+    title,
+    subtitle,
+):
+    st.markdown(
+        f"""
+        <div class="app-shell-title">
+            <div class="app-icon">
+                {icon}
+            </div>
+
+            <div>
+                <h1>
+                    {title}
+                </h1>
+
+                <div class="page-subtitle">
+                    {subtitle}
+                </div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_section_heading(
+    number,
+    title,
+):
+    st.markdown(
+        f"""
+        <div class="card-heading">
+            <span class="section-number">
+                {number}
+            </span>
+
+            <span>
+                {title}
+            </span>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_metric_card(
+    label,
+    value,
+    style_class,
+):
+    st.markdown(
+        f"""
+        <div class="
+            metric-card
+            {style_class}
+        ">
+            <div class="metric-label">
+                {label}
+            </div>
+
+            <div class="metric-value">
+                {value}
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+# ============================================================
+# CREATE DATABASE
 # ============================================================
 
 create_or_update_database()
 
 
 # ============================================================
-# PAGE HEADER
+# SIDEBAR
 # ============================================================
 
-st.title(
-    "📋 ISV Requirements Management"
-)
+with st.sidebar:
 
+    st.markdown(
+        """
+        <div class="sidebar-brand">
 
-st.write(
-    """
-    Capture project requirements and maintain controlled,
-    project-specific standard requirement revisions.
-    """
-)
+            <div class="sidebar-logo-row">
 
+                <div class="sidebar-logo">
+                    ⬢
+                </div>
 
-# ============================================================
-# APPLICATION TABS
-# ============================================================
+                <div>
 
-project_specific_tab, standard_requirements_tab = (
-    st.tabs(
-        [
+                    <div class="sidebar-brand-name">
+                        ISV
+                    </div>
+
+                    <div class="sidebar-brand-sub">
+                        Requirements<br>
+                        Management
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    selected_page = st.radio(
+        "Navigation",
+        options=[
             "Project-Specific Requirements",
             "Standard Requirements",
+            "Engineering Dashboard",
+        ],
+        label_visibility="collapsed",
+    )
+
+    st.markdown(
+        """
+        <div class="sidebar-footer">
+
+            <strong>
+                Engineering Team
+            </strong>
+
+            <br>
+
+            Internal engineering tool
+
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+# ============================================================
+# PROJECT-SPECIFIC REQUIREMENTS PAGE
+# ============================================================
+
+if (
+    selected_page
+    == "Project-Specific Requirements"
+):
+
+    render_page_heading(
+        "▤",
+        "Project-Specific Requirements",
+        (
+            "Capture customer and project-specific "
+            "requirements using guided engineering inputs."
+        ),
+    )
+
+    top_left, top_right = st.columns(
+        [
+            1.85,
+            1,
         ]
     )
-)
 
+    with top_left:
 
-# ============================================================
-# PROJECT-SPECIFIC REQUIREMENTS TAB
-# ============================================================
-
-with project_specific_tab:
-
-
-    st.header(
-        "Project-Specific Requirement Capture"
-    )
-
-
-    st.write(
-        """
-        Select the type of requirement and answer the guided
-        questions. The requirement statement is generated
-        automatically.
-        """
-    )
-
-
-    st.info(
-        """
-        Each requirement must also have a proposed verification
-        or validation point and method before submission.
-        """
-    )
-
-
-    # ========================================================
-    # SECTION 1
-    # REQUIREMENT DETAILS
-    # ========================================================
-
-    st.subheader(
-        "1. Requirement Details"
-    )
-
-
-    detail_column_1, detail_column_2 = (
-        st.columns(2)
-    )
-
-
-    with detail_column_1:
-
-
-        selected_project = st.selectbox(
-            "Project *",
-            options=ALLOWED_PROJECTS,
-            key="project_specific_project",
+        st.markdown(
+            """
+            <div class="glass-card">
+            """,
+            unsafe_allow_html=True,
         )
 
-
-        requirement_title = st.text_input(
-            "Requirement title *",
-            placeholder=(
-                "Example: Ambient operating temperature"
-            ),
-            key="project_requirement_title",
+        render_section_heading(
+            "1",
+            "Requirement Details",
         )
 
+        detail_1, detail_2 = st.columns(2)
 
-    with detail_column_2:
+        with detail_1:
 
+            selected_project = (
+                st.selectbox(
+                    "Project *",
+                    ALLOWED_PROJECTS,
+                    key="project_project",
+                )
+            )
 
-        source_department = st.selectbox(
-            "Where did this requirement come from? *",
-            options=[
-                "Customer",
-                "Sales",
-                "Engineering",
-                "Project Management",
-                "Operations / Production",
-                "Supply Chain Management",
-                "Site and Service",
-                "Research and Development",
-                "Quality",
-                "Other",
-            ],
-            key="project_requirement_source",
+            source_department = (
+                st.selectbox(
+                    "Source department *",
+                    [
+                        "Customer",
+                        "Sales",
+                        "Engineering",
+                        "Project Management",
+                        "Operations / Production",
+                        "Supply Chain Management",
+                        "Site and Service",
+                        "Research and Development",
+                        "Quality",
+                        "Other",
+                    ],
+                    key="project_source",
+                )
+            )
+
+        with detail_2:
+
+            requirement_title = (
+                st.text_input(
+                    "Requirement title *",
+                    placeholder=(
+                        "Enter a short, descriptive title"
+                    ),
+                    key="project_title",
+                )
+            )
+
+            submitted_by = (
+                st.text_input(
+                    "Submitted by *",
+                    placeholder=(
+                        "Enter your name"
+                    ),
+                    key="project_submitter",
+                )
+            )
+
+        st.markdown(
+            "</div>",
+            unsafe_allow_html=True,
         )
 
+    with top_right:
 
-        submitted_by = st.text_input(
-            "Submitted by *",
-            placeholder="Enter your name",
-            key="project_requirement_submitter",
+        st.markdown(
+            """
+            <div class="glass-card-purple">
+            """,
+            unsafe_allow_html=True,
         )
 
+        render_section_heading(
+            "2",
+            "Requirement Type",
+        )
 
-    # ========================================================
-    # SECTION 2
-    # REQUIREMENT CATEGORY
-    # ========================================================
+        requirement_category = (
+            st.selectbox(
+                "Select requirement type *",
+                PROJECT_REQUIREMENT_CATEGORIES,
+                key="project_category",
+            )
+        )
 
-    st.divider()
+        st.caption(
+            (
+                "Choose the category that best "
+                "matches the requirement."
+            )
+        )
 
+        st.markdown(
+            "</div>",
+            unsafe_allow_html=True,
+        )
 
-    st.subheader(
-        "2. What Type of Requirement Is This?"
+    input_left, preview_right = st.columns(
+        [
+            1.65,
+            1,
+        ]
     )
-
-
-    selected_requirement_category = (
-        st.selectbox(
-            "Requirement type *",
-            options=(
-                PROJECT_REQUIREMENT_CATEGORIES
-            ),
-            key="project_requirement_category",
-        )
-    )
-
-
-    # ========================================================
-    # SECTION 3
-    # GUIDED REQUIREMENT INPUT
-    # ========================================================
-
-    st.divider()
-
-
-    st.subheader(
-        "3. Tell Us What Is Needed"
-    )
-
 
     generated_requirement = ""
 
-    requirement_preview = ""
-
     stakeholder_input = ""
 
-    required_inputs_complete = False
+    requirement_complete = False
 
-    database_category = "Other"
+    internal_category = "Other"
 
+    with input_left:
 
-    # --------------------------------------------------------
-    # OPERATING CONDITION
-    # --------------------------------------------------------
-
-    if (
-        selected_requirement_category
-        == "Operating condition"
-    ):
-
-
-        database_category = "Environmental"
-
-
-        input_column_1, input_column_2 = (
-            st.columns(2)
+        st.markdown(
+            """
+            <div class="glass-card">
+            """,
+            unsafe_allow_html=True,
         )
 
+        render_section_heading(
+            "3",
+            "Tell Us What Is Needed",
+        )
 
-        with input_column_1:
+        if (
+            requirement_category
+            == "Operating condition"
+        ):
 
+            internal_category = (
+                "Environmental"
+            )
 
-            equipment_name = st.text_input(
-                (
-                    "What equipment or system "
-                    "does this apply to? *"
-                ),
+            equipment = st.text_input(
+                "Equipment or system *",
                 value="ISV spraybar",
                 key="operating_equipment",
             )
 
-
-            required_action = st.text_input(
+            action = st.text_input(
                 "What must it do? *",
                 placeholder=(
                     "Example: operate continuously"
@@ -1884,903 +2768,332 @@ with project_specific_tab:
                 key="operating_action",
             )
 
-
-        with input_column_2:
-
-
-            operating_condition = st.text_area(
-                (
-                    "Under what condition "
-                    "must it operate? *"
-                ),
+            condition = st.text_area(
+                "Operating condition *",
                 placeholder=(
-                    "Example: at an ambient temperature "
-                    "between 5°C and 45°C"
+                    "Example: at an ambient "
+                    "temperature between 5°C and 45°C"
                 ),
                 key="operating_condition",
             )
 
+            requirement_complete = all(
+                [
+                    equipment.strip(),
+                    action.strip(),
+                    condition.strip(),
+                ]
+            )
 
-        required_inputs_complete = all(
-            [
-                equipment_name.strip(),
-                required_action.strip(),
-                operating_condition.strip(),
-            ]
-        )
+            generated_requirement = (
+                f"The "
+                f"{equipment.strip() or '[equipment]'} "
+                f"shall "
+                f"{action.strip() or '[required action]'} "
+                f"{condition.strip() or '[operating condition]'}."
+            )
 
+            stakeholder_input = (
+                f"Equipment: {equipment}\n"
+                f"Action: {action}\n"
+                f"Condition: {condition}"
+            )
 
-        requirement_preview = (
-            f"The "
-            f"{equipment_name.strip() or '[equipment or system]'} "
-            f"shall "
-            f"{required_action.strip() or '[required action]'} "
-            f"{operating_condition.strip() or '[operating condition]'}."
-        )
+        elif (
+            requirement_category
+            == "Capacity or quantity"
+        ):
 
+            internal_category = (
+                "Capacity"
+            )
 
-        generated_requirement = (
-            f"The {equipment_name.strip()} shall "
-            f"{required_action.strip()} "
-            f"{operating_condition.strip()}."
-        )
-
-
-        stakeholder_input = (
-            f"Equipment: {equipment_name.strip()}\n"
-            f"Action: {required_action.strip()}\n"
-            f"Condition: {operating_condition.strip()}"
-        )
-
-
-    # --------------------------------------------------------
-    # CAPACITY OR QUANTITY
-    # --------------------------------------------------------
-
-    elif (
-        selected_requirement_category
-        == "Capacity or quantity"
-    ):
-
-
-        database_category = "Capacity"
-
-
-        input_column_1, input_column_2 = (
-            st.columns(2)
-        )
-
-
-        with input_column_1:
-
-
-            equipment_name = st.text_input(
-                (
-                    "What equipment or system "
-                    "does this apply to? *"
-                ),
+            equipment = st.text_input(
+                "Equipment or system *",
                 value="ISV spraybar",
                 key="capacity_equipment",
             )
 
-
-            required_action = st.text_input(
+            action = st.text_input(
                 "What must it do? *",
                 placeholder="Example: control",
                 key="capacity_action",
             )
 
-
-        with input_column_2:
-
-
-            minimum_quantity = st.number_input(
-                (
-                    "What is the minimum "
-                    "quantity required? *"
-                ),
+            quantity = st.number_input(
+                "Minimum quantity *",
                 min_value=0,
                 step=1,
                 key="capacity_quantity",
             )
 
-
-            item_name = st.text_input(
+            item = st.text_input(
                 "What is being counted? *",
-                placeholder="Example: spray zones",
+                placeholder=(
+                    "Example: spray zones"
+                ),
                 key="capacity_item",
             )
 
-
-        required_inputs_complete = all(
-            [
-                equipment_name.strip(),
-                required_action.strip(),
-                minimum_quantity > 0,
-                item_name.strip(),
-            ]
-        )
-
-
-        quantity_preview = (
-            str(
-                minimum_quantity
-            )
-            if minimum_quantity > 0
-            else
-            "[minimum quantity]"
-        )
-
-
-        requirement_preview = (
-            f"The "
-            f"{equipment_name.strip() or '[equipment or system]'} "
-            f"shall "
-            f"{required_action.strip() or '[required action]'} "
-            f"a minimum of "
-            f"{quantity_preview} "
-            f"{item_name.strip() or '[item]'}."
-        )
-
-
-        generated_requirement = (
-            f"The {equipment_name.strip()} shall "
-            f"{required_action.strip()} "
-            f"a minimum of "
-            f"{minimum_quantity} "
-            f"{item_name.strip()}."
-        )
-
-
-        stakeholder_input = (
-            f"Equipment: {equipment_name.strip()}\n"
-            f"Action: {required_action.strip()}\n"
-            f"Quantity: {minimum_quantity}\n"
-            f"Item: {item_name.strip()}"
-        )
-
-
-    # --------------------------------------------------------
-    # PERFORMANCE LEVEL
-    # --------------------------------------------------------
-
-    elif (
-        selected_requirement_category
-        == "Performance level"
-    ):
-
-
-        database_category = "Performance"
-
-
-        input_column_1, input_column_2 = (
-            st.columns(2)
-        )
-
-
-        with input_column_1:
-
-
-            equipment_name = st.text_input(
-                (
-                    "What equipment or system "
-                    "does this apply to? *"
-                ),
-                value="ISV spraybar",
-                key="performance_equipment",
+            requirement_complete = all(
+                [
+                    equipment.strip(),
+                    action.strip(),
+                    quantity > 0,
+                    item.strip(),
+                ]
             )
 
-
-            required_action = st.text_input(
-                "What must it do? *",
-                placeholder=(
-                    "Example: deliver cooling fluid"
-                ),
-                key="performance_action",
+            quantity_text = (
+                str(
+                    quantity
+                )
+                if quantity > 0
+                else
+                "[minimum quantity]"
             )
 
-
-        with input_column_2:
-
-
-            required_value = st.number_input(
-                (
-                    "What is the minimum "
-                    "required value? *"
-                ),
-                min_value=0.0,
-                step=1.0,
-                key="performance_value",
+            generated_requirement = (
+                f"The "
+                f"{equipment.strip() or '[equipment]'} "
+                f"shall "
+                f"{action.strip() or '[required action]'} "
+                f"a minimum of "
+                f"{quantity_text} "
+                f"{item.strip() or '[item]'}."
             )
 
-
-            engineering_unit = st.text_input(
-                "What unit is used? *",
-                placeholder=(
-                    "Example: litres per minute"
-                ),
-                key="performance_unit",
+            stakeholder_input = (
+                f"Equipment: {equipment}\n"
+                f"Action: {action}\n"
+                f"Quantity: {quantity}\n"
+                f"Item: {item}"
             )
 
+        elif (
+            requirement_category
+            == "Response time"
+        ):
 
-        required_inputs_complete = all(
-            [
-                equipment_name.strip(),
-                required_action.strip(),
-                required_value > 0,
-                engineering_unit.strip(),
-            ]
-        )
+            internal_category = (
+                "Performance"
+            )
 
-
-        value_preview = (
-            f"{required_value:g}"
-            if required_value > 0
-            else
-            "[minimum value]"
-        )
-
-
-        requirement_preview = (
-            f"The "
-            f"{equipment_name.strip() or '[equipment or system]'} "
-            f"shall "
-            f"{required_action.strip() or '[required action]'} "
-            f"at a minimum value of "
-            f"{value_preview} "
-            f"{engineering_unit.strip() or '[unit]'}."
-        )
-
-
-        generated_requirement = (
-            f"The {equipment_name.strip()} shall "
-            f"{required_action.strip()} "
-            f"at a minimum value of "
-            f"{required_value:g} "
-            f"{engineering_unit.strip()}."
-        )
-
-
-        stakeholder_input = (
-            f"Equipment: {equipment_name.strip()}\n"
-            f"Action: {required_action.strip()}\n"
-            f"Value: {required_value:g}\n"
-            f"Unit: {engineering_unit.strip()}"
-        )
-
-
-    # --------------------------------------------------------
-    # RESPONSE TIME
-    # --------------------------------------------------------
-
-    elif (
-        selected_requirement_category
-        == "Response time"
-    ):
-
-
-        database_category = "Performance"
-
-
-        input_column_1, input_column_2 = (
-            st.columns(2)
-        )
-
-
-        with input_column_1:
-
-
-            equipment_name = st.text_input(
-                (
-                    "What equipment or system "
-                    "does this apply to? *"
-                ),
+            equipment = st.text_input(
+                "Equipment or system *",
                 value="ISV spraybar",
                 key="response_equipment",
             )
 
-
-            required_action = st.text_input(
-                "What action must happen? *",
+            action = st.text_input(
+                "Required action *",
                 placeholder=(
                     "Example: begin coolant delivery"
                 ),
                 key="response_action",
             )
 
-
-            trigger_event = st.text_input(
-                "What triggers the action? *",
+            trigger = st.text_input(
+                "Trigger event *",
                 placeholder=(
-                    "Example: receiving a control signal"
+                    "Example: receiving "
+                    "a control signal"
                 ),
                 key="response_trigger",
             )
 
-
-        with input_column_2:
-
-
-            maximum_time = st.number_input(
-                (
-                    "What is the maximum "
-                    "permitted time? *"
-                ),
+            response_time = st.number_input(
+                "Maximum permitted time *",
                 min_value=0.0,
                 step=0.1,
                 key="response_time",
             )
 
-
-            time_unit = st.selectbox(
-                "Time unit *",
-                options=[
-                    "milliseconds",
-                    "seconds",
-                    "minutes",
-                    "hours",
-                ],
-                key="response_unit",
+            response_unit = (
+                st.selectbox(
+                    "Time unit *",
+                    [
+                        "milliseconds",
+                        "seconds",
+                        "minutes",
+                    ],
+                    key="response_unit",
+                )
             )
 
-
-        required_inputs_complete = all(
-            [
-                equipment_name.strip(),
-                required_action.strip(),
-                trigger_event.strip(),
-                maximum_time > 0,
-            ]
-        )
-
-
-        time_preview = (
-            f"{maximum_time:g}"
-            if maximum_time > 0
-            else
-            "[maximum time]"
-        )
-
-
-        requirement_preview = (
-            f"The "
-            f"{equipment_name.strip() or '[equipment or system]'} "
-            f"shall "
-            f"{required_action.strip() or '[required action]'} "
-            f"within "
-            f"{time_preview} "
-            f"{time_unit} of "
-            f"{trigger_event.strip() or '[trigger event]'}."
-        )
-
-
-        generated_requirement = (
-            f"The {equipment_name.strip()} shall "
-            f"{required_action.strip()} "
-            f"within "
-            f"{maximum_time:g} "
-            f"{time_unit} of "
-            f"{trigger_event.strip()}."
-        )
-
-
-        stakeholder_input = (
-            f"Equipment: {equipment_name.strip()}\n"
-            f"Action: {required_action.strip()}\n"
-            f"Trigger: {trigger_event.strip()}\n"
-            f"Time: {maximum_time:g} {time_unit}"
-        )
-
-
-    # --------------------------------------------------------
-    # COMPATIBILITY OR INTERFACE
-    # --------------------------------------------------------
-
-    elif (
-        selected_requirement_category
-        == "Compatibility or interface"
-    ):
-
-
-        database_category = "Interface"
-
-
-        input_column_1, input_column_2 = (
-            st.columns(2)
-        )
-
-
-        with input_column_1:
-
-
-            equipment_name = st.text_input(
-                (
-                    "What equipment or system "
-                    "does this apply to? *"
-                ),
-                value="ISV spraybar",
-                key="interface_equipment",
+            requirement_complete = all(
+                [
+                    equipment.strip(),
+                    action.strip(),
+                    trigger.strip(),
+                    response_time > 0,
+                ]
             )
 
+            time_text = (
+                f"{response_time:g}"
+                if response_time > 0
+                else
+                "[maximum time]"
+            )
 
-            external_system = st.text_input(
-                (
-                    "What other equipment "
-                    "must it connect to? *"
-                ),
+            generated_requirement = (
+                f"The "
+                f"{equipment.strip() or '[equipment]'} "
+                f"shall "
+                f"{action.strip() or '[required action]'} "
+                f"within "
+                f"{time_text} "
+                f"{response_unit} of "
+                f"{trigger.strip() or '[trigger event]'}."
+            )
+
+            stakeholder_input = (
+                f"Equipment: {equipment}\n"
+                f"Action: {action}\n"
+                f"Trigger: {trigger}\n"
+                f"Time: {response_time} "
+                f"{response_unit}"
+            )
+
+        else:
+
+            description = st.text_area(
+                "Describe the requirement *",
                 placeholder=(
-                    "Example: mill control system"
+                    "Describe the need, constraint, "
+                    "performance expectation, interface, "
+                    "or customer requirement."
                 ),
-                key="interface_external_system",
+                height=180,
+                key="generic_description",
             )
 
-
-        with input_column_2:
-
-
-            interface_description = st.text_input(
-                (
-                    "What connection or "
-                    "interface is required? *"
-                ),
-                placeholder=(
-                    "Example: 64 digital outputs"
-                ),
-                key="interface_description",
+            requirement_complete = bool(
+                description.strip()
             )
 
-
-        required_inputs_complete = all(
-            [
-                equipment_name.strip(),
-                external_system.strip(),
-                interface_description.strip(),
-            ]
-        )
-
-
-        requirement_preview = (
-            f"The "
-            f"{equipment_name.strip() or '[equipment or system]'} "
-            f"shall interface with the "
-            f"{external_system.strip() or '[external system]'} "
-            f"using "
-            f"{interface_description.strip() or '[interface]'}."
-        )
-
-
-        generated_requirement = (
-            f"The {equipment_name.strip()} "
-            f"shall interface with the "
-            f"{external_system.strip()} "
-            f"using "
-            f"{interface_description.strip()}."
-        )
-
-
-        stakeholder_input = (
-            f"Equipment: {equipment_name.strip()}\n"
-            f"External system: {external_system.strip()}\n"
-            f"Interface: {interface_description.strip()}"
-        )
-
-
-    # --------------------------------------------------------
-    # PRODUCT TYPE OR STANDARD
-    # --------------------------------------------------------
-
-    elif (
-        selected_requirement_category
-        == "Product type or standard"
-    ):
-
-
-        database_category = "Specification"
-
-
-        input_column_1, input_column_2 = (
-            st.columns(2)
-        )
-
-
-        with input_column_1:
-
-
-            equipment_name = st.text_input(
-                (
-                    "What equipment or system "
-                    "does this apply to? *"
-                ),
-                value="ISV spraybar",
-                key="standard_equipment",
+            generated_requirement = (
+                description.strip()
+                or
+                "[Describe the requirement]"
             )
 
-
-            specified_item = st.text_input(
-                "What item is being specified? *",
-                placeholder="Example: cooling fluid",
-                key="standard_item",
+            stakeholder_input = (
+                description.strip()
             )
 
-
-        with input_column_2:
-
-
-            required_standard = st.text_input(
-                (
-                    "What type, grade, or "
-                    "standard is required? *"
-                ),
-                placeholder="Example: ISO VG 32",
-                key="standard_grade",
-            )
-
-
-            operating_limit = st.text_input(
-                "Are there any operating limits?",
-                placeholder=(
-                    "Example: at a maximum pressure "
-                    "of 10 bar"
-                ),
-                key="standard_limit",
-            )
-
-
-        required_inputs_complete = all(
-            [
-                equipment_name.strip(),
-                specified_item.strip(),
-                required_standard.strip(),
-            ]
+        st.markdown(
+            "</div>",
+            unsafe_allow_html=True,
         )
 
+    with preview_right:
 
-        requirement_preview = (
-            f"The "
-            f"{equipment_name.strip() or '[equipment or system]'} "
-            f"shall use "
-            f"{required_standard.strip() or '[type or standard]'} "
-            f"{specified_item.strip() or '[specified item]'} "
-            f"{operating_limit.strip() or '[optional operating limit]'}."
+        st.markdown(
+            """
+            <div class="glass-card-cyan">
+            """,
+            unsafe_allow_html=True,
         )
 
-
-        generated_requirement = (
-            f"The {equipment_name.strip()} "
-            f"shall use "
-            f"{required_standard.strip()} "
-            f"{specified_item.strip()}"
+        render_section_heading(
+            "4",
+            "Live Requirement Preview",
         )
 
+        preview_text = (
+            f"Project: "
+            f"{selected_project}\n\n"
 
-        if operating_limit.strip():
+            f"Title: "
+            f"{requirement_title or '[Requirement title]'}\n\n"
 
-            generated_requirement += (
-                f" {operating_limit.strip()}"
-            )
+            f"Type: "
+            f"{requirement_category}\n\n"
 
+            f"Requirement:\n"
+            f"{generated_requirement}\n\n"
 
-        generated_requirement += "."
-
-
-        stakeholder_input = (
-            f"Equipment: {equipment_name.strip()}\n"
-            f"Item: {specified_item.strip()}\n"
-            f"Standard: {required_standard.strip()}\n"
-            f"Limit: {operating_limit.strip()}"
+            f"Status: Draft"
         )
 
-
-    # --------------------------------------------------------
-    # RELIABILITY OR MAINTENANCE
-    # --------------------------------------------------------
-
-    elif (
-        selected_requirement_category
-        == "Reliability or maintenance"
-    ):
-
-
-        database_category = "Maintenance"
-
-
-        input_column_1, input_column_2 = (
-            st.columns(2)
+        st.markdown(
+            f"""
+            <div class="preview-panel">
+            {preview_text}
+            </div>
+            """,
+            unsafe_allow_html=True,
         )
 
-
-        with input_column_1:
-
-
-            equipment_name = st.text_input(
-                (
-                    "What equipment or system "
-                    "does this apply to? *"
-                ),
-                value="ISV spraybar",
-                key="reliability_equipment",
-            )
-
-
-            required_action = st.text_input(
-                "What must continue operating? *",
-                placeholder="Example: operate",
-                key="reliability_action",
-            )
-
-
-        with input_column_2:
-
-
-            minimum_duration = st.number_input(
-                (
-                    "What is the minimum "
-                    "required duration? *"
-                ),
-                min_value=0.0,
-                step=100.0,
-                key="reliability_duration",
-            )
-
-
-            duration_unit = st.text_input(
-                "What unit is used? *",
-                placeholder=(
-                    "Example: operating hours"
-                ),
-                key="reliability_unit",
-            )
-
-
-            maintenance_condition = st.text_input(
-                (
-                    "What maintenance "
-                    "limitation applies?"
-                ),
-                placeholder=(
-                    "Example: without planned maintenance"
-                ),
-                key="reliability_condition",
-            )
-
-
-        required_inputs_complete = all(
-            [
-                equipment_name.strip(),
-                required_action.strip(),
-                minimum_duration > 0,
-                duration_unit.strip(),
-            ]
+        st.markdown(
+            "</div>",
+            unsafe_allow_html=True,
         )
 
-
-        duration_preview = (
-            f"{minimum_duration:g}"
-            if minimum_duration > 0
-            else
-            "[minimum duration]"
-        )
-
-
-        requirement_preview = (
-            f"The "
-            f"{equipment_name.strip() or '[equipment or system]'} "
-            f"shall "
-            f"{required_action.strip() or '[required action]'} "
-            f"for a minimum of "
-            f"{duration_preview} "
-            f"{duration_unit.strip() or '[unit]'} "
-            f"{maintenance_condition.strip() or '[optional maintenance condition]'}."
-        )
-
-
-        generated_requirement = (
-            f"The {equipment_name.strip()} "
-            f"shall "
-            f"{required_action.strip()} "
-            f"for a minimum of "
-            f"{minimum_duration:g} "
-            f"{duration_unit.strip()}"
-        )
-
-
-        if maintenance_condition.strip():
-
-            generated_requirement += (
-                f" {maintenance_condition.strip()}"
-            )
-
-
-        generated_requirement += "."
-
-
-        stakeholder_input = (
-            f"Equipment: {equipment_name.strip()}\n"
-            f"Action: {required_action.strip()}\n"
-            f"Duration: {minimum_duration:g} "
-            f"{duration_unit.strip()}\n"
-            f"Maintenance: "
-            f"{maintenance_condition.strip()}"
-        )
-
-
-    # --------------------------------------------------------
-    # OTHER REQUIREMENT
-    # --------------------------------------------------------
-
-    else:
-
-
-        database_category = "Other"
-
-
-        stakeholder_description = (
-            st.text_area(
-                "Describe what is needed *",
-                placeholder=(
-                    "Describe the requirement "
-                    "in your own words."
-                ),
-                key="other_requirement_description",
-            )
-        )
-
-
-        required_inputs_complete = bool(
-            stakeholder_description.strip()
-        )
-
-
-        requirement_preview = (
-            stakeholder_description.strip()
-            or
-            "[Describe the requirement]"
-        )
-
-
-        generated_requirement = (
-            stakeholder_description.strip()
-        )
-
-
-        stakeholder_input = (
-            stakeholder_description.strip()
-        )
-
-
-    # ========================================================
-    # SECTION 4
-    # LIVE PREVIEW
-    # ========================================================
-
-    st.divider()
-
-
-    st.subheader(
-        "4. Live Requirement Preview"
-    )
-
-
-    st.code(
-        requirement_preview,
-        language=None,
-    )
-
-
-    if required_inputs_complete:
-
-
-        st.success(
-            (
-                "The requirement is complete "
-                "and ready for V&V definition."
-            )
-        )
-
-
-    else:
-
-
-        st.info(
-            (
-                "Fields shown in square brackets "
-                "still need to be completed."
-            )
-        )
-
-
-    # ========================================================
-    # SECTION 5
-    # VERIFICATION AND VALIDATION
-    # ========================================================
-
-    st.divider()
-
-
-    st.subheader(
-        "5. Verification and Validation"
-    )
-
-
-    st.write(
+    st.markdown(
         """
-        Select when the requirement should be checked and
-        how compliance should be demonstrated.
-        """
+        <div class="glass-card-purple">
+        """,
+        unsafe_allow_html=True,
     )
 
-
-    verification_column_1, verification_column_2 = (
-        st.columns(2)
+    render_section_heading(
+        "5",
+        "Verification and Validation",
     )
 
+    v_and_v_1, v_and_v_2 = st.columns(2)
 
-    with verification_column_1:
+    with v_and_v_1:
 
-
-        project_verification_point = (
+        verification_point = (
             st.selectbox(
-                "Proposed V&V point *",
-                options=VERIFICATION_POINTS,
-                key="project_verification_point",
-                help=(
-                    "The stage in the project lifecycle "
-                    "where the requirement should be checked."
-                ),
+                "V&V point *",
+                VERIFICATION_POINTS,
+                key="project_vv_point",
             )
         )
 
-
-    with verification_column_2:
-
-
-        project_verification_method = (
-            st.selectbox(
-                "Proposed V&V method *",
-                options=VERIFICATION_METHODS,
-                key="project_verification_method",
-                help=(
-                    "The method used to demonstrate "
-                    "that the requirement has been met."
-                ),
+        st.caption(
+            (
+                "Where in the engineering lifecycle "
+                "will this be checked?"
             )
         )
 
+    with v_and_v_2:
 
-    st.info(
-        (
-            f"Proposed check: **{project_verification_method}** "
-            f"at **{project_verification_point}**."
+        verification_method = (
+            st.selectbox(
+                "V&V method *",
+                VERIFICATION_METHODS,
+                key="project_vv_method",
+            )
         )
+
+        st.caption(
+            (
+                "How will compliance "
+                "be demonstrated?"
+            )
+        )
+
+    st.markdown(
+        "</div>",
+        unsafe_allow_html=True,
     )
 
-
-    # ========================================================
-    # SECTION 6
-    # SUBMIT REQUIREMENT
-    # ========================================================
-
-    st.divider()
-
-
-    st.subheader(
-        "6. Submit for Project-Owner Review"
-    )
-
-
-    submit_project_requirement = st.button(
-        "Submit Requirement",
+    submit_button = st.button(
+        "✈  Submit Requirement",
         type="primary",
         use_container_width=True,
-        key="submit_project_requirement",
     )
 
-
-    if submit_project_requirement:
-
+    if submit_button:
 
         errors = []
-
 
         if not requirement_title.strip():
 
@@ -2788,123 +3101,102 @@ with project_specific_tab:
                 "Requirement title"
             )
 
-
         if not submitted_by.strip():
 
             errors.append(
                 "Submitted by"
             )
 
-
-        if not required_inputs_complete:
+        if not requirement_complete:
 
             errors.append(
-                "All required questions"
+                "Requirement information"
             )
-
 
         if errors:
 
-
             st.error(
-                (
-                    "Please complete: "
-                    +
-                    ", ".join(
-                        errors
-                    )
+                "Please complete: "
+                +
+                ", ".join(
+                    errors
                 )
             )
-
 
         else:
 
-
             save_project_requirement(
-
                 project_name=(
                     selected_project
                 ),
-
                 requirement_title=(
                     requirement_title.strip()
                 ),
-
                 requirement_text=(
                     generated_requirement
                 ),
-
                 category=(
-                    database_category
+                    internal_category
                 ),
-
                 source_department=(
                     source_department
                 ),
-
                 submitted_by=(
                     submitted_by.strip()
                 ),
-
                 requirement_category=(
-                    selected_requirement_category
+                    requirement_category
                 ),
-
                 stakeholder_input=(
                     stakeholder_input
                 ),
-
                 verification_point=(
-                    project_verification_point
+                    verification_point
                 ),
-
                 verification_method=(
-                    project_verification_method
+                    verification_method
                 ),
             )
-
 
             st.success(
                 (
-                    "Requirement submitted successfully. "
-                    "Its status is Pending."
+                    "Requirement submitted successfully "
+                    "and set to Pending."
                 )
             )
 
+            st.rerun()
 
-    # ========================================================
-    # PROJECT REQUIREMENTS DASHBOARD
-    # ========================================================
-
-    project_requirements = (
-        load_project_requirements()
+    st.markdown(
+        """
+        <div class="glass-card">
+        """,
+        unsafe_allow_html=True,
     )
 
-
-    st.divider()
-
-
-    st.header(
+    st.subheader(
         "Project Requirements Dashboard"
     )
 
+    recent_requirements = (
+        load_project_requirements(
+            selected_project
+        )
+    )
 
-    if project_requirements.empty:
-
+    if recent_requirements.empty:
 
         st.info(
             (
                 "No project-specific requirements "
-                "have been submitted."
+                "have been submitted for this project."
             )
         )
 
-
     else:
 
-
-        project_display = (
-            project_requirements.rename(
+        display_requirements = (
+            recent_requirements.rename(
                 columns={
 
                     "id":
@@ -2915,9 +3207,6 @@ with project_specific_tab:
 
                     "requirement_title":
                         "Title",
-
-                    "requirement_text":
-                        "Requirement",
 
                     "boilerplate_name":
                         "Requirement Type",
@@ -2934,14 +3223,12 @@ with project_specific_tab:
             )
         )
 
-
         st.dataframe(
-            project_display[
+            display_requirements[
                 [
                     "ID",
                     "Project",
                     "Title",
-                    "Requirement",
                     "Requirement Type",
                     "V&V Point",
                     "V&V Method",
@@ -2952,362 +3239,359 @@ with project_specific_tab:
             hide_index=True,
         )
 
+    st.markdown(
+        "</div>",
+        unsafe_allow_html=True,
+    )
+
 
 # ============================================================
-# STANDARD REQUIREMENTS TAB
+# STANDARD REQUIREMENTS PAGE
 # ============================================================
 
-with standard_requirements_tab:
+elif (
+    selected_page
+    == "Standard Requirements"
+):
 
-
-    st.header(
-        "Standard Project Requirements"
+    render_page_heading(
+        "◇",
+        "Standard Requirements",
+        (
+            "Create controlled project baselines "
+            "using guided ISV configuration questions."
+        ),
     )
 
-
-    st.write(
-        """
-        Complete the guided ISV project questions. The
-        application converts the answers into a controlled
-        standard requirements table with defined verification
-        and validation points and methods.
-        """
-    )
-
-
-    st.info(
-        """
-        The first revision for each project is **Revision 00**.
-        New revisions begin using the latest committed values.
-        """
-    )
-
-
-    # ========================================================
-    # SECTION 1
-    # SELECT PROJECT
-    # ========================================================
-
-    st.subheader(
-        "1. Select Project"
-    )
-
-
-    standard_project = st.selectbox(
-        "Project *",
-        options=ALLOWED_PROJECTS,
-        key="standard_project",
-    )
-
-
-    latest_standard_values = (
-        load_latest_standard_values(
-            standard_project
+    project_header_1, project_header_2 = (
+        st.columns(
+            [
+                3,
+                1,
+            ]
         )
     )
 
+    with project_header_1:
 
-    next_revision_number = (
+        standard_project = (
+            st.selectbox(
+                "Project",
+                ALLOWED_PROJECTS,
+                key="standard_project",
+            )
+        )
+
+    next_revision = (
         get_next_revision_number(
             standard_project
         )
     )
 
+    with project_header_2:
 
-    # ========================================================
-    # SECTION 2
-    # REVISION HISTORY
-    # ========================================================
+        st.markdown(
+            f"""
+            <div
+                class="glass-card-purple"
+                style="
+                    margin-top: 1.75rem;
+                    text-align: center;
+                "
+            >
+                <div
+                    style="
+                        color: #aebbd4;
+                        font-size: 0.82rem;
+                    "
+                >
+                    Next Revision
+                </div>
 
-    st.divider()
+                <div
+                    style="
+                        color: #7cd8ff;
+                        font-size: 1.75rem;
+                        font-weight: 800;
+                    "
+                >
+                    {next_revision}
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
-
-    st.subheader(
-        "2. Revision History"
-    )
-
-
-    revision_history = (
-        build_revision_history_summary(
+    latest_values = (
+        load_latest_standard_values(
             standard_project
         )
     )
 
-
-    if revision_history.empty:
-
-
-        st.info(
-            (
-                f"No standard requirements revision "
-                f"has been committed for "
-                f"{standard_project}."
-            )
-        )
-
-
-    else:
-
-
-        st.dataframe(
-            revision_history,
-            use_container_width=True,
-            hide_index=True,
-        )
-
-
-    # ========================================================
-    # SECTION 3
-    # STANDARD REQUIREMENT QUESTIONS
-    # ========================================================
-
-    st.divider()
-
-
-    st.subheader(
-        "3. Complete Standard Project Requirements"
+    top_1, top_2 = st.columns(
+        [
+            1.4,
+            1,
+        ]
     )
 
+    with top_1:
 
-    st.write(
-        (
-            f"These answers will create Revision "
-            f"**{next_revision_number}** for "
-            f"**{standard_project}**."
-        )
-    )
-
-
-    # --------------------------------------------------------
-    # PROJECT INFORMATION
-    # --------------------------------------------------------
-
-    with st.expander(
-        "Project Information",
-        expanded=True,
-    ):
-
-
-        project_column_1, project_column_2 = (
-            st.columns(2)
+        st.markdown(
+            """
+            <div class="glass-card">
+            """,
+            unsafe_allow_html=True,
         )
 
+        st.subheader(
+            "Revision History"
+        )
 
-        with project_column_1:
-
-
-            customer_name = st.text_input(
-                "Customer name *",
-                value=get_text_value(
-                    latest_standard_values,
-                    "STD-002",
-                ),
-                placeholder=(
-                    "Enter the customer name"
-                ),
-                key=(
-                    f"customer_"
-                    f"{standard_project}"
-                ),
-            )
-
-
-        saved_mill_type = (
-            get_text_value(
-                latest_standard_values,
-                "STD-003",
-                "FFM",
+        revision_history = (
+            build_revision_history_summary(
+                standard_project
             )
         )
 
+        if revision_history.empty:
 
-        with project_column_2:
-
-
-            mill_type_selection = (
-                st.selectbox(
-                    "Mill type *",
-                    options=MILL_TYPES,
-                    index=selectbox_index(
-                        MILL_TYPES,
-                        (
-                            saved_mill_type
-                            if saved_mill_type
-                            in MILL_TYPES
-                            else
-                            "Other"
-                        ),
-                        0,
-                    ),
-                    key=(
-                        f"mill_type_"
-                        f"{standard_project}"
-                    ),
+            st.info(
+                (
+                    "No locked revisions "
+                    "exist for this project."
                 )
             )
 
+        else:
 
-        if mill_type_selection == "Other":
-
-
-            default_other_mill = (
-                saved_mill_type
-                if saved_mill_type
-                not in MILL_TYPES
-                else
-                ""
+            st.dataframe(
+                revision_history,
+                use_container_width=True,
+                hide_index=True,
             )
 
+        st.markdown(
+            "</div>",
+            unsafe_allow_html=True,
+        )
 
-            other_mill_type = st.text_input(
-                "Specify the mill type *",
-                value=default_other_mill,
+    with top_2:
+
+        st.markdown(
+            """
+            <div class="glass-card">
+            """,
+            unsafe_allow_html=True,
+        )
+
+        st.subheader(
+            "Project Information"
+        )
+
+        customer_name = st.text_input(
+            "Customer name *",
+            value=get_text_value(
+                latest_values,
+                "STD-002",
+            ),
+            key=(
+                f"customer_"
+                f"{standard_project}"
+            ),
+        )
+
+        saved_mill = get_text_value(
+            latest_values,
+            "STD-003",
+            "FFM",
+        )
+
+        mill_selection = st.selectbox(
+            "Mill type *",
+            MILL_TYPES,
+            index=selectbox_index(
+                MILL_TYPES,
+                (
+                    saved_mill
+                    if saved_mill
+                    in MILL_TYPES
+                    else
+                    "Other"
+                ),
+                0,
+            ),
+            key=(
+                f"mill_"
+                f"{standard_project}"
+            ),
+        )
+
+        if mill_selection == "Other":
+
+            final_mill = st.text_input(
+                "Specify mill type *",
+                value=(
+                    saved_mill
+                    if saved_mill
+                    not in MILL_TYPES
+                    else
+                    ""
+                ),
                 key=(
                     f"other_mill_"
                     f"{standard_project}"
                 ),
             )
 
-
-            final_mill_type = (
-                other_mill_type.strip()
-            )
-
-
         else:
 
-
-            final_mill_type = (
-                mill_type_selection
+            final_mill = (
+                mill_selection
             )
 
+        st.markdown(
+            "</div>",
+            unsafe_allow_html=True,
+        )
 
-    # --------------------------------------------------------
-    # VALVE CONFIGURATION
-    # --------------------------------------------------------
+    valve_1, valve_2 = st.columns(
+        [
+            0.82,
+            1.8,
+        ]
+    )
 
-    with st.expander(
-        "Valve Configuration",
-        expanded=True,
-    ):
+    with valve_1:
 
+        st.markdown(
+            """
+            <div class="glass-card">
+            """,
+            unsafe_allow_html=True,
+        )
 
-        saved_product_variant = (
+        st.subheader(
+            "Valve Configuration"
+        )
+
+        saved_variant = (
             get_text_value(
-                latest_standard_values,
+                latest_values,
                 "STD-004",
                 "ISV - MK3",
             )
         )
 
-
-        product_variant = st.selectbox(
-            "ISV product variant *",
-            options=ISV_PRODUCT_VARIANTS,
-            index=selectbox_index(
+        product_variant = (
+            st.selectbox(
+                "ISV product variant *",
                 ISV_PRODUCT_VARIANTS,
-                saved_product_variant,
-                0,
-            ),
-            key=(
-                f"product_variant_"
-                f"{standard_project}"
-            ),
+                index=selectbox_index(
+                    ISV_PRODUCT_VARIANTS,
+                    saved_variant,
+                    0,
+                ),
+                key=(
+                    f"variant_"
+                    f"{standard_project}"
+                ),
+            )
         )
 
+        if (
+            product_variant
+            == "ISV - MK3"
+        ):
 
-        if product_variant == "ISV - MK3":
-
-
-            saved_mk3_configuration = (
-                get_text_value(
-                    latest_standard_values,
-                    "STD-005",
-                    "Standard",
-                )
+            saved_mk3 = get_text_value(
+                latest_values,
+                "STD-005",
+                "Standard",
             )
-
 
             mk3_configuration = (
                 st.selectbox(
                     "MK3 configuration *",
-                    options=(
-                        MK3_CONFIGURATIONS
-                    ),
+                    MK3_CONFIGURATIONS,
                     index=selectbox_index(
                         MK3_CONFIGURATIONS,
-                        saved_mk3_configuration,
+                        saved_mk3,
                         0,
                     ),
                     key=(
-                        f"mk3_configuration_"
+                        f"mk3_"
                         f"{standard_project}"
                     ),
                 )
             )
 
-
         else:
-
 
             mk3_configuration = (
                 "Not applicable"
             )
 
-
         st.caption(
             (
-                "Electrical requirements and their V&V "
-                "route are generated automatically from "
-                "the selected valve type."
+                "Electrical requirements are "
+                "generated from the selected variant."
             )
         )
 
+        st.markdown(
+            "</div>",
+            unsafe_allow_html=True,
+        )
 
-    # --------------------------------------------------------
-    # VALVE PITCHING
-    # --------------------------------------------------------
+    with valve_2:
 
-    with st.expander(
-        "Valve Pitching",
-        expanded=True,
-    ):
+        st.markdown(
+            """
+            <div class="glass-card">
+            """,
+            unsafe_allow_html=True,
+        )
 
+        st.subheader(
+            "Valve Pitching"
+        )
 
-        saved_pitching_type = (
+        saved_pitching = (
             get_text_value(
-                latest_standard_values,
+                latest_values,
                 "STD-006",
                 "Uniform pitching",
             )
         )
 
-
-        pitching_type = st.selectbox(
-            "Pitch configuration *",
-            options=PITCHING_TYPES,
-            index=selectbox_index(
+        pitching_type = (
+            st.radio(
+                "Pitch configuration *",
                 PITCHING_TYPES,
-                saved_pitching_type,
-                0,
-            ),
-            key=(
-                f"pitching_type_"
-                f"{standard_project}"
-            ),
+                horizontal=True,
+                index=selectbox_index(
+                    PITCHING_TYPES,
+                    saved_pitching,
+                    0,
+                ),
+                key=(
+                    f"pitching_"
+                    f"{standard_project}"
+                ),
+            )
         )
 
+        if (
+            pitching_type
+            == "Uniform pitching"
+        ):
 
-        if pitching_type == "Uniform pitching":
-
-
-            pitching_column_1, pitching_column_2 = (
+            uniform_1, uniform_2 = (
                 st.columns(2)
             )
 
-
-            with pitching_column_1:
-
+            with uniform_1:
 
                 total_valves = (
                     st.number_input(
@@ -3317,7 +3601,7 @@ with standard_requirements_tab:
                         value=max(
                             1,
                             get_integer_value(
-                                latest_standard_values,
+                                latest_values,
                                 "STD-007",
                                 64,
                             ),
@@ -3329,21 +3613,18 @@ with standard_requirements_tab:
                     )
                 )
 
-
-            with pitching_column_2:
-
+            with uniform_2:
 
                 uniform_pitch = (
                     st.number_input(
-                        "Uniform valve pitch *",
+                        "Uniform valve pitch (mm) *",
                         min_value=0.0,
                         step=1.0,
                         value=get_float_value(
-                            latest_standard_values,
+                            latest_values,
                             "STD-008",
                             52.0,
                         ),
-                        help="Value in millimetres.",
                         key=(
                             f"uniform_pitch_"
                             f"{standard_project}"
@@ -3351,39 +3632,28 @@ with standard_requirements_tab:
                     )
                 )
 
-
-            edge_valves_per_side = 0
-
+            edge_valves = 0
             edge_pitch = 0.0
-
             centre_valves = 0
-
             centre_pitch = 0.0
-
 
         else:
 
-
-            hybrid_column_1, hybrid_column_2 = (
+            hybrid_1, hybrid_2 = (
                 st.columns(2)
             )
 
+            with hybrid_1:
 
-            with hybrid_column_1:
-
-
-                edge_valves_per_side = (
+                edge_valves = (
                     st.number_input(
-                        (
-                            "Number of edge valves "
-                            "per side *"
-                        ),
+                        "Edge valves per side *",
                         min_value=1,
                         step=1,
                         value=max(
                             1,
                             get_integer_value(
-                                latest_standard_values,
+                                latest_values,
                                 "STD-009",
                                 12,
                             ),
@@ -3395,18 +3665,16 @@ with standard_requirements_tab:
                     )
                 )
 
-
                 edge_pitch = (
                     st.number_input(
-                        "Edge valve pitch *",
+                        "Edge valve pitch (mm) *",
                         min_value=0.0,
                         step=1.0,
                         value=get_float_value(
-                            latest_standard_values,
+                            latest_values,
                             "STD-010",
                             26.0,
                         ),
-                        help="Value in millimetres.",
                         key=(
                             f"edge_pitch_"
                             f"{standard_project}"
@@ -3414,19 +3682,17 @@ with standard_requirements_tab:
                     )
                 )
 
-
-            with hybrid_column_2:
-
+            with hybrid_2:
 
                 centre_valves = (
                     st.number_input(
-                        "Number of centre valves *",
+                        "Centre valves *",
                         min_value=1,
                         step=1,
                         value=max(
                             1,
                             get_integer_value(
-                                latest_standard_values,
+                                latest_values,
                                 "STD-011",
                                 20,
                             ),
@@ -3438,18 +3704,16 @@ with standard_requirements_tab:
                     )
                 )
 
-
                 centre_pitch = (
                     st.number_input(
-                        "Centre valve pitch *",
+                        "Centre valve pitch (mm) *",
                         min_value=0.0,
                         step=1.0,
                         value=get_float_value(
-                            latest_standard_values,
+                            latest_values,
                             "STD-012",
                             52.0,
                         ),
-                        help="Value in millimetres.",
                         key=(
                             f"centre_pitch_"
                             f"{standard_project}"
@@ -3457,104 +3721,89 @@ with standard_requirements_tab:
                     )
                 )
 
-
             total_valves = (
-                (
-                    edge_valves_per_side
-                    * 2
-                )
+                edge_valves
+                * 2
                 +
                 centre_valves
             )
 
-
             uniform_pitch = 0.0
-
 
             st.metric(
                 "Calculated total valves",
                 total_valves,
             )
 
-
-    # --------------------------------------------------------
-    # OPERATING FLUID
-    # --------------------------------------------------------
-
-    with st.expander(
-        "Operating Fluid",
-        expanded=True,
-    ):
-
-
-        saved_fluid = (
-            get_text_value(
-                latest_standard_values,
-                "STD-013",
-                "Water",
-            )
+        st.markdown(
+            "</div>",
+            unsafe_allow_html=True,
         )
 
+    st.markdown(
+        """
+        <div class="glass-card">
+        """,
+        unsafe_allow_html=True,
+    )
 
-        fluid_selection = st.selectbox(
-            "Operating fluid *",
-            options=OPERATING_FLUIDS,
-            index=selectbox_index(
-                OPERATING_FLUIDS,
-                (
-                    saved_fluid
-                    if saved_fluid
-                    in OPERATING_FLUIDS
-                    else
-                    "Other"
-                ),
-                0,
+    fluid_options = (
+        OPERATING_FLUIDS
+    )
+
+    saved_fluid = get_text_value(
+        latest_values,
+        "STD-013",
+        "Water",
+    )
+
+    fluid_selection = st.selectbox(
+        "Operating fluid *",
+        fluid_options,
+        index=selectbox_index(
+            fluid_options,
+            (
+                saved_fluid
+                if saved_fluid
+                in fluid_options
+                else
+                "Other"
+            ),
+            0,
+        ),
+        key=(
+            f"fluid_"
+            f"{standard_project}"
+        ),
+    )
+
+    if fluid_selection == "Other":
+
+        final_fluid = st.text_input(
+            "Specify operating fluid *",
+            value=(
+                saved_fluid
+                if saved_fluid
+                not in fluid_options
+                else
+                ""
             ),
             key=(
-                f"operating_fluid_"
+                f"other_fluid_"
                 f"{standard_project}"
             ),
         )
 
+    else:
 
-        if fluid_selection == "Other":
+        final_fluid = (
+            fluid_selection
+        )
 
-
-            default_other_fluid = (
-                saved_fluid
-                if saved_fluid
-                not in OPERATING_FLUIDS
-                else
-                ""
-            )
-
-
-            other_fluid = st.text_input(
-                "Specify the operating fluid *",
-                value=default_other_fluid,
-                key=(
-                    f"other_fluid_"
-                    f"{standard_project}"
-                ),
-            )
-
-
-            final_operating_fluid = (
-                other_fluid.strip()
-            )
-
-
-        else:
-
-
-            final_operating_fluid = (
-                fluid_selection
-            )
-
-
-    # ========================================================
-    # GENERATE STANDARD REQUIREMENTS
-    # ========================================================
+    st.markdown(
+        "</div>",
+        unsafe_allow_html=True,
+    )
 
     generated_standard_requirements = (
         build_standard_requirement_table(
@@ -3568,7 +3817,7 @@ with standard_requirements_tab:
             ),
 
             mill_type=(
-                final_mill_type
+                final_mill
             ),
 
             product_variant=(
@@ -3592,7 +3841,7 @@ with standard_requirements_tab:
             ),
 
             edge_valves_per_side=(
-                edge_valves_per_side
+                edge_valves
             ),
 
             edge_pitch=(
@@ -3608,117 +3857,76 @@ with standard_requirements_tab:
             ),
 
             operating_fluid=(
-                final_operating_fluid
+                final_fluid
             ),
         )
     )
 
-
-    # ========================================================
-    # SECTION 4
-    # REVIEW GENERATED TABLE
-    # ========================================================
-
-    st.divider()
-
-
-    st.subheader(
-        "4. Review Generated Standard Requirements"
+    review_1, commit_1 = st.columns(
+        [
+            1.7,
+            0.8,
+        ]
     )
 
+    with review_1:
 
-    st.write(
-        """
-        The V&V point identifies when each requirement should
-        be checked. The V&V method identifies how compliance
-        should be demonstrated.
-        """
-    )
+        st.markdown(
+            """
+            <div class="glass-card">
+            """,
+            unsafe_allow_html=True,
+        )
 
+        st.subheader(
+            "Review Generated Standard Requirements"
+        )
 
-    st.dataframe(
-        generated_standard_requirements,
-        use_container_width=True,
-        hide_index=True,
-        column_config={
-
-            "Question ID":
-                st.column_config.TextColumn(
+        st.dataframe(
+            generated_standard_requirements[
+                [
                     "Question ID",
-                    width="small",
-                ),
-
-            "Requirement Area":
-                st.column_config.TextColumn(
                     "Requirement Area",
-                    width="medium",
-                ),
-
-            "Requirement":
-                st.column_config.TextColumn(
-                    "Requirement",
-                    width="large",
-                ),
-
-            "Required Value":
-                st.column_config.TextColumn(
                     "Required Value",
-                    width="medium",
-                ),
-
-            "V&V Point":
-                st.column_config.TextColumn(
                     "V&V Point",
-                    width="medium",
-                ),
-
-            "V&V Method":
-                st.column_config.TextColumn(
                     "V&V Method",
-                    width="medium",
-                ),
-        },
-    )
+                ]
+            ],
+            use_container_width=True,
+            hide_index=True,
+        )
 
+        st.markdown(
+            "</div>",
+            unsafe_allow_html=True,
+        )
 
-    # ========================================================
-    # SECTION 5
-    # COMMIT REVISION
-    # ========================================================
+    with commit_1:
 
-    st.divider()
+        st.markdown(
+            """
+            <div class="glass-card-purple">
+            """,
+            unsafe_allow_html=True,
+        )
 
-
-    st.subheader(
-        "5. Commit Locked Revision"
-    )
-
-
-    commit_column_1, commit_column_2 = (
-        st.columns(2)
-    )
-
-
-    with commit_column_1:
-
+        st.subheader(
+            "Commit Locked Revision"
+        )
 
         committed_by = st.text_input(
             "Committed by *",
-            placeholder="Enter your name",
             key=(
                 f"committed_by_"
                 f"{standard_project}"
             ),
         )
 
-
-    with commit_column_2:
-
-
-        revision_comment = st.text_input(
+        revision_comment = st.text_area(
             "Revision comment",
             placeholder=(
-                "Example: Initial project baseline"
+                "Describe the reason "
+                "for this revision."
             ),
             key=(
                 f"revision_comment_"
@@ -3726,35 +3934,23 @@ with standard_requirements_tab:
             ),
         )
 
-
-    st.warning(
-        (
-            f"Committing will permanently save and lock "
-            f"Revision **{next_revision_number}** for "
-            f"project **{standard_project}**."
+        commit_revision = st.button(
+            (
+                f"🔒 Commit Locked "
+                f"Revision {next_revision}"
+            ),
+            type="primary",
+            use_container_width=True,
         )
-    )
 
+        st.markdown(
+            "</div>",
+            unsafe_allow_html=True,
+        )
 
-    commit_button = st.button(
-        (
-            f"Commit Locked Revision "
-            f"{next_revision_number}"
-        ),
-        type="primary",
-        use_container_width=True,
-        key=(
-            f"commit_revision_"
-            f"{standard_project}"
-        ),
-    )
-
-
-    if commit_button:
-
+    if commit_revision:
 
         errors = []
-
 
         if not customer_name.strip():
 
@@ -3762,27 +3958,27 @@ with standard_requirements_tab:
                 "Customer name"
             )
 
-
-        if not final_mill_type.strip():
+        if not str(
+            final_mill
+        ).strip():
 
             errors.append(
                 "Mill type"
             )
 
-
-        if not final_operating_fluid.strip():
+        if not str(
+            final_fluid
+        ).strip():
 
             errors.append(
                 "Operating fluid"
             )
-
 
         if not committed_by.strip():
 
             errors.append(
                 "Committed by"
             )
-
 
         if (
             pitching_type
@@ -3792,41 +3988,29 @@ with standard_requirements_tab:
         ):
 
             errors.append(
-                "Uniform valve pitch"
+                "Uniform pitch"
             )
-
 
         if (
             pitching_type
             == "Hybrid pitching"
             and
-            edge_pitch <= 0
+            (
+                edge_pitch <= 0
+                or
+                centre_pitch <= 0
+            )
         ):
 
             errors.append(
-                "Edge valve pitch"
+                "Hybrid pitch values"
             )
-
-
-        if (
-            pitching_type
-            == "Hybrid pitching"
-            and
-            centre_pitch <= 0
-        ):
-
-            errors.append(
-                "Centre valve pitch"
-            )
-
 
         if errors:
 
-
             st.error(
                 (
-                    "The revision cannot be committed. "
-                    "Please complete or correct: "
+                    "Please complete: "
                     +
                     ", ".join(
                         errors
@@ -3834,57 +4018,845 @@ with standard_requirements_tab:
                 )
             )
 
-
         else:
-
 
             try:
 
-
                 commit_standard_revision(
-
                     project_name=(
                         standard_project
                     ),
-
                     revision_number=(
-                        next_revision_number
+                        next_revision
                     ),
-
                     committed_by=(
                         committed_by.strip()
                     ),
-
                     revision_comment=(
                         revision_comment.strip()
                     ),
-
                     requirements_dataframe=(
                         generated_standard_requirements
                     ),
                 )
 
-
                 st.success(
                     (
                         f"Revision "
-                        f"{next_revision_number} "
-                        f"has been committed and locked "
-                        f"for {standard_project}."
+                        f"{next_revision} "
+                        f"has been committed "
+                        f"and locked."
                     )
                 )
-
 
                 st.rerun()
 
-
             except sqlite3.IntegrityError:
-
 
                 st.error(
                     (
-                        "The revision could not be committed "
-                        "because the revision number already "
-                        "exists. Refresh the page and try again."
+                        "This revision number "
+                        "already exists."
                     )
                 )
+
+
+# ============================================================
+# ENGINEERING DASHBOARD PAGE
+# ============================================================
+
+else:
+
+    render_page_heading(
+        "⌁",
+        "Engineering Dashboard",
+        (
+            "Track requirement compliance, V&V completion, "
+            "and engineering deliverables."
+        ),
+    )
+
+    dashboard_header_1, dashboard_header_2 = (
+        st.columns(
+            [
+                3,
+                1,
+            ]
+        )
+    )
+
+    with dashboard_header_1:
+
+        dashboard_project = (
+            st.selectbox(
+                "Project",
+                ALLOWED_PROJECTS,
+                key="dashboard_project",
+            )
+        )
+
+    latest_revision = (
+        get_latest_revision_number(
+            dashboard_project
+        )
+    )
+
+    with dashboard_header_2:
+
+        st.markdown(
+            f"""
+            <div
+                class="glass-card"
+                style="
+                    margin-top: 1.75rem;
+                    text-align: center;
+                "
+            >
+
+                <div
+                    style="
+                        color: #aebbd4;
+                        font-size: 0.82rem;
+                    "
+                >
+                    Current Standard Revision
+                </div>
+
+                <div
+                    style="
+                        color: #65d8ff;
+                        font-size: 1.65rem;
+                        font-weight: 800;
+                    "
+                >
+                    {latest_revision}
+                </div>
+
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    standard_revision_id = (
+        get_latest_revision_id(
+            dashboard_project
+        )
+    )
+
+    if standard_revision_id is None:
+
+        standard_items = (
+            pd.DataFrame()
+        )
+
+    else:
+
+        standard_items = (
+            load_standard_revision_items(
+                standard_revision_id
+            )
+        )
+
+    project_items = (
+        load_project_requirements(
+            dashboard_project
+        )
+    )
+
+    combined_rows = []
+
+    for _, row in standard_items.iterrows():
+
+        complete, comment = (
+            get_requirement_completion(
+                dashboard_project,
+                "Standard",
+                str(
+                    row[
+                        "requirement_id"
+                    ]
+                ),
+            )
+        )
+
+        combined_rows.append(
+            {
+
+                "Source":
+                    "Standard",
+
+                "Reference":
+                    str(
+                        row[
+                            "requirement_id"
+                        ]
+                    ),
+
+                "Requirement":
+                    str(
+                        row[
+                            "requirement_text"
+                        ]
+                    ),
+
+                "V&V Point":
+                    str(
+                        row[
+                            "verification_point"
+                        ]
+                    ),
+
+                "V&V Method":
+                    str(
+                        row[
+                            "verification_method"
+                        ]
+                    ),
+
+                "Complete":
+                    complete,
+
+                "Evidence / Comment":
+                    comment,
+            }
+        )
+
+    for _, row in project_items.iterrows():
+
+        reference = (
+            f"REQ-"
+            f"{int(row['id']):04d}"
+        )
+
+        complete, comment = (
+            get_requirement_completion(
+                dashboard_project,
+                "Project specific",
+                reference,
+            )
+        )
+
+        combined_rows.append(
+            {
+
+                "Source":
+                    "Project specific",
+
+                "Reference":
+                    reference,
+
+                "Requirement":
+                    str(
+                        row[
+                            "requirement_text"
+                        ]
+                    ),
+
+                "V&V Point":
+                    str(
+                        row[
+                            "verification_point"
+                        ]
+                    ),
+
+                "V&V Method":
+                    str(
+                        row[
+                            "verification_method"
+                        ]
+                    ),
+
+                "Complete":
+                    complete,
+
+                "Evidence / Comment":
+                    comment,
+            }
+        )
+
+    combined_requirements = (
+        pd.DataFrame(
+            combined_rows
+        )
+    )
+
+    total_requirements = len(
+        combined_requirements
+    )
+
+    if total_requirements:
+
+        completed_requirements = int(
+            combined_requirements[
+                "Complete"
+            ].sum()
+        )
+
+    else:
+
+        completed_requirements = 0
+
+    open_requirements = (
+        total_requirements
+        -
+        completed_requirements
+    )
+
+    completion_percentage = (
+        int(
+            round(
+                (
+                    completed_requirements
+                    /
+                    total_requirements
+                    *
+                    100
+                )
+            )
+        )
+        if total_requirements
+        else
+        0
+    )
+
+    metric_1, metric_2, metric_3, metric_4 = (
+        st.columns(4)
+    )
+
+    with metric_1:
+
+        render_metric_card(
+            "Total Requirements",
+            total_requirements,
+            "metric-purple",
+        )
+
+    with metric_2:
+
+        render_metric_card(
+            "Requirements Met",
+            completed_requirements,
+            "metric-green",
+        )
+
+    with metric_3:
+
+        render_metric_card(
+            "Requirements Open",
+            open_requirements,
+            "metric-orange",
+        )
+
+    with metric_4:
+
+        render_metric_card(
+            "Overall Completion",
+            f"{completion_percentage}%",
+            "metric-blue",
+        )
+
+    checklist_1, progress_1 = st.columns(
+        [
+            1.7,
+            1,
+        ]
+    )
+
+    with checklist_1:
+
+        st.markdown(
+            """
+            <div class="glass-card">
+            """,
+            unsafe_allow_html=True,
+        )
+
+        st.subheader(
+            "Requirements Checklist"
+        )
+
+        if combined_requirements.empty:
+
+            st.info(
+                (
+                    "No requirements are available "
+                    "for this project."
+                )
+            )
+
+        else:
+
+            selected_vv_point = (
+                st.selectbox(
+                    "Filter by V&V point",
+                    [
+                        "All V&V points"
+                    ]
+                    +
+                    sorted(
+                        combined_requirements[
+                            "V&V Point"
+                        ]
+                        .dropna()
+                        .unique()
+                        .tolist()
+                    ),
+                )
+            )
+
+            filtered_requirements = (
+                combined_requirements.copy()
+            )
+
+            if (
+                selected_vv_point
+                !=
+                "All V&V points"
+            ):
+
+                filtered_requirements = (
+                    filtered_requirements[
+                        filtered_requirements[
+                            "V&V Point"
+                        ]
+                        ==
+                        selected_vv_point
+                    ]
+                )
+
+            for row_index, row in (
+                filtered_requirements
+                .reset_index(
+                    drop=True
+                )
+                .iterrows()
+            ):
+
+                reference = (
+                    row["Reference"]
+                )
+
+                source = (
+                    row["Source"]
+                )
+
+                key_prefix = (
+                    f"{dashboard_project}_"
+                    f"{source}_"
+                    f"{reference}"
+                )
+
+                with st.expander(
+                    (
+                        f"{reference} — "
+                        f"{row['Requirement']}"
+                    ),
+                    expanded=False,
+                ):
+
+                    detail_1, detail_2 = (
+                        st.columns(2)
+                    )
+
+                    with detail_1:
+
+                        st.caption(
+                            (
+                                f"V&V Point: "
+                                f"{row['V&V Point']}"
+                            )
+                        )
+
+                    with detail_2:
+
+                        st.caption(
+                            (
+                                f"V&V Method: "
+                                f"{row['V&V Method']}"
+                            )
+                        )
+
+                    complete_value = (
+                        st.checkbox(
+                            "Requirement met",
+                            value=bool(
+                                row["Complete"]
+                            ),
+                            key=(
+                                f"complete_"
+                                f"{key_prefix}"
+                            ),
+                        )
+                    )
+
+                    comment_value = (
+                        st.text_input(
+                            "Evidence / comment",
+                            value=str(
+                                row[
+                                    "Evidence / Comment"
+                                ]
+                            ),
+                            key=(
+                                f"comment_"
+                                f"{key_prefix}"
+                            ),
+                        )
+                    )
+
+                    if st.button(
+                        "Save requirement status",
+                        key=(
+                            f"save_"
+                            f"{key_prefix}"
+                        ),
+                    ):
+
+                        save_requirement_completion(
+                            project_name=(
+                                dashboard_project
+                            ),
+                            source=(
+                                source
+                            ),
+                            reference=(
+                                reference
+                            ),
+                            is_complete=(
+                                complete_value
+                            ),
+                            evidence_comment=(
+                                comment_value
+                            ),
+                        )
+
+                        st.success(
+                            (
+                                f"{reference} "
+                                f"updated."
+                            )
+                        )
+
+                        st.rerun()
+
+        st.markdown(
+            "</div>",
+            unsafe_allow_html=True,
+        )
+
+    with progress_1:
+
+        st.markdown(
+            """
+            <div class="glass-card">
+            """,
+            unsafe_allow_html=True,
+        )
+
+        st.subheader(
+            "V&V Progress by Point"
+        )
+
+        if combined_requirements.empty:
+
+            st.info(
+                (
+                    "No V&V data available."
+                )
+            )
+
+        else:
+
+            grouped = (
+                combined_requirements
+                .groupby(
+                    "V&V Point"
+                )
+                .agg(
+                    Requirements=(
+                        "Reference",
+                        "count",
+                    ),
+                    Met=(
+                        "Complete",
+                        "sum",
+                    ),
+                )
+                .reset_index()
+            )
+
+            grouped["Open"] = (
+                grouped[
+                    "Requirements"
+                ]
+                -
+                grouped["Met"]
+            )
+
+            grouped[
+                "Completion"
+            ] = (
+                (
+                    grouped["Met"]
+                    /
+                    grouped[
+                        "Requirements"
+                    ]
+                    *
+                    100
+                )
+                .round()
+                .astype(int)
+            )
+
+            for _, row in (
+                grouped.iterrows()
+            ):
+
+                st.markdown(
+                    f"""
+                    <div
+                        style="
+                            display:flex;
+                            justify-content:space-between;
+                            gap:0.7rem;
+                            margin-top:0.8rem;
+                        "
+                    >
+
+                        <span>
+                            {row['V&V Point']}
+                        </span>
+
+                        <span
+                            style="
+                                color:#76ddff;
+                                font-weight:700;
+                            "
+                        >
+                            {int(row['Completion'])}%
+                        </span>
+
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+
+                st.progress(
+                    int(
+                        row[
+                            "Completion"
+                        ]
+                    )
+                    /
+                    100
+                )
+
+                st.caption(
+                    (
+                        f"{int(row['Met'])} met · "
+                        f"{int(row['Open'])} open"
+                    )
+                )
+
+        st.markdown(
+            "</div>",
+            unsafe_allow_html=True,
+        )
+
+    lower_1, lower_2 = st.columns(
+        [
+            1.25,
+            1,
+        ]
+    )
+
+    with lower_1:
+
+        st.markdown(
+            """
+            <div class="glass-card">
+            """,
+            unsafe_allow_html=True,
+        )
+
+        st.subheader(
+            "Engineering Deliverables"
+        )
+
+        completed_deliverables = 0
+
+        for deliverable in (
+            ENGINEERING_DELIVERABLES
+        ):
+
+            stored_value = (
+                get_deliverable_status(
+                    dashboard_project,
+                    deliverable,
+                )
+            )
+
+            updated_value = (
+                st.checkbox(
+                    deliverable,
+                    value=stored_value,
+                    key=(
+                        f"deliverable_"
+                        f"{dashboard_project}_"
+                        f"{deliverable}"
+                    ),
+                )
+            )
+
+            if updated_value:
+
+                completed_deliverables += 1
+
+            if (
+                updated_value
+                !=
+                stored_value
+            ):
+
+                save_deliverable_status(
+                    project_name=(
+                        dashboard_project
+                    ),
+                    deliverable_name=(
+                        deliverable
+                    ),
+                    is_complete=(
+                        updated_value
+                    ),
+                )
+
+        deliverable_percentage = int(
+            round(
+                (
+                    completed_deliverables
+                    /
+                    len(
+                        ENGINEERING_DELIVERABLES
+                    )
+                    *
+                    100
+                )
+            )
+        )
+
+        st.progress(
+            deliverable_percentage
+            /
+            100
+        )
+
+        st.caption(
+            (
+                f"{completed_deliverables} of "
+                f"{len(ENGINEERING_DELIVERABLES)} "
+                f"deliverables complete"
+            )
+        )
+
+        st.markdown(
+            "</div>",
+            unsafe_allow_html=True,
+        )
+
+    with lower_2:
+
+        st.markdown(
+            """
+            <div class="glass-card-cyan">
+            """,
+            unsafe_allow_html=True,
+        )
+
+        st.subheader(
+            "Overall Completion"
+        )
+
+        st.markdown(
+            f"""
+            <div
+                style="
+                    min-height:260px;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    flex-direction:column;
+                "
+            >
+
+                <div
+                    style="
+                        width:180px;
+                        height:180px;
+                        border-radius:50%;
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                        flex-direction:column;
+                        background:
+                            radial-gradient(
+                                circle,
+                                #07152d 55%,
+                                transparent 57%
+                            ),
+                            conic-gradient(
+                                #16d8ff
+                                0%
+                                {completion_percentage}%,
+                                #192b4d
+                                {completion_percentage}%
+                                100%
+                            );
+                        box-shadow:
+                            0 0 34px
+                            rgba(29, 190, 255, 0.18);
+                    "
+                >
+
+                    <div
+                        style="
+                            color:white;
+                            font-size:2.65rem;
+                            font-weight:800;
+                        "
+                    >
+                        {completion_percentage}%
+                    </div>
+
+                    <div
+                        style="
+                            color:#aebbd5;
+                        "
+                    >
+                        Complete
+                    </div>
+
+                </div>
+
+                <div
+                    style="
+                        margin-top:1.2rem;
+                        color:#9eacc7;
+                    "
+                >
+                    {completed_requirements}
+                    met
+                    &nbsp;·&nbsp;
+                    {open_requirements}
+                    open
+                </div>
+
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        st.markdown(
+            "</div>",
+            unsafe_allow_html=True,
+        )
