@@ -43,6 +43,32 @@ PROJECT_REQUIREMENT_CATEGORIES = [
 ]
 
 
+VERIFICATION_POINTS = [
+    "Requirements review",
+    "Concept design review",
+    "Approval drawing review",
+    "Detailed design review",
+    "Manufacturing inspection",
+    "Assembly / Factory Acceptance Test",
+    "Site commissioning",
+    "Final project acceptance",
+]
+
+
+VERIFICATION_METHODS = [
+    "Document review",
+    "Drawing review",
+    "Design review",
+    "Calculation",
+    "Simulation",
+    "Inspection",
+    "Functional test",
+    "Factory Acceptance Test",
+    "Site Acceptance Test",
+    "Demonstration",
+]
+
+
 MILL_TYPES = [
     "FFM",
     "FIM",
@@ -103,7 +129,7 @@ def get_database_connection():
 
 
 # ============================================================
-# DATABASE SETUP
+# DATABASE HELPERS
 # ============================================================
 
 def get_existing_columns(
@@ -111,7 +137,7 @@ def get_existing_columns(
     table_name,
 ):
     """
-    Return all columns currently present in a table.
+    Return the existing columns for a database table.
     """
 
     table_information = connection.execute(
@@ -124,11 +150,40 @@ def get_existing_columns(
     ]
 
 
+def add_column_if_missing(
+    connection,
+    table_name,
+    column_name,
+    column_definition,
+):
+    """
+    Add a new column without deleting existing data.
+    """
+
+    existing_columns = get_existing_columns(
+        connection,
+        table_name,
+    )
+
+    if column_name not in existing_columns:
+
+        connection.execute(
+            f"""
+            ALTER TABLE {table_name}
+            ADD COLUMN {column_name} {column_definition}
+            """
+        )
+
+
+# ============================================================
+# DATABASE SETUP
+# ============================================================
+
 def create_or_update_database():
     """
-    Create all required database tables.
+    Create or update all application tables.
 
-    Existing data is preserved.
+    Existing records are preserved.
     """
 
     connection = get_database_connection()
@@ -152,36 +207,44 @@ def create_or_update_database():
             date_submitted TEXT NOT NULL,
             status TEXT NOT NULL,
             boilerplate_name TEXT,
-            stakeholder_input TEXT
+            stakeholder_input TEXT,
+            verification_point TEXT,
+            verification_method TEXT
         )
         """
     )
 
 
-    requirement_columns = get_existing_columns(
+    add_column_if_missing(
         connection,
         "requirements",
+        "boilerplate_name",
+        "TEXT",
     )
 
 
-    if "boilerplate_name" not in requirement_columns:
-
-        connection.execute(
-            """
-            ALTER TABLE requirements
-            ADD COLUMN boilerplate_name TEXT
-            """
-        )
+    add_column_if_missing(
+        connection,
+        "requirements",
+        "stakeholder_input",
+        "TEXT",
+    )
 
 
-    if "stakeholder_input" not in requirement_columns:
+    add_column_if_missing(
+        connection,
+        "requirements",
+        "verification_point",
+        "TEXT",
+    )
 
-        connection.execute(
-            """
-            ALTER TABLE requirements
-            ADD COLUMN stakeholder_input TEXT
-            """
-        )
+
+    add_column_if_missing(
+        connection,
+        "requirements",
+        "verification_method",
+        "TEXT",
+    )
 
 
     # --------------------------------------------------------
@@ -218,6 +281,7 @@ def create_or_update_database():
             requirement_text TEXT NOT NULL,
             required_value TEXT,
             unit_or_limit TEXT,
+            verification_point TEXT,
             verification_method TEXT,
             notes TEXT,
             locked TEXT NOT NULL,
@@ -228,7 +292,24 @@ def create_or_update_database():
     )
 
 
+    add_column_if_missing(
+        connection,
+        "standard_requirement_items",
+        "verification_point",
+        "TEXT",
+    )
+
+
+    add_column_if_missing(
+        connection,
+        "standard_requirement_items",
+        "verification_method",
+        "TEXT",
+    )
+
+
     connection.commit()
+
     connection.close()
 
 
@@ -245,9 +326,11 @@ def save_project_requirement(
     submitted_by,
     requirement_category,
     stakeholder_input,
+    verification_point,
+    verification_method,
 ):
     """
-    Save a stakeholder-submitted project requirement.
+    Save a project-specific requirement.
     """
 
     connection = get_database_connection()
@@ -266,9 +349,11 @@ def save_project_requirement(
             date_submitted,
             status,
             boilerplate_name,
-            stakeholder_input
+            stakeholder_input,
+            verification_point,
+            verification_method
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             project_name,
@@ -284,11 +369,14 @@ def save_project_requirement(
             "Pending",
             requirement_category,
             stakeholder_input,
+            verification_point,
+            verification_method,
         ),
     )
 
 
     connection.commit()
+
     connection.close()
 
 
@@ -313,7 +401,9 @@ def load_project_requirements():
             date_submitted,
             status,
             boilerplate_name,
-            stakeholder_input
+            stakeholder_input,
+            verification_point,
+            verification_method
         FROM requirements
         WHERE requirement_type = 'Customer specific'
         ORDER BY id DESC
@@ -335,8 +425,7 @@ def load_standard_revisions(
     project_name,
 ):
     """
-    Load all committed standard requirement revisions
-    for one project.
+    Load all standard revisions for a project.
     """
 
     connection = get_database_connection()
@@ -372,7 +461,7 @@ def load_standard_revision_items(
     revision_id,
 ):
     """
-    Load every requirement item belonging to one revision.
+    Load all requirement items in one locked revision.
     """
 
     connection = get_database_connection()
@@ -386,6 +475,7 @@ def load_standard_revision_items(
             requirement_text,
             required_value,
             unit_or_limit,
+            verification_point,
             verification_method,
             notes
         FROM standard_requirement_items
@@ -408,9 +498,7 @@ def get_next_revision_number(
     project_name,
 ):
     """
-    Return the next revision number.
-
-    The first revision is 00.
+    Return the next two-digit revision number.
     """
 
     revisions = load_standard_revisions(
@@ -437,7 +525,7 @@ def get_latest_revision_id(
     project_name,
 ):
     """
-    Return the database ID of the latest revision.
+    Return the latest locked revision ID.
     """
 
     revisions = load_standard_revisions(
@@ -459,7 +547,7 @@ def load_latest_standard_values(
     project_name,
 ):
     """
-    Load the most recent values for a project.
+    Load values from the latest locked revision.
 
     These values populate the next revision.
     """
@@ -504,7 +592,7 @@ def commit_standard_revision(
     requirements_dataframe,
 ):
     """
-    Save and lock a complete standard requirements revision.
+    Save and lock one complete standard requirements revision.
     """
 
     connection = get_database_connection()
@@ -551,11 +639,12 @@ def commit_standard_revision(
                 requirement_text,
                 required_value,
                 unit_or_limit,
+                verification_point,
                 verification_method,
                 notes,
                 locked
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 revision_id,
@@ -575,7 +664,10 @@ def commit_standard_revision(
                     row["Unit / Limit"]
                 ),
                 str(
-                    row["Verification Method"]
+                    row["V&V Point"]
+                ),
+                str(
+                    row["V&V Method"]
                 ),
                 str(
                     row["Notes"]
@@ -586,18 +678,19 @@ def commit_standard_revision(
 
 
     connection.commit()
+
     connection.close()
 
 
 # ============================================================
-# REVISION COMPARISON FUNCTIONS
+# REVISION COMPARISON
 # ============================================================
 
 def revision_items_to_dictionary(
     revision_items,
 ):
     """
-    Convert revision rows into a comparison dictionary.
+    Convert revision items into a comparison dictionary.
     """
 
     revision_dictionary = {}
@@ -634,6 +727,11 @@ def revision_items_to_dictionary(
                     row["unit_or_limit"]
                 ),
 
+            "verification_point":
+                str(
+                    row["verification_point"]
+                ),
+
             "verification_method":
                 str(
                     row["verification_method"]
@@ -654,7 +752,7 @@ def find_changed_question_ids(
     current_revision_items,
 ):
     """
-    Compare two revisions and return changed IDs.
+    Find changed, added, or removed question IDs.
     """
 
     previous_dictionary = (
@@ -672,13 +770,10 @@ def find_changed_question_ids(
 
 
     all_question_ids = sorted(
-
         set(
             previous_dictionary.keys()
         )
-
         |
-
         set(
             current_dictionary.keys()
         )
@@ -712,9 +807,7 @@ def build_revision_history_summary(
     project_name,
 ):
     """
-    Create the compact revision history.
-
-    Revision 00 is shown as Initial issue.
+    Build a compact revision history.
     """
 
     revisions = load_standard_revisions(
@@ -818,7 +911,7 @@ def build_revision_history_summary(
 
 
 # ============================================================
-# VALUE HELPER FUNCTIONS
+# VALUE HELPERS
 # ============================================================
 
 def get_text_value(
@@ -827,7 +920,7 @@ def get_text_value(
     default_value="",
 ):
     """
-    Return a stored text value or a default.
+    Return saved text or a default.
     """
 
     value = latest_values.get(
@@ -855,7 +948,7 @@ def get_integer_value(
     default_value=0,
 ):
     """
-    Safely convert a stored value to an integer.
+    Safely return an integer.
     """
 
     value = latest_values.get(
@@ -887,7 +980,7 @@ def get_float_value(
     default_value=0.0,
 ):
     """
-    Safely convert a stored value to a float.
+    Safely return a float.
     """
 
     value = latest_values.get(
@@ -917,7 +1010,7 @@ def selectbox_index(
     default_index=0,
 ):
     """
-    Return the correct selectbox position.
+    Return the correct index for a saved dropdown value.
     """
 
     if saved_value in options:
@@ -939,10 +1032,7 @@ def get_electrical_requirement(
 ):
     """
     Return the electrical requirement implied
-    by the selected valve variant.
-
-    These descriptions can be replaced later with
-    the approved technical specifications.
+    by the selected valve type.
     """
 
     electrical_requirements = {
@@ -999,8 +1089,7 @@ def build_standard_requirement_table(
     operating_fluid,
 ):
     """
-    Convert the standard questionnaire answers into
-    a formal requirements table.
+    Generate the standard requirements table.
     """
 
     electrical_requirement = (
@@ -1032,7 +1121,10 @@ def build_standard_requirement_table(
             "Unit / Limit":
                 "",
 
-            "Verification Method":
+            "V&V Point":
+                "Requirements review",
+
+            "V&V Method":
                 "Document review",
 
             "Notes":
@@ -1059,7 +1151,10 @@ def build_standard_requirement_table(
             "Unit / Limit":
                 "",
 
-            "Verification Method":
+            "V&V Point":
+                "Requirements review",
+
+            "V&V Method":
                 "Document review",
 
             "Notes":
@@ -1086,8 +1181,11 @@ def build_standard_requirement_table(
             "Unit / Limit":
                 "",
 
-            "Verification Method":
-                "Document review",
+            "V&V Point":
+                "Concept design review",
+
+            "V&V Method":
+                "Design review",
 
             "Notes":
                 "",
@@ -1113,7 +1211,10 @@ def build_standard_requirement_table(
             "Unit / Limit":
                 "",
 
-            "Verification Method":
+            "V&V Point":
+                "Concept design review",
+
+            "V&V Method":
                 "Design review",
 
             "Notes":
@@ -1140,13 +1241,16 @@ def build_standard_requirement_table(
             "Unit / Limit":
                 "",
 
-            "Verification Method":
+            "V&V Point":
+                "Concept design review",
+
+            "V&V Method":
                 "Design review",
 
             "Notes":
                 (
-                    "Not applicable when an ISV product "
-                    "variant other than ISV - MK3 is selected."
+                    "Not applicable when a non-MK3 "
+                    "variant is selected."
                 ),
         },
 
@@ -1170,7 +1274,10 @@ def build_standard_requirement_table(
             "Unit / Limit":
                 "",
 
-            "Verification Method":
+            "V&V Point":
+                "Approval drawing review",
+
+            "V&V Method":
                 "Drawing review",
 
             "Notes":
@@ -1199,7 +1306,10 @@ def build_standard_requirement_table(
             "Unit / Limit":
                 "valves",
 
-            "Verification Method":
+            "V&V Point":
+                "Approval drawing review",
+
+            "V&V Method":
                 "Drawing review",
 
             "Notes":
@@ -1238,7 +1348,10 @@ def build_standard_requirement_table(
                     ""
                 ),
 
-            "Verification Method":
+            "V&V Point":
+                "Approval drawing review",
+
+            "V&V Method":
                 "Drawing review",
 
             "Notes":
@@ -1280,7 +1393,10 @@ def build_standard_requirement_table(
                     ""
                 ),
 
-            "Verification Method":
+            "V&V Point":
+                "Approval drawing review",
+
+            "V&V Method":
                 "Drawing review",
 
             "Notes":
@@ -1319,7 +1435,10 @@ def build_standard_requirement_table(
                     ""
                 ),
 
-            "Verification Method":
+            "V&V Point":
+                "Approval drawing review",
+
+            "V&V Method":
                 "Drawing review",
 
             "Notes":
@@ -1360,7 +1479,10 @@ def build_standard_requirement_table(
                     ""
                 ),
 
-            "Verification Method":
+            "V&V Point":
+                "Approval drawing review",
+
+            "V&V Method":
                 "Drawing review",
 
             "Notes":
@@ -1399,7 +1521,10 @@ def build_standard_requirement_table(
                     ""
                 ),
 
-            "Verification Method":
+            "V&V Point":
+                "Approval drawing review",
+
+            "V&V Method":
                 "Drawing review",
 
             "Notes":
@@ -1426,7 +1551,10 @@ def build_standard_requirement_table(
             "Unit / Limit":
                 "",
 
-            "Verification Method":
+            "V&V Point":
+                "Detailed design review",
+
+            "V&V Method":
                 "Design review",
 
             "Notes":
@@ -1444,9 +1572,8 @@ def build_standard_requirement_table(
             "Requirement":
                 (
                     "The ISV electrical configuration "
-                    "shall comply with the electrical "
-                    "requirements applicable to the "
-                    "selected valve variant."
+                    "shall comply with the requirements "
+                    "applicable to the selected valve variant."
                 ),
 
             "Required Value":
@@ -1455,13 +1582,16 @@ def build_standard_requirement_table(
             "Unit / Limit":
                 "",
 
-            "Verification Method":
-                "Electrical design review",
+            "V&V Point":
+                "Detailed design review",
+
+            "V&V Method":
+                "Design review",
 
             "Notes":
                 (
                     "Automatically generated from "
-                    "the selected product variant."
+                    "the selected valve variant."
                 ),
         },
 
@@ -1485,7 +1615,10 @@ def build_standard_requirement_table(
             "Unit / Limit":
                 "",
 
-            "Verification Method":
+            "V&V Point":
+                "Approval drawing review",
+
+            "V&V Method":
                 "Document review",
 
             "Notes":
@@ -1515,7 +1648,10 @@ def build_standard_requirement_table(
             "Unit / Limit":
                 "",
 
-            "Verification Method":
+            "V&V Point":
+                "Detailed design review",
+
+            "V&V Method":
                 "Document review",
 
             "Notes":
@@ -1593,15 +1729,16 @@ with project_specific_tab:
 
     st.info(
         """
-        New requirements are submitted with a status of
-        **Pending** for project-owner review.
+        Each requirement must also have a proposed verification
+        or validation point and method before submission.
         """
     )
 
 
-    # --------------------------------------------------------
+    # ========================================================
+    # SECTION 1
     # REQUIREMENT DETAILS
-    # --------------------------------------------------------
+    # ========================================================
 
     st.subheader(
         "1. Requirement Details"
@@ -1660,9 +1797,10 @@ with project_specific_tab:
         )
 
 
-    # --------------------------------------------------------
-    # REQUIREMENT TYPE
-    # --------------------------------------------------------
+    # ========================================================
+    # SECTION 2
+    # REQUIREMENT CATEGORY
+    # ========================================================
 
     st.divider()
 
@@ -1683,9 +1821,10 @@ with project_specific_tab:
     )
 
 
-    # --------------------------------------------------------
-    # GUIDED INPUT
-    # --------------------------------------------------------
+    # ========================================================
+    # SECTION 3
+    # GUIDED REQUIREMENT INPUT
+    # ========================================================
 
     st.divider()
 
@@ -1705,6 +1844,10 @@ with project_specific_tab:
 
     database_category = "Other"
 
+
+    # --------------------------------------------------------
+    # OPERATING CONDITION
+    # --------------------------------------------------------
 
     if (
         selected_requirement_category
@@ -1789,6 +1932,10 @@ with project_specific_tab:
             f"Condition: {operating_condition.strip()}"
         )
 
+
+    # --------------------------------------------------------
+    # CAPACITY OR QUANTITY
+    # --------------------------------------------------------
 
     elif (
         selected_requirement_category
@@ -1893,7 +2040,578 @@ with project_specific_tab:
         )
 
 
+    # --------------------------------------------------------
+    # PERFORMANCE LEVEL
+    # --------------------------------------------------------
+
+    elif (
+        selected_requirement_category
+        == "Performance level"
+    ):
+
+
+        database_category = "Performance"
+
+
+        input_column_1, input_column_2 = (
+            st.columns(2)
+        )
+
+
+        with input_column_1:
+
+
+            equipment_name = st.text_input(
+                (
+                    "What equipment or system "
+                    "does this apply to? *"
+                ),
+                value="ISV spraybar",
+                key="performance_equipment",
+            )
+
+
+            required_action = st.text_input(
+                "What must it do? *",
+                placeholder=(
+                    "Example: deliver cooling fluid"
+                ),
+                key="performance_action",
+            )
+
+
+        with input_column_2:
+
+
+            required_value = st.number_input(
+                (
+                    "What is the minimum "
+                    "required value? *"
+                ),
+                min_value=0.0,
+                step=1.0,
+                key="performance_value",
+            )
+
+
+            engineering_unit = st.text_input(
+                "What unit is used? *",
+                placeholder=(
+                    "Example: litres per minute"
+                ),
+                key="performance_unit",
+            )
+
+
+        required_inputs_complete = all(
+            [
+                equipment_name.strip(),
+                required_action.strip(),
+                required_value > 0,
+                engineering_unit.strip(),
+            ]
+        )
+
+
+        value_preview = (
+            f"{required_value:g}"
+            if required_value > 0
+            else
+            "[minimum value]"
+        )
+
+
+        requirement_preview = (
+            f"The "
+            f"{equipment_name.strip() or '[equipment or system]'} "
+            f"shall "
+            f"{required_action.strip() or '[required action]'} "
+            f"at a minimum value of "
+            f"{value_preview} "
+            f"{engineering_unit.strip() or '[unit]'}."
+        )
+
+
+        generated_requirement = (
+            f"The {equipment_name.strip()} shall "
+            f"{required_action.strip()} "
+            f"at a minimum value of "
+            f"{required_value:g} "
+            f"{engineering_unit.strip()}."
+        )
+
+
+        stakeholder_input = (
+            f"Equipment: {equipment_name.strip()}\n"
+            f"Action: {required_action.strip()}\n"
+            f"Value: {required_value:g}\n"
+            f"Unit: {engineering_unit.strip()}"
+        )
+
+
+    # --------------------------------------------------------
+    # RESPONSE TIME
+    # --------------------------------------------------------
+
+    elif (
+        selected_requirement_category
+        == "Response time"
+    ):
+
+
+        database_category = "Performance"
+
+
+        input_column_1, input_column_2 = (
+            st.columns(2)
+        )
+
+
+        with input_column_1:
+
+
+            equipment_name = st.text_input(
+                (
+                    "What equipment or system "
+                    "does this apply to? *"
+                ),
+                value="ISV spraybar",
+                key="response_equipment",
+            )
+
+
+            required_action = st.text_input(
+                "What action must happen? *",
+                placeholder=(
+                    "Example: begin coolant delivery"
+                ),
+                key="response_action",
+            )
+
+
+            trigger_event = st.text_input(
+                "What triggers the action? *",
+                placeholder=(
+                    "Example: receiving a control signal"
+                ),
+                key="response_trigger",
+            )
+
+
+        with input_column_2:
+
+
+            maximum_time = st.number_input(
+                (
+                    "What is the maximum "
+                    "permitted time? *"
+                ),
+                min_value=0.0,
+                step=0.1,
+                key="response_time",
+            )
+
+
+            time_unit = st.selectbox(
+                "Time unit *",
+                options=[
+                    "milliseconds",
+                    "seconds",
+                    "minutes",
+                    "hours",
+                ],
+                key="response_unit",
+            )
+
+
+        required_inputs_complete = all(
+            [
+                equipment_name.strip(),
+                required_action.strip(),
+                trigger_event.strip(),
+                maximum_time > 0,
+            ]
+        )
+
+
+        time_preview = (
+            f"{maximum_time:g}"
+            if maximum_time > 0
+            else
+            "[maximum time]"
+        )
+
+
+        requirement_preview = (
+            f"The "
+            f"{equipment_name.strip() or '[equipment or system]'} "
+            f"shall "
+            f"{required_action.strip() or '[required action]'} "
+            f"within "
+            f"{time_preview} "
+            f"{time_unit} of "
+            f"{trigger_event.strip() or '[trigger event]'}."
+        )
+
+
+        generated_requirement = (
+            f"The {equipment_name.strip()} shall "
+            f"{required_action.strip()} "
+            f"within "
+            f"{maximum_time:g} "
+            f"{time_unit} of "
+            f"{trigger_event.strip()}."
+        )
+
+
+        stakeholder_input = (
+            f"Equipment: {equipment_name.strip()}\n"
+            f"Action: {required_action.strip()}\n"
+            f"Trigger: {trigger_event.strip()}\n"
+            f"Time: {maximum_time:g} {time_unit}"
+        )
+
+
+    # --------------------------------------------------------
+    # COMPATIBILITY OR INTERFACE
+    # --------------------------------------------------------
+
+    elif (
+        selected_requirement_category
+        == "Compatibility or interface"
+    ):
+
+
+        database_category = "Interface"
+
+
+        input_column_1, input_column_2 = (
+            st.columns(2)
+        )
+
+
+        with input_column_1:
+
+
+            equipment_name = st.text_input(
+                (
+                    "What equipment or system "
+                    "does this apply to? *"
+                ),
+                value="ISV spraybar",
+                key="interface_equipment",
+            )
+
+
+            external_system = st.text_input(
+                (
+                    "What other equipment "
+                    "must it connect to? *"
+                ),
+                placeholder=(
+                    "Example: mill control system"
+                ),
+                key="interface_external_system",
+            )
+
+
+        with input_column_2:
+
+
+            interface_description = st.text_input(
+                (
+                    "What connection or "
+                    "interface is required? *"
+                ),
+                placeholder=(
+                    "Example: 64 digital outputs"
+                ),
+                key="interface_description",
+            )
+
+
+        required_inputs_complete = all(
+            [
+                equipment_name.strip(),
+                external_system.strip(),
+                interface_description.strip(),
+            ]
+        )
+
+
+        requirement_preview = (
+            f"The "
+            f"{equipment_name.strip() or '[equipment or system]'} "
+            f"shall interface with the "
+            f"{external_system.strip() or '[external system]'} "
+            f"using "
+            f"{interface_description.strip() or '[interface]'}."
+        )
+
+
+        generated_requirement = (
+            f"The {equipment_name.strip()} "
+            f"shall interface with the "
+            f"{external_system.strip()} "
+            f"using "
+            f"{interface_description.strip()}."
+        )
+
+
+        stakeholder_input = (
+            f"Equipment: {equipment_name.strip()}\n"
+            f"External system: {external_system.strip()}\n"
+            f"Interface: {interface_description.strip()}"
+        )
+
+
+    # --------------------------------------------------------
+    # PRODUCT TYPE OR STANDARD
+    # --------------------------------------------------------
+
+    elif (
+        selected_requirement_category
+        == "Product type or standard"
+    ):
+
+
+        database_category = "Specification"
+
+
+        input_column_1, input_column_2 = (
+            st.columns(2)
+        )
+
+
+        with input_column_1:
+
+
+            equipment_name = st.text_input(
+                (
+                    "What equipment or system "
+                    "does this apply to? *"
+                ),
+                value="ISV spraybar",
+                key="standard_equipment",
+            )
+
+
+            specified_item = st.text_input(
+                "What item is being specified? *",
+                placeholder="Example: cooling fluid",
+                key="standard_item",
+            )
+
+
+        with input_column_2:
+
+
+            required_standard = st.text_input(
+                (
+                    "What type, grade, or "
+                    "standard is required? *"
+                ),
+                placeholder="Example: ISO VG 32",
+                key="standard_grade",
+            )
+
+
+            operating_limit = st.text_input(
+                "Are there any operating limits?",
+                placeholder=(
+                    "Example: at a maximum pressure "
+                    "of 10 bar"
+                ),
+                key="standard_limit",
+            )
+
+
+        required_inputs_complete = all(
+            [
+                equipment_name.strip(),
+                specified_item.strip(),
+                required_standard.strip(),
+            ]
+        )
+
+
+        requirement_preview = (
+            f"The "
+            f"{equipment_name.strip() or '[equipment or system]'} "
+            f"shall use "
+            f"{required_standard.strip() or '[type or standard]'} "
+            f"{specified_item.strip() or '[specified item]'} "
+            f"{operating_limit.strip() or '[optional operating limit]'}."
+        )
+
+
+        generated_requirement = (
+            f"The {equipment_name.strip()} "
+            f"shall use "
+            f"{required_standard.strip()} "
+            f"{specified_item.strip()}"
+        )
+
+
+        if operating_limit.strip():
+
+            generated_requirement += (
+                f" {operating_limit.strip()}"
+            )
+
+
+        generated_requirement += "."
+
+
+        stakeholder_input = (
+            f"Equipment: {equipment_name.strip()}\n"
+            f"Item: {specified_item.strip()}\n"
+            f"Standard: {required_standard.strip()}\n"
+            f"Limit: {operating_limit.strip()}"
+        )
+
+
+    # --------------------------------------------------------
+    # RELIABILITY OR MAINTENANCE
+    # --------------------------------------------------------
+
+    elif (
+        selected_requirement_category
+        == "Reliability or maintenance"
+    ):
+
+
+        database_category = "Maintenance"
+
+
+        input_column_1, input_column_2 = (
+            st.columns(2)
+        )
+
+
+        with input_column_1:
+
+
+            equipment_name = st.text_input(
+                (
+                    "What equipment or system "
+                    "does this apply to? *"
+                ),
+                value="ISV spraybar",
+                key="reliability_equipment",
+            )
+
+
+            required_action = st.text_input(
+                "What must continue operating? *",
+                placeholder="Example: operate",
+                key="reliability_action",
+            )
+
+
+        with input_column_2:
+
+
+            minimum_duration = st.number_input(
+                (
+                    "What is the minimum "
+                    "required duration? *"
+                ),
+                min_value=0.0,
+                step=100.0,
+                key="reliability_duration",
+            )
+
+
+            duration_unit = st.text_input(
+                "What unit is used? *",
+                placeholder=(
+                    "Example: operating hours"
+                ),
+                key="reliability_unit",
+            )
+
+
+            maintenance_condition = st.text_input(
+                (
+                    "What maintenance "
+                    "limitation applies?"
+                ),
+                placeholder=(
+                    "Example: without planned maintenance"
+                ),
+                key="reliability_condition",
+            )
+
+
+        required_inputs_complete = all(
+            [
+                equipment_name.strip(),
+                required_action.strip(),
+                minimum_duration > 0,
+                duration_unit.strip(),
+            ]
+        )
+
+
+        duration_preview = (
+            f"{minimum_duration:g}"
+            if minimum_duration > 0
+            else
+            "[minimum duration]"
+        )
+
+
+        requirement_preview = (
+            f"The "
+            f"{equipment_name.strip() or '[equipment or system]'} "
+            f"shall "
+            f"{required_action.strip() or '[required action]'} "
+            f"for a minimum of "
+            f"{duration_preview} "
+            f"{duration_unit.strip() or '[unit]'} "
+            f"{maintenance_condition.strip() or '[optional maintenance condition]'}."
+        )
+
+
+        generated_requirement = (
+            f"The {equipment_name.strip()} "
+            f"shall "
+            f"{required_action.strip()} "
+            f"for a minimum of "
+            f"{minimum_duration:g} "
+            f"{duration_unit.strip()}"
+        )
+
+
+        if maintenance_condition.strip():
+
+            generated_requirement += (
+                f" {maintenance_condition.strip()}"
+            )
+
+
+        generated_requirement += "."
+
+
+        stakeholder_input = (
+            f"Equipment: {equipment_name.strip()}\n"
+            f"Action: {required_action.strip()}\n"
+            f"Duration: {minimum_duration:g} "
+            f"{duration_unit.strip()}\n"
+            f"Maintenance: "
+            f"{maintenance_condition.strip()}"
+        )
+
+
+    # --------------------------------------------------------
+    # OTHER REQUIREMENT
+    # --------------------------------------------------------
+
     else:
+
+
+        database_category = "Other"
 
 
         stakeholder_description = (
@@ -1903,7 +2621,7 @@ with project_specific_tab:
                     "Describe the requirement "
                     "in your own words."
                 ),
-                key="general_project_requirement",
+                key="other_requirement_description",
             )
         )
 
@@ -1930,9 +2648,10 @@ with project_specific_tab:
         )
 
 
-    # --------------------------------------------------------
+    # ========================================================
+    # SECTION 4
     # LIVE PREVIEW
-    # --------------------------------------------------------
+    # ========================================================
 
     st.divider()
 
@@ -1954,7 +2673,7 @@ with project_specific_tab:
         st.success(
             (
                 "The requirement is complete "
-                "and ready to submit."
+                "and ready for V&V definition."
             )
         )
 
@@ -1970,15 +2689,82 @@ with project_specific_tab:
         )
 
 
-    # --------------------------------------------------------
-    # SUBMIT PROJECT REQUIREMENT
-    # --------------------------------------------------------
+    # ========================================================
+    # SECTION 5
+    # VERIFICATION AND VALIDATION
+    # ========================================================
 
     st.divider()
 
 
     st.subheader(
-        "5. Submit for Project-Owner Review"
+        "5. Verification and Validation"
+    )
+
+
+    st.write(
+        """
+        Select when the requirement should be checked and
+        how compliance should be demonstrated.
+        """
+    )
+
+
+    verification_column_1, verification_column_2 = (
+        st.columns(2)
+    )
+
+
+    with verification_column_1:
+
+
+        project_verification_point = (
+            st.selectbox(
+                "Proposed V&V point *",
+                options=VERIFICATION_POINTS,
+                key="project_verification_point",
+                help=(
+                    "The stage in the project lifecycle "
+                    "where the requirement should be checked."
+                ),
+            )
+        )
+
+
+    with verification_column_2:
+
+
+        project_verification_method = (
+            st.selectbox(
+                "Proposed V&V method *",
+                options=VERIFICATION_METHODS,
+                key="project_verification_method",
+                help=(
+                    "The method used to demonstrate "
+                    "that the requirement has been met."
+                ),
+            )
+        )
+
+
+    st.info(
+        (
+            f"Proposed check: **{project_verification_method}** "
+            f"at **{project_verification_point}**."
+        )
+    )
+
+
+    # ========================================================
+    # SECTION 6
+    # SUBMIT REQUIREMENT
+    # ========================================================
+
+    st.divider()
+
+
+    st.subheader(
+        "6. Submit for Project-Owner Review"
     )
 
 
@@ -2035,29 +2821,45 @@ with project_specific_tab:
 
 
             save_project_requirement(
+
                 project_name=(
                     selected_project
                 ),
+
                 requirement_title=(
                     requirement_title.strip()
                 ),
+
                 requirement_text=(
                     generated_requirement
                 ),
+
                 category=(
                     database_category
                 ),
+
                 source_department=(
                     source_department
                 ),
+
                 submitted_by=(
                     submitted_by.strip()
                 ),
+
                 requirement_category=(
                     selected_requirement_category
                 ),
+
                 stakeholder_input=(
                     stakeholder_input
+                ),
+
+                verification_point=(
+                    project_verification_point
+                ),
+
+                verification_method=(
+                    project_verification_method
                 ),
             )
 
@@ -2070,9 +2872,9 @@ with project_specific_tab:
             )
 
 
-    # --------------------------------------------------------
-    # PROJECT REQUIREMENTS TABLE
-    # --------------------------------------------------------
+    # ========================================================
+    # PROJECT REQUIREMENTS DASHBOARD
+    # ========================================================
 
     project_requirements = (
         load_project_requirements()
@@ -2104,6 +2906,7 @@ with project_specific_tab:
         project_display = (
             project_requirements.rename(
                 columns={
+
                     "id":
                         "ID",
 
@@ -2118,6 +2921,12 @@ with project_specific_tab:
 
                     "boilerplate_name":
                         "Requirement Type",
+
+                    "verification_point":
+                        "V&V Point",
+
+                    "verification_method":
+                        "V&V Method",
 
                     "status":
                         "Status",
@@ -2134,6 +2943,8 @@ with project_specific_tab:
                     "Title",
                     "Requirement",
                     "Requirement Type",
+                    "V&V Point",
+                    "V&V Method",
                     "Status",
                 ]
             ],
@@ -2157,8 +2968,9 @@ with standard_requirements_tab:
     st.write(
         """
         Complete the guided ISV project questions. The
-        application converts the answers into a standard
-        requirements table. Committed revisions are locked.
+        application converts the answers into a controlled
+        standard requirements table with defined verification
+        and validation points and methods.
         """
     )
 
@@ -2241,38 +3053,6 @@ with standard_requirements_tab:
             revision_history,
             use_container_width=True,
             hide_index=True,
-            column_config={
-
-                "Revision":
-                    st.column_config.TextColumn(
-                        "Revision",
-                        width="small",
-                    ),
-
-                "Changed Question IDs":
-                    st.column_config.TextColumn(
-                        "Changed Question IDs",
-                        width="large",
-                    ),
-
-                "Committed By":
-                    st.column_config.TextColumn(
-                        "Committed By",
-                        width="medium",
-                    ),
-
-                "Committed Date":
-                    st.column_config.TextColumn(
-                        "Committed Date",
-                        width="medium",
-                    ),
-
-                "Revision Comment":
-                    st.column_config.TextColumn(
-                        "Revision Comment",
-                        width="large",
-                    ),
-            },
         )
 
 
@@ -2477,8 +3257,9 @@ with standard_requirements_tab:
 
         st.caption(
             (
-                "Electrical requirements are generated "
-                "automatically from the selected valve type."
+                "Electrical requirements and their V&V "
+                "route are generated automatically from "
+                "the selected valve type."
             )
         )
 
@@ -2696,17 +3477,6 @@ with standard_requirements_tab:
             )
 
 
-            st.caption(
-                (
-                    f"{edge_valves_per_side} valves "
-                    f"on the left edge + "
-                    f"{centre_valves} centre valves + "
-                    f"{edge_valves_per_side} valves "
-                    f"on the right edge."
-                )
-            )
-
-
     # --------------------------------------------------------
     # OPERATING FLUID
     # --------------------------------------------------------
@@ -2846,7 +3616,7 @@ with standard_requirements_tab:
 
     # ========================================================
     # SECTION 4
-    # GENERATED REQUIREMENT TABLE
+    # REVIEW GENERATED TABLE
     # ========================================================
 
     st.divider()
@@ -2859,8 +3629,9 @@ with standard_requirements_tab:
 
     st.write(
         """
-        This read-only table has been generated from the
-        project answers above.
+        The V&V point identifies when each requirement should
+        be checked. The V&V method identifies how compliance
+        should be demonstrated.
         """
     )
 
@@ -2895,9 +3666,15 @@ with standard_requirements_tab:
                     width="medium",
                 ),
 
-            "Verification Method":
+            "V&V Point":
                 st.column_config.TextColumn(
-                    "Verification Method",
+                    "V&V Point",
+                    width="medium",
+                ),
+
+            "V&V Method":
+                st.column_config.TextColumn(
+                    "V&V Method",
                     width="medium",
                 ),
         },
@@ -2906,7 +3683,7 @@ with standard_requirements_tab:
 
     # ========================================================
     # SECTION 5
-    # COMMIT LOCKED REVISION
+    # COMMIT REVISION
     # ========================================================
 
     st.divider()
