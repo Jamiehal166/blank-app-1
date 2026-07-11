@@ -52,9 +52,7 @@ def get_database_connection():
     Open a connection to the SQLite database.
     """
 
-    return sqlite3.connect(
-        DATABASE_FILE
-    )
+    return sqlite3.connect(DATABASE_FILE)
 
 
 def get_existing_columns(connection):
@@ -125,7 +123,6 @@ def create_or_update_database():
         )
 
     connection.commit()
-
     connection.close()
 
 
@@ -186,7 +183,6 @@ def save_project_requirement(
     )
 
     connection.commit()
-
     connection.close()
 
 
@@ -241,7 +237,7 @@ st.title(
 st.write(
     """
     Capture project requirements using simple guided questions.
-    The application will convert the information into a clear,
+    The application converts the information into a clear,
     structured requirement statement.
     """
 )
@@ -251,13 +247,11 @@ st.write(
 # APPLICATION TABS
 # ============================================================
 
-project_specific_tab, standard_requirements_tab = (
-    st.tabs(
-        [
-            "Project-Specific Requirements",
-            "Standard Requirements",
-        ]
-    )
+project_specific_tab, standard_requirements_tab = st.tabs(
+    [
+        "Project-Specific Requirements",
+        "Standard Requirements",
+    ]
 )
 
 
@@ -275,14 +269,14 @@ with project_specific_tab:
         """
         Select the type of requirement you want to add and answer
         the questions shown. The complete requirement will be
-        written automatically.
+        generated automatically.
         """
     )
 
     st.info(
         """
         You do not need systems-engineering experience to use
-        this form. New requirements will be submitted with a
+        this form. New requirements are submitted with a
         status of **Pending** for project-owner review.
         """
     )
@@ -297,9 +291,7 @@ with project_specific_tab:
         "1. Requirement Details"
     )
 
-    information_column_1, information_column_2 = (
-        st.columns(2)
-    )
+    information_column_1, information_column_2 = st.columns(2)
 
 
     with information_column_1:
@@ -443,6 +435,8 @@ with project_specific_tab:
 
     generated_requirement = ""
 
+    requirement_preview = ""
+
     stakeholder_input = ""
 
     required_inputs_complete = False
@@ -510,22 +504,42 @@ with project_specific_tab:
         )
 
 
+        equipment_preview = (
+            equipment_name.strip()
+            if equipment_name.strip()
+            else "[equipment or system]"
+        )
+
+        action_preview = (
+            required_action.strip()
+            if required_action.strip()
+            else "[required action]"
+        )
+
+        condition_preview = (
+            operating_condition.strip()
+            if operating_condition.strip()
+            else "[operating condition]"
+        )
+
+
+        requirement_preview = (
+            f"The {equipment_preview} shall "
+            f"{action_preview} "
+            f"{condition_preview}."
+        )
+
+
         generated_requirement = (
-
             f"The {equipment_name.strip()} shall "
-
             f"{required_action.strip()} "
-
             f"{operating_condition.strip()}."
         )
 
 
         stakeholder_input = (
-
             f"Equipment: {equipment_name.strip()}\n"
-
             f"Required action: {required_action.strip()}\n"
-
             f"Operating condition: "
             f"{operating_condition.strip()}"
         )
@@ -562,9 +576,7 @@ with project_specific_tab:
 
             required_action = st.text_input(
                 "What must it do? *",
-                placeholder=(
-                    "Example: control"
-                ),
+                placeholder="Example: control",
                 key="capacity_action",
             )
 
@@ -580,9 +592,7 @@ with project_specific_tab:
 
             item_name = st.text_input(
                 "What is being counted? *",
-                placeholder=(
-                    "Example: spray zones"
-                ),
+                placeholder="Example: spray zones",
                 key="capacity_item",
             )
 
@@ -597,28 +607,53 @@ with project_specific_tab:
         )
 
 
-        generated_requirement = (
+        equipment_preview = (
+            equipment_name.strip()
+            if equipment_name.strip()
+            else "[equipment or system]"
+        )
 
-            f"The {equipment_name.strip()} shall "
+        action_preview = (
+            required_action.strip()
+            if required_action.strip()
+            else "[required action]"
+        )
 
-            f"{required_action.strip()} "
+        quantity_preview = (
+            str(minimum_quantity)
+            if minimum_quantity > 0
+            else "[minimum quantity]"
+        )
 
+        item_preview = (
+            item_name.strip()
+            if item_name.strip()
+            else "[item being counted]"
+        )
+
+
+        requirement_preview = (
+            f"The {equipment_preview} shall "
+            f"{action_preview} "
             f"a minimum of "
+            f"{quantity_preview} "
+            f"{item_preview}."
+        )
 
+
+        generated_requirement = (
+            f"The {equipment_name.strip()} shall "
+            f"{required_action.strip()} "
+            f"a minimum of "
             f"{minimum_quantity} "
-
             f"{item_name.strip()}."
         )
 
 
         stakeholder_input = (
-
             f"Equipment: {equipment_name.strip()}\n"
-
             f"Required action: {required_action.strip()}\n"
-
             f"Minimum quantity: {minimum_quantity}\n"
-
             f"Item: {item_name.strip()}"
         )
 
@@ -689,28 +724,53 @@ with project_specific_tab:
         )
 
 
-        generated_requirement = (
+        equipment_preview = (
+            equipment_name.strip()
+            if equipment_name.strip()
+            else "[equipment or system]"
+        )
 
-            f"The {equipment_name.strip()} shall "
+        action_preview = (
+            required_action.strip()
+            if required_action.strip()
+            else "[required action]"
+        )
 
-            f"{required_action.strip()} "
+        value_preview = (
+            f"{required_value:g}"
+            if required_value > 0
+            else "[minimum value]"
+        )
 
+        unit_preview = (
+            engineering_unit.strip()
+            if engineering_unit.strip()
+            else "[engineering unit]"
+        )
+
+
+        requirement_preview = (
+            f"The {equipment_preview} shall "
+            f"{action_preview} "
             f"at a minimum value of "
+            f"{value_preview} "
+            f"{unit_preview}."
+        )
 
+
+        generated_requirement = (
+            f"The {equipment_name.strip()} shall "
+            f"{required_action.strip()} "
+            f"at a minimum value of "
             f"{required_value:g} "
-
             f"{engineering_unit.strip()}."
         )
 
 
         stakeholder_input = (
-
             f"Equipment: {equipment_name.strip()}\n"
-
             f"Required action: {required_action.strip()}\n"
-
             f"Minimum value: {required_value:g}\n"
-
             f"Unit: {engineering_unit.strip()}"
         )
 
@@ -792,30 +852,55 @@ with project_specific_tab:
         )
 
 
-        generated_requirement = (
+        equipment_preview = (
+            equipment_name.strip()
+            if equipment_name.strip()
+            else "[equipment or system]"
+        )
 
-            f"The {equipment_name.strip()} shall "
+        action_preview = (
+            required_action.strip()
+            if required_action.strip()
+            else "[required action]"
+        )
 
-            f"{required_action.strip()} "
+        time_preview = (
+            f"{maximum_time:g}"
+            if maximum_time > 0
+            else "[maximum time]"
+        )
 
+        trigger_preview = (
+            trigger_event.strip()
+            if trigger_event.strip()
+            else "[triggering event]"
+        )
+
+
+        requirement_preview = (
+            f"The {equipment_preview} shall "
+            f"{action_preview} "
             f"within "
-
-            f"{maximum_time:g} "
-
+            f"{time_preview} "
             f"{time_unit} of "
+            f"{trigger_preview}."
+        )
 
+
+        generated_requirement = (
+            f"The {equipment_name.strip()} shall "
+            f"{required_action.strip()} "
+            f"within "
+            f"{maximum_time:g} "
+            f"{time_unit} of "
             f"{trigger_event.strip()}."
         )
 
 
         stakeholder_input = (
-
             f"Equipment: {equipment_name.strip()}\n"
-
             f"Required action: {required_action.strip()}\n"
-
             f"Trigger event: {trigger_event.strip()}\n"
-
             f"Maximum response time: "
             f"{maximum_time:g} {time_unit}"
         )
@@ -879,26 +964,46 @@ with project_specific_tab:
         )
 
 
-        generated_requirement = (
+        equipment_preview = (
+            equipment_name.strip()
+            if equipment_name.strip()
+            else "[equipment or system]"
+        )
 
-            f"The {equipment_name.strip()} shall "
+        external_preview = (
+            external_system.strip()
+            if external_system.strip()
+            else "[external equipment or system]"
+        )
 
+        interface_preview = (
+            interface_description.strip()
+            if interface_description.strip()
+            else "[required connection or interface]"
+        )
+
+
+        requirement_preview = (
+            f"The {equipment_preview} shall "
             f"interface with the "
-
-            f"{external_system.strip()} "
-
+            f"{external_preview} "
             f"using "
+            f"{interface_preview}."
+        )
 
+
+        generated_requirement = (
+            f"The {equipment_name.strip()} shall "
+            f"interface with the "
+            f"{external_system.strip()} "
+            f"using "
             f"{interface_description.strip()}."
         )
 
 
         stakeholder_input = (
-
             f"Equipment: {equipment_name.strip()}\n"
-
             f"External equipment: {external_system.strip()}\n"
-
             f"Required interface: "
             f"{interface_description.strip()}"
         )
@@ -935,9 +1040,7 @@ with project_specific_tab:
 
             specified_item = st.text_input(
                 "What item is being specified? *",
-                placeholder=(
-                    "Example: cooling fluid"
-                ),
+                placeholder="Example: cooling fluid",
                 key="standard_item",
             )
 
@@ -946,9 +1049,7 @@ with project_specific_tab:
 
             required_standard = st.text_input(
                 "What type, grade, or standard is required? *",
-                placeholder=(
-                    "Example: ISO VG 32"
-                ),
+                placeholder="Example: ISO VG 32",
                 key="standard_grade",
             )
 
@@ -971,36 +1072,59 @@ with project_specific_tab:
         )
 
 
-        generated_requirement = (
-
-            f"The {equipment_name.strip()} shall use "
-
-            f"{required_standard.strip()} "
-
-            f"{specified_item.strip()}"
+        equipment_preview = (
+            equipment_name.strip()
+            if equipment_name.strip()
+            else "[equipment or system]"
         )
 
+        standard_preview = (
+            required_standard.strip()
+            if required_standard.strip()
+            else "[required type, grade, or standard]"
+        )
+
+        item_preview = (
+            specified_item.strip()
+            if specified_item.strip()
+            else "[specified item]"
+        )
+
+        limit_preview = (
+            operating_limit.strip()
+            if operating_limit.strip()
+            else "[optional operating limit]"
+        )
+
+
+        requirement_preview = (
+            f"The {equipment_preview} shall use "
+            f"{standard_preview} "
+            f"{item_preview} "
+            f"{limit_preview}."
+        )
+
+
+        generated_requirement = (
+            f"The {equipment_name.strip()} shall use "
+            f"{required_standard.strip()} "
+            f"{specified_item.strip()}"
+        )
 
         if operating_limit.strip():
 
             generated_requirement += (
-
                 f" {operating_limit.strip()}"
             )
-
 
         generated_requirement += "."
 
 
         stakeholder_input = (
-
             f"Equipment: {equipment_name.strip()}\n"
-
             f"Specified item: {specified_item.strip()}\n"
-
             f"Required type, grade, or standard: "
             f"{required_standard.strip()}\n"
-
             f"Operating limit: "
             f"{operating_limit.strip()}"
         )
@@ -1037,9 +1161,7 @@ with project_specific_tab:
 
             required_action = st.text_input(
                 "What must continue operating? *",
-                placeholder=(
-                    "Example: operate"
-                ),
+                placeholder="Example: operate",
                 key="reliability_action",
             )
 
@@ -1055,9 +1177,7 @@ with project_specific_tab:
 
             duration_unit = st.text_input(
                 "What unit is used? *",
-                placeholder=(
-                    "Example: operating hours"
-                ),
+                placeholder="Example: operating hours",
                 key="reliability_unit",
             )
 
@@ -1080,41 +1200,70 @@ with project_specific_tab:
         )
 
 
-        generated_requirement = (
-
-            f"The {equipment_name.strip()} shall "
-
-            f"{required_action.strip()} "
-
-            f"for a minimum of "
-
-            f"{minimum_duration:g} "
-
-            f"{duration_unit.strip()}"
+        equipment_preview = (
+            equipment_name.strip()
+            if equipment_name.strip()
+            else "[equipment or system]"
         )
 
+        action_preview = (
+            required_action.strip()
+            if required_action.strip()
+            else "[required action]"
+        )
+
+        duration_preview = (
+            f"{minimum_duration:g}"
+            if minimum_duration > 0
+            else "[minimum duration]"
+        )
+
+        unit_preview = (
+            duration_unit.strip()
+            if duration_unit.strip()
+            else "[duration unit]"
+        )
+
+        maintenance_preview = (
+            maintenance_condition.strip()
+            if maintenance_condition.strip()
+            else "[optional maintenance condition]"
+        )
+
+
+        requirement_preview = (
+            f"The {equipment_preview} shall "
+            f"{action_preview} "
+            f"for a minimum of "
+            f"{duration_preview} "
+            f"{unit_preview} "
+            f"{maintenance_preview}."
+        )
+
+
+        generated_requirement = (
+            f"The {equipment_name.strip()} shall "
+            f"{required_action.strip()} "
+            f"for a minimum of "
+            f"{minimum_duration:g} "
+            f"{duration_unit.strip()}"
+        )
 
         if maintenance_condition.strip():
 
             generated_requirement += (
-
                 f" {maintenance_condition.strip()}"
             )
-
 
         generated_requirement += "."
 
 
         stakeholder_input = (
-
             f"Equipment: {equipment_name.strip()}\n"
-
             f"Required action: {required_action.strip()}\n"
-
             f"Minimum duration: "
             f"{minimum_duration:g} "
             f"{duration_unit.strip()}\n"
-
             f"Maintenance condition: "
             f"{maintenance_condition.strip()}"
         )
@@ -1149,10 +1298,15 @@ with project_specific_tab:
         )
 
 
-        required_inputs_complete = (
-            bool(
-                stakeholder_description.strip()
-            )
+        required_inputs_complete = bool(
+            stakeholder_description.strip()
+        )
+
+
+        requirement_preview = (
+            stakeholder_description.strip()
+            if stakeholder_description.strip()
+            else "[Describe the requirement in your own words]"
         )
 
 
@@ -1168,37 +1322,40 @@ with project_specific_tab:
 
     # ========================================================
     # SECTION 4
-    # REVIEW GENERATED REQUIREMENT
+    # LIVE REQUIREMENT PREVIEW
     # ========================================================
 
     st.divider()
 
     st.subheader(
-        "4. Review the Generated Requirement"
+        "4. Live Requirement Preview"
+    )
+
+    st.write(
+        """
+        The requirement below updates as you complete the
+        questions in Section 3.
+        """
+    )
+
+    st.code(
+        requirement_preview,
+        language=None,
     )
 
 
     if required_inputs_complete:
 
         st.success(
-            generated_requirement
+            "The requirement is complete and ready to submit."
         )
-
-        st.caption(
-            """
-            Review the wording before submitting. The project
-            owner will be able to approve, reject, or request
-            clarification in a later development stage.
-            """
-        )
-
 
     else:
 
         st.info(
             """
-            Complete all required fields above. The finished
-            requirement will appear here automatically.
+            Fields shown in square brackets still need to be
+            completed.
             """
         )
 
@@ -1261,35 +1418,25 @@ with project_specific_tab:
         else:
 
             save_project_requirement(
-
-                project_name=(
-                    selected_project
-                ),
-
+                project_name=selected_project,
                 requirement_title=(
                     requirement_title.strip()
                 ),
-
                 requirement_text=(
                     generated_requirement
                 ),
-
                 category=(
                     database_category
                 ),
-
                 source_department=(
                     source_department
                 ),
-
                 submitted_by=(
                     submitted_by.strip()
                 ),
-
                 requirement_category=(
                     selected_requirement_category
                 ),
-
                 stakeholder_input=(
                     stakeholder_input
                 ),
@@ -1343,31 +1490,24 @@ with project_specific_tab:
 
 
         pending_requirements = (
-
             project_requirements["status"]
-
             .eq("Pending")
-
             .sum()
         )
 
 
         number_of_projects = (
-
             project_requirements[
                 "project_name"
             ]
-
             .nunique()
         )
 
 
         number_of_sources = (
-
             project_requirements[
                 "source_department"
             ]
-
             .nunique()
         )
 
@@ -1501,7 +1641,6 @@ with project_specific_tab:
 
 
             filtered_requirements = (
-
                 filtered_requirements[
                     search_matches
                 ]
@@ -1551,15 +1690,10 @@ with project_specific_tab:
 
 
         st.caption(
-
             f"Showing "
-
             f"{len(filtered_requirements)} "
-
             f"of "
-
             f"{len(project_requirements)} "
-
             f"project requirements."
         )
 
