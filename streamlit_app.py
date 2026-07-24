@@ -211,16 +211,16 @@ st.markdown(
 <style>
 
 :root {
-    --orange: #f47b20;
-    --orange2: #ffb16f;
-    --amber: #ffd7ad;
-    --bg: #f7f4ef;
-    --panel: #ffffff;
-    --panel2: #fffaf5;
-    --border: rgba(9, 37, 70, 0.10);
-    --text: #0b2547;
-    --muted: #6f7f92;
-    --green: #3fa66a;
+    --orange: #ff8a2a;
+    --orange2: #ffb347;
+    --amber: #ffd06a;
+    --bg: #060b14;
+    --panel: rgba(14, 25, 43, 0.96);
+    --panel2: rgba(10, 19, 34, 0.95);
+    --border: rgba(255, 153, 67, 0.22);
+    --text: #f7f8fb;
+    --muted: #aeb9cd;
+    --green: #52d68c;
 }
 
 html,
@@ -233,19 +233,19 @@ body,
     background:
         radial-gradient(
             circle at 82% 8%,
-            rgba(244, 123, 32, 0.08),
+            rgba(255, 139, 42, 0.13),
             transparent 25%
         ),
         radial-gradient(
             circle at 8% 4%,
-            rgba(11, 37, 71, 0.05),
+            rgba(255, 193, 91, 0.07),
             transparent 22%
         ),
         linear-gradient(
             145deg,
-            #fbfaf8 0%,
-            #f7f4ef 50%,
-            #f4f7fb 100%
+            #050810 0%,
+            #08111e 50%,
+            #091827 100%
         );
     color: var(--text);
 }
@@ -276,10 +276,10 @@ section[data-testid="stSidebar"] {
     background:
         linear-gradient(
             180deg,
-            #0a2342,
-            #0d315b
+            rgba(11, 21, 38, 0.99),
+            rgba(7, 14, 27, 0.99)
         );
-    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    border-right: 1px solid rgba(255, 153, 71, 0.18);
 }
 
 .sidebar-brand {
@@ -299,13 +299,14 @@ section[data-testid="stSidebar"] {
     background:
         linear-gradient(
             145deg,
-            #f47b20,
-            #ffb16f
+            #ff7928,
+            #ffab3f,
+            #ffd26b
         );
     font-size: 1.55rem;
     color: white;
     box-shadow:
-        0 0 18px rgba(244, 123, 32, 0.18);
+        0 0 26px rgba(255, 143, 31, 0.32);
 }
 
 .sidebar-title {
@@ -315,7 +316,7 @@ section[data-testid="stSidebar"] {
 }
 
 .sidebar-subtitle {
-    color: #c6d0dc;
+    color: #aab6ca;
     font-size: 0.82rem;
     margin-top: 0.15rem;
 }
@@ -335,8 +336,8 @@ div[data-testid="stRadio"] label {
 
 section[data-testid="stSidebar"]
 div[data-testid="stRadio"] label:hover {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 143, 31, 0.10);
+    border-color: rgba(255, 153, 67, 0.18);
 }
 
 section[data-testid="stSidebar"]
@@ -345,17 +346,17 @@ label:has(input:checked) {
     background:
         linear-gradient(
             135deg,
-            rgba(244, 123, 32, 0.22),
-            rgba(255, 177, 111, 0.12)
+            rgba(255, 124, 39, 0.88),
+            rgba(255, 177, 71, 0.64)
         );
-    border-color: rgba(255, 177, 111, 0.28);
+    border-color: rgba(255, 185, 92, 0.6);
 }
 
 .sidebar-footer {
     margin-top: 3rem;
     padding-top: 1rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
-    color: #b8c3d0;
+    border-top: 1px solid rgba(255, 153, 67, 0.16);
+    color: #9faac0;
     font-size: 0.82rem;
 }
 
@@ -378,17 +379,18 @@ label:has(input:checked) {
     background:
         linear-gradient(
             145deg,
-            #fff0e4,
-            #ffe0c7
+            #ff7928,
+            #ffad42,
+            #ffd06a
         );
-    color: #f47b20;
+    color: white;
     font-size: 1.5rem;
     box-shadow:
-        0 0 16px rgba(244, 123, 32, 0.10);
+        0 0 28px rgba(255, 143, 31, 0.27);
 }
 
 .page-title {
-    color: #0b2547;
+    color: white;
     font-size: 2.05rem;
     font-weight: 790;
     letter-spacing: -0.035em;
@@ -396,7 +398,7 @@ label:has(input:checked) {
 }
 
 .page-subtitle {
-    color: #6f7f92;
+    color: #aab5c9;
     font-size: 0.95rem;
     margin-top: 0.32rem;
 }
@@ -407,15 +409,15 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
     background:
         linear-gradient(
             145deg,
-            #ffffff,
-            #fffaf5
+            rgba(16, 28, 47, 0.96),
+            rgba(9, 18, 33, 0.94)
         ) !important;
     border:
         1px solid
-        rgba(9, 37, 70, 0.10) !important;
+        rgba(255, 153, 67, 0.20) !important;
     border-radius: 16px !important;
     box-shadow:
-        0 15px 34px rgba(11, 37, 71, 0.07);
+        0 15px 34px rgba(0, 0, 0, 0.18);
 }
 
 /* SECTION HEADERS */
@@ -435,26 +437,26 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    color: #f47b20;
+    color: white;
     font-weight: 800;
     background:
         linear-gradient(
             145deg,
-            #fff1e5,
-            #ffe2ca
+            #ff7f29,
+            #ffb347
         );
     box-shadow:
-        0 0 12px rgba(244, 123, 32, 0.08);
+        0 0 16px rgba(255, 143, 31, 0.22);
 }
 
 .section-title {
-    color: #0b2547;
+    color: white;
     font-size: 1.13rem;
     font-weight: 740;
 }
 
 .subsection-title {
-    color: #123762;
+    color: #ffc168;
     font-size: 1rem;
     font-weight: 720;
     margin-bottom: 0.45rem;
@@ -466,10 +468,10 @@ div[data-baseweb="input"] > div,
 div[data-baseweb="select"] > div,
 div[data-baseweb="textarea"] > div {
     background:
-        #ffffff !important;
+        rgba(7, 15, 28, 0.90) !important;
     border:
         1px solid
-        rgba(9, 37, 70, 0.18) !important;
+        rgba(255, 157, 74, 0.25) !important;
     border-radius:
         10px !important;
 }
@@ -478,18 +480,18 @@ div[data-baseweb="input"] > div:focus-within,
 div[data-baseweb="select"] > div:focus-within,
 div[data-baseweb="textarea"] > div:focus-within {
     border-color:
-        rgba(244, 123, 32, 0.70) !important;
+        rgba(255, 174, 79, 0.85) !important;
     box-shadow:
-        0 0 0 2px rgba(244, 123, 32, 0.08);
+        0 0 0 2px rgba(255, 157, 61, 0.08);
 }
 
 input,
 textarea {
-    color: #0b2547 !important;
+    color: white !important;
 }
 
 label {
-    color: #0b2547 !important;
+    color: #dce4f3 !important;
     font-weight: 590 !important;
 }
 
@@ -501,25 +503,25 @@ label {
     border-radius: 11px;
     border:
         1px solid
-        rgba(244, 123, 32, 0.40);
+        rgba(255, 176, 79, 0.58);
     background:
         linear-gradient(
             105deg,
-            #f47b20,
-            #ff9b52,
-            #ffb16f
+            #ff7928,
+            #ff9c35,
+            #ffb94f
         );
     color: white;
     font-weight: 750;
     box-shadow:
-        0 0 16px rgba(244, 123, 32, 0.12);
+        0 0 20px rgba(255, 139, 35, 0.19);
 }
 
 .stButton > button:hover {
     color: white;
-    border-color: #ffb16f;
+    border-color: #ffd080;
     box-shadow:
-        0 0 22px rgba(244, 123, 32, 0.18);
+        0 0 28px rgba(255, 143, 31, 0.28);
 }
 
 /* METRIC CARDS */
@@ -531,22 +533,22 @@ label {
     background:
         linear-gradient(
             145deg,
-            #ffffff,
-            #fffaf5
+            rgba(19, 33, 55, 0.98),
+            rgba(10, 20, 36, 0.94)
         );
     border:
-        1px solid rgba(9, 37, 70, 0.10);
+        1px solid rgba(255, 155, 67, 0.24);
     box-shadow:
-        0 14px 30px rgba(11, 37, 71, 0.07);
+        0 14px 30px rgba(0, 0, 0, 0.18);
 }
 
 .metric-label {
-    color: #6f7f92;
+    color: #b5c0d3;
     font-size: 0.91rem;
 }
 
 .metric-value {
-    color: #0b2547;
+    color: white;
     font-size: 2.25rem;
     font-weight: 800;
     margin-top: 0.7rem;
@@ -554,36 +556,36 @@ label {
 }
 
 .metric-orange {
-    border-color: rgba(244, 123, 32, 0.34);
+    border-color: rgba(255, 166, 72, 0.42);
 }
 
 .metric-green {
-    border-color: rgba(63, 166, 106, 0.30);
+    border-color: rgba(82, 214, 140, 0.35);
 }
 
 .metric-blue {
-    border-color: rgba(18, 55, 98, 0.24);
+    border-color: rgba(89, 148, 211, 0.35);
 }
 
 .metric-amber {
-    border-color: rgba(255, 177, 111, 0.34);
+    border-color: rgba(255, 204, 105, 0.38);
 }
 
 /* INFO STRIP */
 
 .info-strip {
     border:
-        1px solid rgba(244, 123, 32, 0.18);
+        1px solid rgba(255, 166, 72, 0.22);
     border-left:
-        4px solid #f47b20;
+        4px solid #ff9d35;
     background:
-        #fff7f0;
+        rgba(255, 143, 31, 0.055);
     padding:
         0.85rem 1rem;
     border-radius:
         10px;
     color:
-        #0b2547;
+        #d9e2f1;
     margin-bottom:
         1rem;
 }
@@ -594,13 +596,13 @@ label {
     min-height: 250px;
     padding: 1rem;
     border:
-        1px solid rgba(9, 37, 70, 0.14);
+        1px solid rgba(255, 164, 71, 0.42);
     border-radius:
         12px;
     background:
-        #fbfcfe;
+        #081422;
     color:
-        #0b2547;
+        #ffd29a;
     font-family:
         "SFMono-Regular",
         Consolas,
@@ -615,7 +617,7 @@ label {
 
 div[data-testid="stDataFrame"] {
     border:
-        1px solid rgba(9, 37, 70, 0.12);
+        1px solid rgba(255, 153, 67, 0.17);
     border-radius:
         13px;
     overflow:
@@ -626,9 +628,9 @@ div[data-testid="stDataFrame"] {
 
 details[data-testid="stExpander"] {
     background:
-        #ffffff;
+        rgba(8, 17, 31, 0.78);
     border:
-        1px solid rgba(9, 37, 70, 0.10);
+        1px solid rgba(255, 153, 67, 0.16);
     border-radius:
         12px;
     margin-bottom:
@@ -641,16 +643,16 @@ div[data-testid="stProgress"] > div > div {
     background:
         linear-gradient(
             90deg,
-            #123762,
-            #1c4d82,
-            #f47b20
+            #ff7928,
+            #ffad42,
+            #ffd06a
         );
 }
 
 h1,
 h2,
 h3 {
-    color: #0b2547;
+    color: white;
 }
 
 </style>
