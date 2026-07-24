@@ -1,7 +1,7 @@
-import html
 import sqlite3
 from datetime import datetime
 from pathlib import Path
+import html
 
 import pandas as pd
 import streamlit as st
@@ -12,7 +12,7 @@ import streamlit as st
 # ============================================================
 
 st.set_page_config(
-    page_title="ISV Engineering",
+    page_title="ISV Requirements Management",
     page_icon="⬢",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -25,13 +25,11 @@ st.set_page_config(
 
 DATABASE_FILE = Path("isv_requirements.db")
 
-
 ALLOWED_PROJECTS = [
     "S.TM10735",
     "S.TM11089",
     "S.TM11113",
 ]
-
 
 MILL_TYPES = [
     "FFM",
@@ -42,19 +40,16 @@ MILL_TYPES = [
     "Other",
 ]
 
-
 MATERIAL_TYPES = [
     "Steel",
     "Aluminium",
 ]
-
 
 COOLANT_MEDIA = [
     "Kerosene",
     "Emulsion",
     "Other",
 ]
-
 
 ISV_PRODUCT_VARIANTS = [
     "ISV - MK3",
@@ -63,31 +58,26 @@ ISV_PRODUCT_VARIANTS = [
     "ISV - EX",
 ]
 
-
 MK3_CONFIGURATIONS = [
     "Standard",
     "Narrow",
     "Narrow reduced outlet",
 ]
 
-
 SPRAYBAR_ARRANGEMENTS = [
     "Top + bottom bar",
     "Top bar + remote bar",
 ]
-
 
 ROW_CONFIGURATIONS = [
     "Single row",
     "Dual row",
 ]
 
-
 SPRAYBAR_MATERIALS = [
     "Aluminium",
     "Stainless steel",
 ]
-
 
 BAR_CONNECTIONS = [
     "G1/2",
@@ -99,7 +89,6 @@ BAR_CONNECTIONS = [
     "Other",
 ]
 
-
 JUNCTION_BOX_TYPES = [
     "J001",
     "J002",
@@ -109,18 +98,15 @@ JUNCTION_BOX_TYPES = [
     "J006",
 ]
 
-
 CABLE_ENTRY_ANGLES = [
     "0°",
     "90°",
 ]
 
-
 YES_NO = [
     "No",
     "Yes",
 ]
-
 
 VERIFICATION_POINTS = [
     "Requirements review",
@@ -132,7 +118,6 @@ VERIFICATION_POINTS = [
     "Site commissioning",
     "Final project acceptance",
 ]
-
 
 VERIFICATION_METHODS = [
     "Document review",
@@ -146,7 +131,6 @@ VERIFICATION_METHODS = [
     "Site Acceptance Test",
     "Demonstration",
 ]
-
 
 PROJECT_REQUIREMENT_TEMPLATES = {
     "Operating condition": {
@@ -205,7 +189,6 @@ PROJECT_REQUIREMENT_TEMPLATES = {
     },
 }
 
-
 ENGINEERING_DELIVERABLES = [
     "Project Data baseline committed",
     "Project-specific requirements reviewed",
@@ -220,1391 +203,456 @@ ENGINEERING_DELIVERABLES = [
 
 
 # ============================================================
-# LIGHT NAVY + ORANGE THEME
+# CUSTOM CSS
 # ============================================================
 
 st.markdown(
     """
 <style>
 
-/* ==========================================================
-   COLOUR SYSTEM
-========================================================== */
-
 :root {
-    --navy-950: #071a35;
-    --navy-900: #0b2547;
-    --navy-800: #123762;
-    --navy-700: #1c4d82;
-
-    --orange-600: #f47b20;
-    --orange-500: #ff8c32;
-    --orange-400: #ffab6b;
-    --orange-200: #ffe0c8;
-    --orange-100: #fff0e5;
-
-    --cream: #fbf8f4;
-    --cream-warm: #fffaf6;
-    --white: #ffffff;
-
-    --text: #0b2547;
-    --muted: #66758b;
-    --line: #e4e7ec;
-    --line-warm: #f1ddd0;
-
-    --green: #219653;
-    --green-soft: #e9f7ef;
-
-    --shadow:
-        0 12px 35px rgba(20, 39, 68, 0.08);
+    --orange: #ff8a2a;
+    --orange2: #ffb347;
+    --amber: #ffd06a;
+    --bg: #060b14;
+    --panel: rgba(14, 25, 43, 0.96);
+    --panel2: rgba(10, 19, 34, 0.95);
+    --border: rgba(255, 153, 67, 0.22);
+    --text: #f7f8fb;
+    --muted: #aeb9cd;
+    --green: #52d68c;
 }
-
-
-/* ==========================================================
-   GLOBAL
-========================================================== */
 
 html,
 body,
 [class*="css"] {
-    font-family:
-        Inter,
-        "Segoe UI",
-        Arial,
-        sans-serif;
+    font-family: Inter, "Segoe UI", Arial, sans-serif;
 }
-
 
 .stApp {
     background:
         radial-gradient(
-            circle at 90% 4%,
-            rgba(255, 170, 108, 0.12),
-            transparent 26%
+            circle at 82% 8%,
+            rgba(255, 139, 42, 0.13),
+            transparent 25%
+        ),
+        radial-gradient(
+            circle at 8% 4%,
+            rgba(255, 193, 91, 0.07),
+            transparent 22%
         ),
         linear-gradient(
-            135deg,
-            #fbfaf8 0%,
-            #fffaf6 55%,
-            #f7f9fc 100%
+            145deg,
+            #050810 0%,
+            #08111e 50%,
+            #091827 100%
         );
-
-    color:
-        var(--text);
+    color: var(--text);
 }
-
 
 .block-container {
-    max-width:
-        1600px;
-
-    padding-top:
-        1.4rem;
-
-    padding-left:
-        2rem;
-
-    padding-right:
-        2rem;
-
-    padding-bottom:
-        4rem;
+    max-width: 1600px;
+    padding-top: 1.35rem;
+    padding-left: 1.8rem;
+    padding-right: 1.8rem;
+    padding-bottom: 4rem;
 }
-
 
 #MainMenu {
-    visibility:
-        hidden;
+    visibility: hidden;
 }
-
 
 footer {
-    visibility:
-        hidden;
+    visibility: hidden;
 }
-
 
 header {
-    background:
-        transparent !important;
+    background: transparent !important;
 }
 
-
-/* ==========================================================
-   SIDEBAR
-========================================================== */
+/* SIDEBAR */
 
 section[data-testid="stSidebar"] {
     background:
         linear-gradient(
             180deg,
-            #07203f 0%,
-            #0b2b55 52%,
-            #071c38 100%
+            rgba(11, 21, 38, 0.99),
+            rgba(7, 14, 27, 0.99)
         );
-
-    border-right:
-        1px solid
-        rgba(255, 255, 255, 0.08);
-
-    box-shadow:
-        12px 0 35px
-        rgba(8, 29, 58, 0.12);
+    border-right: 1px solid rgba(255, 153, 71, 0.18);
 }
-
-
-section[data-testid="stSidebar"] > div {
-    padding-top:
-        1rem;
-}
-
 
 .sidebar-brand {
-    display:
-        flex;
-
-    align-items:
-        center;
-
-    gap:
-        0.85rem;
-
-    margin:
-        0.25rem 0 2.2rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    margin: 0.25rem 0 2rem 0;
 }
 
-
 .sidebar-logo {
-    width:
-        49px;
-
-    height:
-        49px;
-
-    display:
-        flex;
-
-    align-items:
-        center;
-
-    justify-content:
-        center;
-
-    border-radius:
-        14px;
-
+    width: 48px;
+    height: 48px;
+    border-radius: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     background:
         linear-gradient(
             145deg,
-            #ff7e22,
-            #ffad70
+            #ff7928,
+            #ffab3f,
+            #ffd26b
         );
-
-    color:
-        white;
-
-    font-size:
-        1.5rem;
-
+    font-size: 1.55rem;
+    color: white;
     box-shadow:
-        0 8px 24px
-        rgba(244, 123, 32, 0.28);
+        0 0 26px rgba(255, 143, 31, 0.32);
 }
-
 
 .sidebar-title {
-    color:
-        white;
-
-    font-size:
-        1.6rem;
-
-    font-weight:
-        800;
-
-    line-height:
-        1;
+    color: white;
+    font-size: 1.55rem;
+    font-weight: 800;
 }
-
 
 .sidebar-subtitle {
-    color:
-        rgba(255, 255, 255, 0.72);
-
-    font-size:
-        0.82rem;
-
-    margin-top:
-        0.3rem;
+    color: #aab6ca;
+    font-size: 0.82rem;
+    margin-top: 0.15rem;
 }
-
 
 section[data-testid="stSidebar"]
 div[data-testid="stRadio"] > label {
-    display:
-        none;
+    display: none;
 }
-
 
 section[data-testid="stSidebar"]
 div[data-testid="stRadio"] label {
-    border-radius:
-        12px;
-
-    padding:
-        0.78rem 0.85rem;
-
-    margin:
-        0.18rem 0;
-
-    border:
-        1px solid transparent;
-
-    transition:
-        all 0.18s ease;
+    border-radius: 12px;
+    padding: 0.7rem 0.75rem;
+    margin: 0.15rem 0;
+    border: 1px solid transparent;
 }
-
 
 section[data-testid="stSidebar"]
 div[data-testid="stRadio"] label:hover {
-    background:
-        rgba(255, 255, 255, 0.07);
+    background: rgba(255, 143, 31, 0.10);
+    border-color: rgba(255, 153, 67, 0.18);
 }
-
 
 section[data-testid="stSidebar"]
 div[data-testid="stRadio"]
 label:has(input:checked) {
     background:
         linear-gradient(
-            90deg,
-            rgba(255, 134, 47, 0.20),
-            rgba(255, 255, 255, 0.10)
+            135deg,
+            rgba(255, 124, 39, 0.88),
+            rgba(255, 177, 71, 0.64)
         );
-
-    border-left:
-        4px solid
-        #ff8729;
-
-    border-top:
-        1px solid
-        rgba(255, 255, 255, 0.08);
-
-    border-right:
-        1px solid
-        rgba(255, 255, 255, 0.08);
-
-    border-bottom:
-        1px solid
-        rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 185, 92, 0.6);
 }
-
-
-section[data-testid="stSidebar"]
-div[data-testid="stRadio"] p {
-    color:
-        white !important;
-
-    font-weight:
-        620;
-}
-
 
 .sidebar-footer {
-    margin-top:
-        3rem;
-
-    padding-top:
-        1rem;
-
-    border-top:
-        1px solid
-        rgba(255, 255, 255, 0.12);
-
-    color:
-        rgba(255, 255, 255, 0.68);
-
-    font-size:
-        0.82rem;
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 153, 67, 0.16);
+    color: #9faac0;
+    font-size: 0.82rem;
 }
 
-
-/* ==========================================================
-   PAGE HEADERS
-========================================================== */
+/* PAGE HEADER */
 
 .page-header {
-    display:
-        flex;
-
-    align-items:
-        center;
-
-    justify-content:
-        space-between;
-
-    gap:
-        1rem;
-
-    margin-bottom:
-        1.4rem;
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    margin-bottom: 1.35rem;
 }
-
-
-.page-heading-left {
-    display:
-        flex;
-
-    align-items:
-        center;
-
-    gap:
-        0.9rem;
-}
-
 
 .page-icon {
-    width:
-        50px;
-
-    height:
-        50px;
-
-    display:
-        flex;
-
-    align-items:
-        center;
-
-    justify-content:
-        center;
-
-    border-radius:
-        14px;
-
-    background:
-        var(--orange-100);
-
-    color:
-        var(--orange-600);
-
-    border:
-        1px solid
-        var(--orange-200);
-
-    font-size:
-        1.5rem;
-}
-
-
-.page-title {
-    color:
-        var(--navy-950);
-
-    font-size:
-        2.05rem;
-
-    font-weight:
-        800;
-
-    line-height:
-        1.05;
-
-    letter-spacing:
-        -0.035em;
-}
-
-
-.page-subtitle {
-    color:
-        var(--muted);
-
-    font-size:
-        0.96rem;
-
-    margin-top:
-        0.35rem;
-}
-
-
-/* ==========================================================
-   STREAMLIT CARDS / CONTAINERS
-========================================================== */
-
-div[data-testid="stVerticalBlockBorderWrapper"] {
-    background:
-        rgba(255, 255, 255, 0.94) !important;
-
-    border:
-        1px solid
-        rgba(12, 45, 82, 0.09) !important;
-
-    border-radius:
-        18px !important;
-
-    box-shadow:
-        var(--shadow);
-
-    overflow:
-        hidden;
-}
-
-
-/* ==========================================================
-   SECTION HEADERS
-========================================================== */
-
-.section-heading {
-    display:
-        flex;
-
-    align-items:
-        center;
-
-    gap:
-        0.7rem;
-
-    margin-bottom:
-        0.85rem;
-}
-
-
-.section-number {
-    min-width:
-        32px;
-
-    height:
-        32px;
-
-    padding:
-        0 0.35rem;
-
-    display:
-        inline-flex;
-
-    align-items:
-        center;
-
-    justify-content:
-        center;
-
-    border-radius:
-        9px;
-
-    background:
-        var(--orange-100);
-
-    color:
-        var(--orange-600);
-
-    border:
-        1px solid
-        var(--orange-200);
-
-    font-weight:
-        800;
-}
-
-
-.section-title {
-    color:
-        var(--navy-950);
-
-    font-size:
-        1.13rem;
-
-    font-weight:
-        760;
-}
-
-
-.subsection-title {
-    color:
-        var(--navy-800);
-
-    font-size:
-        1rem;
-
-    font-weight:
-        720;
-
-    margin-bottom:
-        0.5rem;
-}
-
-
-/* ==========================================================
-   TEXT
-========================================================== */
-
-h1,
-h2,
-h3 {
-    color:
-        var(--navy-950) !important;
-}
-
-
-p,
-span {
-    color:
-        var(--text);
-}
-
-
-small,
-.stCaption {
-    color:
-        var(--muted) !important;
-}
-
-
-label {
-    color:
-        var(--navy-900) !important;
-
-    font-weight:
-        600 !important;
-}
-
-
-/* ==========================================================
-   FORM FIELDS — FORCE LIGHT THEME
-========================================================== */
-
-/* Standard text inputs + number inputs */
-div[data-testid="stTextInput"] div[data-baseweb="input"],
-div[data-testid="stNumberInput"] div[data-baseweb="input"],
-div[data-testid="stTextInput"] div[data-baseweb="base-input"],
-div[data-testid="stNumberInput"] div[data-baseweb="base-input"] {
-    background-color: #ffffff !important;
-    color: #0b2547 !important;
-    border-radius: 10px !important;
-}
-
-
-/* Actual input element */
-div[data-testid="stTextInput"] input,
-div[data-testid="stNumberInput"] input {
-    background-color: #ffffff !important;
-    color: #0b2547 !important;
-    -webkit-text-fill-color: #0b2547 !important;
-}
-
-
-/* Number input +/- button area */
-div[data-testid="stNumberInput"] button {
-    background-color: #f7f8fa !important;
-    color: #0b2547 !important;
-    border-color: #dfe4ea !important;
-}
-
-
-div[data-testid="stNumberInput"] button:hover {
-    background-color: #fff0e5 !important;
-    color: #f47b20 !important;
-}
-
-
-/* Text areas */
-div[data-testid="stTextArea"] textarea {
-    background-color: #ffffff !important;
-    color: #0b2547 !important;
-    -webkit-text-fill-color: #0b2547 !important;
-    border: 1px solid #dfe4ea !important;
-    border-radius: 10px !important;
-}
-
-
-/* Select boxes / dropdown field */
-div[data-testid="stSelectbox"] div[data-baseweb="select"] > div {
-    background-color: #ffffff !important;
-    color: #0b2547 !important;
-    border: 1px solid #dfe4ea !important;
-    border-radius: 10px !important;
-}
-
-
-/* Text shown inside select boxes */
-div[data-testid="stSelectbox"] div[data-baseweb="select"] span,
-div[data-testid="stSelectbox"] div[data-baseweb="select"] div {
-    color: #0b2547 !important;
-}
-
-
-/* Dropdown arrow */
-div[data-testid="stSelectbox"] svg {
-    fill: #0b2547 !important;
-    color: #0b2547 !important;
-}
-
-
-/* Placeholder text */
-input::placeholder,
-textarea::placeholder {
-    color: #9aa7b7 !important;
-    -webkit-text-fill-color: #9aa7b7 !important;
-    opacity: 1 !important;
-}
-
-
-/* Disabled inputs — useful for Project Reference */
-input:disabled,
-textarea:disabled {
-    background-color: #f1f4f7 !important;
-    color: #66758b !important;
-    -webkit-text-fill-color: #66758b !important;
-    opacity: 1 !important;
-}
-
-
-/* General BaseWeb fallback — catches Streamlit variations */
-div[data-baseweb="input"],
-div[data-baseweb="input"] > div,
-div[data-baseweb="base-input"],
-div[data-baseweb="select"] > div,
-div[data-baseweb="textarea"],
-div[data-baseweb="textarea"] > div {
-    background-color: #ffffff !important;
-    color: #0b2547 !important;
-}
-
-
-/* Focus state — soft orange */
-div[data-testid="stTextInput"] div[data-baseweb="input"]:focus-within,
-div[data-testid="stNumberInput"] div[data-baseweb="input"]:focus-within,
-div[data-testid="stSelectbox"] div[data-baseweb="select"] > div:focus-within,
-div[data-testid="stTextArea"] textarea:focus {
-    border-color: #ff9a4d !important;
-    box-shadow:
-        0 0 0 3px
-        rgba(255, 138, 42, 0.12) !important;
-}
-
-
-/* Field labels */
-div[data-testid="stWidgetLabel"] p,
-div[data-testid="stTextInput"] label p,
-div[data-testid="stNumberInput"] label p,
-div[data-testid="stSelectbox"] label p,
-div[data-testid="stTextArea"] label p {
-    color: #0b2547 !important;
-    font-weight: 600 !important;
-}
-
-
-/* Dropdown menu when opened */
-div[data-baseweb="popover"] {
-    background-color: #ffffff !important;
-}
-
-
-div[data-baseweb="popover"] ul {
-    background-color: #ffffff !important;
-}
-
-
-div[data-baseweb="popover"] li {
-    background-color: #ffffff !important;
-    color: #0b2547 !important;
-}
-
-
-div[data-baseweb="popover"] li:hover {
-    background-color: #fff0e5 !important;
-    color: #0b2547 !important;
-}
-
-
-/* Selected dropdown option */
-div[data-baseweb="popover"] li[aria-selected="true"] {
-    background-color: #ffe0c8 !important;
-    color: #0b2547 !important;
-}
-
-
-/* Autofill */
-input:-webkit-autofill,
-input:-webkit-autofill:hover,
-input:-webkit-autofill:focus {
-    -webkit-text-fill-color: #0b2547 !important;
-    -webkit-box-shadow:
-        0 0 0 1000px #ffffff inset !important;
-    box-shadow:
-        0 0 0 1000px #ffffff inset !important;
-}
-
-
-/* ==========================================================
-   BUTTONS
-========================================================== */
-
-.stButton > button {
-    width:
-        100%;
-
-    min-height:
-        3rem;
-
-    border:
-        none;
-
-    border-radius:
-        11px;
-
-    background:
-        linear-gradient(
-            105deg,
-            #f47b20,
-            #ff994b
-        );
-
-    color:
-        white;
-
-    font-weight:
-        750;
-
-    box-shadow:
-        0 8px 22px
-        rgba(244, 123, 32, 0.20);
-
-    transition:
-        all 0.16s ease;
-}
-
-
-.stButton > button:hover {
-    color:
-        white;
-
-    transform:
-        translateY(-1px);
-
-    box-shadow:
-        0 10px 28px
-        rgba(244, 123, 32, 0.27);
-}
-
-
-/* ==========================================================
-   INFO STRIPS
-========================================================== */
-
-.info-strip {
-    background:
-        linear-gradient(
-            90deg,
-            #fff4eb,
-            #fffaf6
-        );
-
-    border:
-        1px solid
-        #f5ddca;
-
-    border-left:
-        4px solid
-        #f47b20;
-
-    border-radius:
-        11px;
-
-    padding:
-        0.9rem 1rem;
-
-    color:
-        var(--navy-900);
-
-    margin-bottom:
-        1rem;
-}
-
-
-/* ==========================================================
-   METRIC CARDS
-========================================================== */
-
-.metric-card {
-    min-height:
-        124px;
-
-    padding:
-        1.15rem;
-
-    border-radius:
-        16px;
-
-    background:
-        rgba(255, 255, 255, 0.96);
-
-    border:
-        1px solid
-        rgba(12, 45, 82, 0.09);
-
-    box-shadow:
-        var(--shadow);
-}
-
-
-.metric-label {
-    color:
-        var(--muted);
-
-    font-size:
-        0.91rem;
-
-    font-weight:
-        580;
-}
-
-
-.metric-value {
-    color:
-        var(--navy-950);
-
-    font-size:
-        2.25rem;
-
-    font-weight:
-        800;
-
-    margin-top:
-        0.65rem;
-
-    line-height:
-        1;
-}
-
-
-.metric-orange {
-    border-top:
-        4px solid
-        #ff8a2a;
-}
-
-
-.metric-green {
-    border-top:
-        4px solid
-        #45b879;
-}
-
-
-.metric-blue {
-    border-top:
-        4px solid
-        #2a67a5;
-}
-
-
-.metric-amber {
-    border-top:
-        4px solid
-        #f3b649;
-}
-
-
-/* ==========================================================
-   PREVIEW PANEL
-========================================================== */
-
-.preview-panel {
-    min-height:
-        250px;
-
-    padding:
-        1.05rem;
-
-    border:
-        1px solid
-        #e3e8ef;
-
-    border-radius:
-        13px;
-
+    width: 50px;
+    height: 50px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     background:
         linear-gradient(
             145deg,
-            #fbfcfe,
-            #fff8f2
+            #ff7928,
+            #ffad42,
+            #ffd06a
         );
+    color: white;
+    font-size: 1.5rem;
+    box-shadow:
+        0 0 28px rgba(255, 143, 31, 0.27);
+}
 
+.page-title {
+    color: white;
+    font-size: 2.05rem;
+    font-weight: 790;
+    letter-spacing: -0.035em;
+    line-height: 1.05;
+}
+
+.page-subtitle {
+    color: #aab5c9;
+    font-size: 0.95rem;
+    margin-top: 0.32rem;
+}
+
+/* CONTAINERS */
+
+div[data-testid="stVerticalBlockBorderWrapper"] {
+    background:
+        linear-gradient(
+            145deg,
+            rgba(16, 28, 47, 0.96),
+            rgba(9, 18, 33, 0.94)
+        ) !important;
+    border:
+        1px solid
+        rgba(255, 153, 67, 0.20) !important;
+    border-radius: 16px !important;
+    box-shadow:
+        0 15px 34px rgba(0, 0, 0, 0.18);
+}
+
+/* SECTION HEADERS */
+
+.section-heading {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin-bottom: 0.8rem;
+}
+
+.section-number {
+    min-width: 31px;
+    height: 31px;
+    padding: 0 0.3rem;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 800;
+    background:
+        linear-gradient(
+            145deg,
+            #ff7f29,
+            #ffb347
+        );
+    box-shadow:
+        0 0 16px rgba(255, 143, 31, 0.22);
+}
+
+.section-title {
+    color: white;
+    font-size: 1.13rem;
+    font-weight: 740;
+}
+
+.subsection-title {
+    color: #ffc168;
+    font-size: 1rem;
+    font-weight: 720;
+    margin-bottom: 0.45rem;
+}
+
+/* FORM CONTROLS */
+
+div[data-baseweb="input"] > div,
+div[data-baseweb="select"] > div,
+div[data-baseweb="textarea"] > div {
+    background:
+        rgba(7, 15, 28, 0.90) !important;
+    border:
+        1px solid
+        rgba(255, 157, 74, 0.25) !important;
+    border-radius:
+        10px !important;
+}
+
+div[data-baseweb="input"] > div:focus-within,
+div[data-baseweb="select"] > div:focus-within,
+div[data-baseweb="textarea"] > div:focus-within {
+    border-color:
+        rgba(255, 174, 79, 0.85) !important;
+    box-shadow:
+        0 0 0 2px rgba(255, 157, 61, 0.08);
+}
+
+input,
+textarea {
+    color: white !important;
+}
+
+label {
+    color: #dce4f3 !important;
+    font-weight: 590 !important;
+}
+
+/* BUTTONS */
+
+.stButton > button {
+    width: 100%;
+    min-height: 3rem;
+    border-radius: 11px;
+    border:
+        1px solid
+        rgba(255, 176, 79, 0.58);
+    background:
+        linear-gradient(
+            105deg,
+            #ff7928,
+            #ff9c35,
+            #ffb94f
+        );
+    color: white;
+    font-weight: 750;
+    box-shadow:
+        0 0 20px rgba(255, 139, 35, 0.19);
+}
+
+.stButton > button:hover {
+    color: white;
+    border-color: #ffd080;
+    box-shadow:
+        0 0 28px rgba(255, 143, 31, 0.28);
+}
+
+/* METRIC CARDS */
+
+.metric-card {
+    min-height: 125px;
+    padding: 1.1rem;
+    border-radius: 15px;
+    background:
+        linear-gradient(
+            145deg,
+            rgba(19, 33, 55, 0.98),
+            rgba(10, 20, 36, 0.94)
+        );
+    border:
+        1px solid rgba(255, 155, 67, 0.24);
+    box-shadow:
+        0 14px 30px rgba(0, 0, 0, 0.18);
+}
+
+.metric-label {
+    color: #b5c0d3;
+    font-size: 0.91rem;
+}
+
+.metric-value {
+    color: white;
+    font-size: 2.25rem;
+    font-weight: 800;
+    margin-top: 0.7rem;
+    line-height: 1;
+}
+
+.metric-orange {
+    border-color: rgba(255, 166, 72, 0.42);
+}
+
+.metric-green {
+    border-color: rgba(82, 214, 140, 0.35);
+}
+
+.metric-blue {
+    border-color: rgba(89, 148, 211, 0.35);
+}
+
+.metric-amber {
+    border-color: rgba(255, 204, 105, 0.38);
+}
+
+/* INFO STRIP */
+
+.info-strip {
+    border:
+        1px solid rgba(255, 166, 72, 0.22);
+    border-left:
+        4px solid #ff9d35;
+    background:
+        rgba(255, 143, 31, 0.055);
+    padding:
+        0.85rem 1rem;
+    border-radius:
+        10px;
     color:
-        var(--navy-900);
+        #d9e2f1;
+    margin-bottom:
+        1rem;
+}
 
+/* PREVIEW */
+
+.preview-panel {
+    min-height: 250px;
+    padding: 1rem;
+    border:
+        1px solid rgba(255, 164, 71, 0.42);
+    border-radius:
+        12px;
+    background:
+        #081422;
+    color:
+        #ffd29a;
     font-family:
         "SFMono-Regular",
         Consolas,
         monospace;
-
     line-height:
-        1.68;
-
+        1.65;
     white-space:
         pre-wrap;
 }
 
-
-/* ==========================================================
-   TABLES
-========================================================== */
+/* TABLES */
 
 div[data-testid="stDataFrame"] {
     border:
-        1px solid
-        #e6e9ee;
-
+        1px solid rgba(255, 153, 67, 0.17);
     border-radius:
         13px;
-
     overflow:
         hidden;
-
-    box-shadow:
-        0 4px 15px
-        rgba(17, 45, 79, 0.04);
 }
 
-
-/* ==========================================================
-   EXPANDERS
-========================================================== */
+/* EXPANDERS */
 
 details[data-testid="stExpander"] {
     background:
-        #ffffff;
-
+        rgba(8, 17, 31, 0.78);
     border:
-        1px solid
-        #e6e9ee;
-
+        1px solid rgba(255, 153, 67, 0.16);
     border-radius:
         12px;
-
     margin-bottom:
-        0.65rem;
+        0.6rem;
 }
 
-
-details[data-testid="stExpander"] summary {
-    color:
-        var(--navy-950);
-
-    font-weight:
-        650;
-}
-
-
-/* ==========================================================
-   PROGRESS
-========================================================== */
+/* PROGRESS */
 
 div[data-testid="stProgress"] > div > div {
     background:
         linear-gradient(
             90deg,
-            #0b3b70,
-            #2d68a4,
-            #ff8a2a
+            #ff7928,
+            #ffad42,
+            #ffd06a
         );
 }
 
-
-/* ==========================================================
-   PROJECT TIMELINE
-========================================================== */
-
-.timeline-card {
-    background:
-        #ffffff;
-
-    border:
-        1px solid
-        rgba(12, 45, 82, 0.09);
-
-    border-radius:
-        18px;
-
-    padding:
-        1.4rem;
-
-    box-shadow:
-        var(--shadow);
-
-    margin-bottom:
-        1rem;
-}
-
-
-.timeline-phases {
-    display:
-        grid;
-
-    grid-template-columns:
-        3fr 1fr 3fr 1fr;
-
-    margin-bottom:
-        1.3rem;
-
-    border-radius:
-        10px;
-
-    overflow:
-        hidden;
-}
-
-
-.timeline-phase {
-    padding:
-        0.75rem 0.5rem;
-
-    text-align:
-        center;
-
-    font-weight:
-        750;
-
-    font-size:
-        0.88rem;
-
-    color:
-        var(--navy-950);
-
-    border-right:
-        2px solid
-        white;
-}
-
-
-.phase-basic {
-    background:
-        #e8f0fa;
-}
-
-
-.phase-detail {
-    background:
-        #eaf3ee;
-}
-
-
-.phase-manufacture {
-    background:
-        #eeeafd;
-}
-
-
-.phase-install {
-    background:
-        #ffdfc9;
-}
-
-
-.timeline-line-wrap {
-    position:
-        relative;
-
-    padding:
-        0.4rem 0 0.2rem 0;
-}
-
-
-.timeline-line {
-    height:
-        5px;
-
-    position:
-        absolute;
-
-    top:
-        25px;
-
-    left:
-        4%;
-
-    right:
-        4%;
-
-    background:
-        linear-gradient(
-            90deg,
-            #174b83 0%,
-            #174b83 72%,
-            #ff8528 100%
-        );
-
-    border-radius:
-        5px;
-}
-
-
-.timeline-points {
-    display:
-        grid;
-
-    grid-template-columns:
-        repeat(8, 1fr);
-
-    position:
-        relative;
-
-    z-index:
-        2;
-}
-
-
-.timeline-point {
-    text-align:
-        center;
-
-    min-width:
-        0;
-}
-
-
-.timeline-dot {
-    width:
-        28px;
-
-    height:
-        28px;
-
-    margin:
-        0 auto;
-
-    border-radius:
-        50%;
-
-    background:
-        #0b3d75;
-
-    border:
-        5px solid
-        #ffffff;
-
-    box-shadow:
-        0 0 0 2px
-        #0b3d75;
-}
-
-
-.timeline-dot.final {
-    background:
-        #ff7f1e;
-
-    box-shadow:
-        0 0 0 2px
-        #ff7f1e;
-}
-
-
-.timeline-vp {
-    margin-top:
-        0.8rem;
-
-    color:
-        var(--navy-950);
-
-    font-weight:
-        800;
-
-    font-size:
-        0.82rem;
-}
-
-
-.timeline-label {
-    color:
-        var(--navy-900);
-
-    font-size:
-        0.76rem;
-
-    line-height:
-        1.28;
-
-    margin-top:
-        0.25rem;
-
-    padding:
-        0 0.2rem;
-}
-
-
-/* ==========================================================
-   COMPLETION RING
-========================================================== */
-
-.completion-ring-wrap {
-    min-height:
-        300px;
-
-    display:
-        flex;
-
-    align-items:
-        center;
-
-    justify-content:
-        center;
-
-    flex-direction:
-        column;
-}
-
-
-/* ==========================================================
-   FINAL LIGHT INPUT OVERRIDE
-   Keep this at the END of the CSS
-========================================================== */
-
-.stApp input,
-.stApp textarea {
-    background: #ffffff !important;
-    background-color: #ffffff !important;
-    color: #0b2547 !important;
-    -webkit-text-fill-color: #0b2547 !important;
-}
-
-.stApp div[data-baseweb="input"],
-.stApp div[data-baseweb="input"] > div,
-.stApp div[data-baseweb="base-input"],
-.stApp div[data-baseweb="select"] > div,
-.stApp div[data-baseweb="textarea"],
-.stApp div[data-baseweb="textarea"] > div {
-    background: #ffffff !important;
-    background-color: #ffffff !important;
-    color: #0b2547 !important;
-}
-
-.stApp input:disabled,
-.stApp textarea:disabled {
-    background: #f1f4f7 !important;
-    background-color: #f1f4f7 !important;
-    color: #66758b !important;
-    -webkit-text-fill-color: #66758b !important;
-}
-
-/* BaseWeb nested wrappers sometimes inherit Streamlit's dark theme */
-.stApp div[data-baseweb="input"] *,
-.stApp div[data-baseweb="select"] > div * {
-    color: #0b2547 !important;
-}
-
-
-/* ==========================================================
-   LAYOUT POLISH / STREAMLIT OVERRIDES
-========================================================== */
-
-/* Make bordered sections read clearly as separate cards */
-.stApp div[data-testid="stVerticalBlockBorderWrapper"] {
-    background: #ffffff !important;
-    border: 1px solid #e3e8ef !important;
-    border-radius: 18px !important;
-    box-shadow: 0 8px 26px rgba(20, 39, 68, 0.07) !important;
-}
-
-/* Compact the large vertical gaps Streamlit can add inside cards */
-.stApp div[data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stVerticalBlock"] {
-    gap: 0.85rem !important;
-}
-
-/* Dividers should separate subsections without creating large blank bands */
-.stApp div[data-testid="stDivider"] {
-    margin: 0.2rem 0 0.35rem 0 !important;
-    padding: 0 !important;
-}
-
-.stApp div[data-testid="stDivider"] hr {
-    margin: 0 !important;
-    border-color: #edf0f4 !important;
-}
-
-/* Selectbox: force the complete control, including arrow segment, light */
-.stApp div[data-testid="stSelectbox"] div[data-baseweb="select"] > div {
-    background: #ffffff !important;
-    background-color: #ffffff !important;
-    border: 1px solid #dfe4ea !important;
-    border-radius: 10px !important;
-    overflow: hidden !important;
-}
-
-.stApp div[data-testid="stSelectbox"] div[data-baseweb="select"] > div > div {
-    background: transparent !important;
-    background-color: transparent !important;
-}
-
-.stApp div[data-testid="stSelectbox"] div[data-baseweb="select"] > div > div:last-child {
-    background: #f5f7fa !important;
-    background-color: #f5f7fa !important;
-    border-left: 1px solid #e1e6ec !important;
-    min-width: 42px !important;
-}
-
-.stApp div[data-testid="stSelectbox"] svg {
-    color: #0b2547 !important;
-    fill: #0b2547 !important;
-}
-
-/* Number inputs: soften stepper controls and remove dark theme remnants */
-.stApp div[data-testid="stNumberInput"] div[data-baseweb="input"] {
-    background: #ffffff !important;
-    border: 1px solid #dfe4ea !important;
-    border-radius: 10px !important;
-    overflow: hidden !important;
-}
-
-.stApp div[data-testid="stNumberInput"] button {
-    background: #f5f7fa !important;
-    background-color: #f5f7fa !important;
-    color: #0b2547 !important;
-    border: 0 !important;
-    border-left: 1px solid #e1e6ec !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-}
-
-.stApp div[data-testid="stNumberInput"] button:hover {
-    background: #fff0e5 !important;
-    color: #f47b20 !important;
-}
-
-.stApp div[data-testid="stNumberInput"] button svg {
-    color: #0b2547 !important;
-    fill: #0b2547 !important;
-}
-
-/* Give form sections a little breathing room, but not huge blank areas */
-.stApp .section-heading {
-    margin-top: 0.05rem !important;
-    margin-bottom: 0.45rem !important;
-}
-
-.stApp .subsection-title {
-    margin-top: 0.15rem !important;
-    margin-bottom: 0.25rem !important;
-}
-
-/* Keep labels/input groups compact */
-.stApp div[data-testid="stTextInput"],
-.stApp div[data-testid="stNumberInput"],
-.stApp div[data-testid="stSelectbox"],
-.stApp div[data-testid="stTextArea"] {
-    margin-bottom: 0.15rem !important;
-}
-
-/* Keep dropdown popup light */
-div[role="listbox"],
-div[role="option"] {
-    background-color: #ffffff !important;
-    color: #0b2547 !important;
-}
-
-div[role="option"]:hover,
-div[role="option"][aria-selected="true"] {
-    background-color: #fff0e5 !important;
-    color: #0b2547 !important;
+h1,
+h2,
+h3 {
+    color: white;
 }
 
 </style>
@@ -1618,29 +666,17 @@ div[role="option"][aria-selected="true"] {
 # ============================================================
 
 def get_database_connection():
-    connection = sqlite3.connect(
-        DATABASE_FILE
-    )
-
-    connection.execute(
-        "PRAGMA foreign_keys = ON"
-    )
-
+    connection = sqlite3.connect(DATABASE_FILE)
+    connection.execute("PRAGMA foreign_keys = ON")
     return connection
 
 
-def get_existing_columns(
-    connection,
-    table_name,
-):
+def get_existing_columns(connection, table_name):
     rows = connection.execute(
         f"PRAGMA table_info({table_name})"
     ).fetchall()
 
-    return [
-        row[1]
-        for row in rows
-    ]
+    return [row[1] for row in rows]
 
 
 def add_column_if_missing(
@@ -1655,7 +691,6 @@ def add_column_if_missing(
     )
 
     if column_name not in existing_columns:
-
         connection.execute(
             f"""
             ALTER TABLE {table_name}
@@ -1667,6 +702,7 @@ def add_column_if_missing(
 def create_or_update_database():
     connection = get_database_connection()
 
+    # Project-specific requirements
     connection.execute(
         """
         CREATE TABLE IF NOT EXISTS requirements (
@@ -1716,6 +752,7 @@ def create_or_update_database():
         "TEXT",
     )
 
+    # Locked Project Data revisions
     connection.execute(
         """
         CREATE TABLE IF NOT EXISTS standard_requirement_revisions (
@@ -1731,6 +768,7 @@ def create_or_update_database():
         """
     )
 
+    # Items contained in each locked Project Data revision
     connection.execute(
         """
         CREATE TABLE IF NOT EXISTS standard_requirement_items (
@@ -1765,6 +803,7 @@ def create_or_update_database():
         "TEXT",
     )
 
+    # Completion status
     connection.execute(
         """
         CREATE TABLE IF NOT EXISTS requirement_completion (
@@ -1783,6 +822,7 @@ def create_or_update_database():
         """
     )
 
+    # Engineering deliverables
     connection.execute(
         """
         CREATE TABLE IF NOT EXISTS engineering_deliverables (
@@ -1806,20 +846,13 @@ def create_or_update_database():
 # GENERAL HELPERS
 # ============================================================
 
-def safe_text(
-    value,
-):
+def safe_text(value):
     if value is None:
         return ""
 
-    text = str(
-        value
-    )
+    text = str(value)
 
-    if text.lower() in [
-        "none",
-        "nan",
-    ]:
+    if text.lower() in ["none", "nan"]:
         return ""
 
     return text
@@ -1830,18 +863,17 @@ def get_text_value(
     question_id,
     default="",
 ):
-    value = safe_text(
-        values.get(
-            question_id,
-            default,
-        )
+    value = values.get(
+        question_id,
+        default,
     )
 
-    return (
-        value
-        if value
-        else default
-    )
+    value = safe_text(value)
+
+    if not value:
+        return default
+
+    return value
 
 
 def get_float_value(
@@ -1850,31 +882,17 @@ def get_float_value(
     default=0.0,
 ):
     try:
-
         value = values.get(
             question_id,
             default,
         )
 
-        if (
-            safe_text(
-                value
-            ).lower()
-            ==
-            "not applicable"
-        ):
-
+        if safe_text(value).lower() == "not applicable":
             return default
 
-        return float(
-            value
-        )
+        return float(value)
 
-    except (
-        TypeError,
-        ValueError,
-    ):
-
+    except (TypeError, ValueError):
         return default
 
 
@@ -1884,77 +902,46 @@ def get_integer_value(
     default=0,
 ):
     try:
-
         value = values.get(
             question_id,
             default,
         )
 
-        return int(
-            float(
-                value
-            )
-        )
+        if safe_text(value).lower() == "not applicable":
+            return default
 
-    except (
-        TypeError,
-        ValueError,
-    ):
+        return int(float(value))
 
+    except (TypeError, ValueError):
         return default
 
 
 def option_index(
     options,
-    value,
+    saved_value,
     default=0,
 ):
-    if value in options:
-
-        return options.index(
-            value
-        )
+    if saved_value in options:
+        return options.index(saved_value)
 
     return default
 
 
-def format_number(
-    value,
-):
+def format_number(value):
     try:
-
-        number = float(
-            value
-        )
+        number = float(value)
 
         if number.is_integer():
-
-            return str(
-                int(
-                    number
-                )
-            )
+            return str(int(number))
 
         return f"{number:g}"
 
-    except (
-        TypeError,
-        ValueError,
-    ):
-
-        return str(
-            value
-        )
+    except (TypeError, ValueError):
+        return str(value)
 
 
-def escape(
-    value,
-):
-    return html.escape(
-        str(
-            value
-        )
-    )
+def escape(value):
+    return html.escape(str(value))
 
 
 # ============================================================
@@ -1967,17 +954,15 @@ def render_page_heading(
     subtitle,
 ):
     st.markdown(
-        (
-            '<div class="page-header">'
-            '<div class="page-heading-left">'
-            f'<div class="page-icon">{escape(icon)}</div>'
-            '<div>'
-            f'<div class="page-title">{escape(title)}</div>'
-            f'<div class="page-subtitle">{escape(subtitle)}</div>'
-            '</div>'
-            '</div>'
-            '</div>'
-        ),
+        f"""
+        <div class="page-header">
+            <div class="page-icon">{icon}</div>
+            <div>
+                <div class="page-title">{escape(title)}</div>
+                <div class="page-subtitle">{escape(subtitle)}</div>
+            </div>
+        </div>
+        """,
         unsafe_allow_html=True,
     )
 
@@ -1987,25 +972,23 @@ def render_section_heading(
     title,
 ):
     st.markdown(
-        (
-            '<div class="section-heading">'
-            f'<div class="section-number">{escape(number)}</div>'
-            f'<div class="section-title">{escape(title)}</div>'
-            '</div>'
-        ),
+        f"""
+        <div class="section-heading">
+            <div class="section-number">{escape(number)}</div>
+            <div class="section-title">{escape(title)}</div>
+        </div>
+        """,
         unsafe_allow_html=True,
     )
 
 
-def render_subsection(
-    title,
-):
+def render_subsection(title):
     st.markdown(
-        (
-            '<div class="subsection-title">'
-            f'{escape(title)}'
-            '</div>'
-        ),
+        f"""
+        <div class="subsection-title">
+            {escape(title)}
+        </div>
+        """,
         unsafe_allow_html=True,
     )
 
@@ -2013,169 +996,35 @@ def render_subsection(
 def render_metric_card(
     label,
     value,
-    style_class,
+    style_class="metric-orange",
 ):
     st.markdown(
-        (
-            f'<div class="metric-card {style_class}">'
-            f'<div class="metric-label">{escape(label)}</div>'
-            f'<div class="metric-value">{escape(value)}</div>'
-            '</div>'
-        ),
+        f"""
+        <div class="metric-card {style_class}">
+            <div class="metric-label">{escape(label)}</div>
+            <div class="metric-value">{escape(value)}</div>
+        </div>
+        """,
         unsafe_allow_html=True,
     )
 
 
-def render_info_strip(
-    text,
-):
+def render_info_strip(text):
     st.markdown(
-        (
-            '<div class="info-strip">'
-            f'{escape(text)}'
-            '</div>'
-        ),
-        unsafe_allow_html=True,
-    )
-
-
-def render_project_timeline():
-    timeline_html = """
-    <div class="timeline-card">
-
-        <div style="
-            font-size:1.15rem;
-            font-weight:800;
-            color:#071a35;
-            margin-bottom:1rem;
-        ">
-            Project Design & Verification Timeline
+        f"""
+        <div class="info-strip">
+            {escape(text)}
         </div>
-
-        <div class="timeline-phases">
-
-            <div class="timeline-phase phase-basic">
-                Basic Design<br>
-                <span style="font-size:0.75rem;font-weight:600;">
-                    VP1 – VP3
-                </span>
-            </div>
-
-            <div class="timeline-phase phase-detail">
-                Detailed Design<br>
-                <span style="font-size:0.75rem;font-weight:600;">
-                    VP3 – VP4
-                </span>
-            </div>
-
-            <div class="timeline-phase phase-manufacture">
-                Manufacture & Shipping<br>
-                <span style="font-size:0.75rem;font-weight:600;">
-                    VP5 – VP7
-                </span>
-            </div>
-
-            <div class="timeline-phase phase-install">
-                Installation & Commissioning<br>
-                <span style="font-size:0.75rem;font-weight:600;">
-                    VP7 – VP8
-                </span>
-            </div>
-
-        </div>
-
-        <div class="timeline-line-wrap">
-
-            <div class="timeline-line"></div>
-
-            <div class="timeline-points">
-
-                <div class="timeline-point">
-                    <div class="timeline-dot"></div>
-                    <div class="timeline-vp">VP1</div>
-                    <div class="timeline-label">
-                        Requirements<br>Review
-                    </div>
-                </div>
-
-                <div class="timeline-point">
-                    <div class="timeline-dot"></div>
-                    <div class="timeline-vp">VP2</div>
-                    <div class="timeline-label">
-                        Concept Design<br>Review
-                    </div>
-                </div>
-
-                <div class="timeline-point">
-                    <div class="timeline-dot"></div>
-                    <div class="timeline-vp">VP3</div>
-                    <div class="timeline-label">
-                        Approval Drawing<br>Review
-                    </div>
-                </div>
-
-                <div class="timeline-point">
-                    <div class="timeline-dot"></div>
-                    <div class="timeline-vp">VP4</div>
-                    <div class="timeline-label">
-                        Detailed Design<br>Review
-                    </div>
-                </div>
-
-                <div class="timeline-point">
-                    <div class="timeline-dot"></div>
-                    <div class="timeline-vp">VP5</div>
-                    <div class="timeline-label">
-                        Manufacturing<br>Inspection
-                    </div>
-                </div>
-
-                <div class="timeline-point">
-                    <div class="timeline-dot"></div>
-                    <div class="timeline-vp">VP6</div>
-                    <div class="timeline-label">
-                        Factory Acceptance<br>Test
-                    </div>
-                </div>
-
-                <div class="timeline-point">
-                    <div class="timeline-dot"></div>
-                    <div class="timeline-vp">VP7</div>
-                    <div class="timeline-label">
-                        Site<br>Commissioning
-                    </div>
-                </div>
-
-                <div class="timeline-point">
-                    <div class="timeline-dot final"></div>
-                    <div class="timeline-vp" style="color:#f47b20;">
-                        VP8
-                    </div>
-                    <div class="timeline-label">
-                        Final Project<br>Acceptance
-                    </div>
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-    """
-
-    st.markdown(
-        timeline_html,
+        """,
         unsafe_allow_html=True,
     )
 
 
 # ============================================================
-# DATABASE — PROJECT DATA
+# PROJECT DATA DATABASE FUNCTIONS
 # ============================================================
 
-def load_project_data_revisions(
-    project_name,
-):
+def load_project_data_revisions(project_name):
     connection = get_database_connection()
 
     dataframe = pd.read_sql_query(
@@ -2193,19 +1042,14 @@ def load_project_data_revisions(
         ORDER BY CAST(revision_number AS INTEGER) ASC
         """,
         connection,
-        params=(
-            project_name,
-        ),
+        params=(project_name,),
     )
 
     connection.close()
-
     return dataframe
 
 
-def load_revision_items(
-    revision_id,
-):
+def load_revision_items(revision_id):
     connection = get_database_connection()
 
     dataframe = pd.read_sql_query(
@@ -2224,103 +1068,75 @@ def load_revision_items(
         ORDER BY requirement_id ASC
         """,
         connection,
-        params=(
-            revision_id,
-        ),
+        params=(revision_id,),
     )
 
     connection.close()
-
     return dataframe
 
 
-def get_latest_revision_id(
-    project_name,
-):
+def get_latest_revision_id(project_name):
     revisions = load_project_data_revisions(
         project_name
     )
 
     if revisions.empty:
-
         return None
 
     return int(
-        revisions.iloc[-1][
-            "id"
-        ]
+        revisions.iloc[-1]["id"]
     )
 
 
-def get_latest_revision_number(
-    project_name,
-):
+def get_latest_revision_number(project_name):
     revisions = load_project_data_revisions(
         project_name
     )
 
     if revisions.empty:
-
         return "None"
 
     return str(
-        revisions.iloc[-1][
-            "revision_number"
-        ]
+        revisions.iloc[-1]["revision_number"]
     )
 
 
-def get_next_revision_number(
-    project_name,
-):
+def get_next_revision_number(project_name):
     revisions = load_project_data_revisions(
         project_name
     )
 
     if revisions.empty:
-
         return "00"
 
-    latest_number = (
-        revisions[
-            "revision_number"
-        ]
+    latest = (
+        revisions["revision_number"]
         .astype(int)
         .max()
     )
 
-    return f"{latest_number + 1:02d}"
+    return f"{latest + 1:02d}"
 
 
-def load_latest_project_data_values(
-    project_name,
-):
-    revision_id = get_latest_revision_id(
+def load_latest_project_data_values(project_name):
+    latest_revision_id = get_latest_revision_id(
         project_name
     )
 
-    if revision_id is None:
-
+    if latest_revision_id is None:
         return {}
 
     items = load_revision_items(
-        revision_id
+        latest_revision_id
     )
 
     values = {}
 
     for _, row in items.iterrows():
-
         values[
-            str(
-                row[
-                    "requirement_id"
-                ]
-            )
+            str(row["requirement_id"])
         ] = safe_text(
-            row[
-                "required_value"
-            ]
+            row["required_value"]
         )
 
     return values
@@ -2334,7 +1150,6 @@ def commit_project_data_revision(
     requirements_dataframe,
 ):
     connection = get_database_connection()
-
     cursor = connection.cursor()
 
     cursor.execute(
@@ -2364,7 +1179,6 @@ def commit_project_data_revision(
     revision_id = cursor.lastrowid
 
     for _, row in requirements_dataframe.iterrows():
-
         cursor.execute(
             """
             INSERT INTO standard_requirement_items (
@@ -2383,119 +1197,52 @@ def commit_project_data_revision(
             """,
             (
                 revision_id,
-                str(
-                    row[
-                        "Question ID"
-                    ]
-                ),
-                str(
-                    row[
-                        "Requirement Area"
-                    ]
-                ),
-                str(
-                    row[
-                        "Requirement"
-                    ]
-                ),
-                str(
-                    row[
-                        "Required Value"
-                    ]
-                ),
-                str(
-                    row[
-                        "Unit / Limit"
-                    ]
-                ),
-                str(
-                    row[
-                        "V&V Point"
-                    ]
-                ),
-                str(
-                    row[
-                        "V&V Method"
-                    ]
-                ),
-                str(
-                    row[
-                        "Notes"
-                    ]
-                ),
+                str(row["Question ID"]),
+                str(row["Requirement Area"]),
+                str(row["Requirement"]),
+                str(row["Required Value"]),
+                str(row["Unit / Limit"]),
+                str(row["V&V Point"]),
+                str(row["V&V Method"]),
+                str(row["Notes"]),
                 "Yes",
             ),
         )
 
     connection.commit()
-
     connection.close()
 
 
-def revision_items_to_dictionary(
-    dataframe,
-):
+def revision_items_to_dictionary(dataframe):
     result = {}
 
     for _, row in dataframe.iterrows():
-
-        requirement_id = str(
-            row[
-                "requirement_id"
-            ]
+        question_id = str(
+            row["requirement_id"]
         )
 
-        result[
-            requirement_id
-        ] = {
-            "requirement_area":
-                safe_text(
-                    row[
-                        "requirement_area"
-                    ]
-                ),
-
-            "requirement_text":
-                safe_text(
-                    row[
-                        "requirement_text"
-                    ]
-                ),
-
-            "required_value":
-                safe_text(
-                    row[
-                        "required_value"
-                    ]
-                ),
-
-            "unit_or_limit":
-                safe_text(
-                    row[
-                        "unit_or_limit"
-                    ]
-                ),
-
-            "verification_point":
-                safe_text(
-                    row[
-                        "verification_point"
-                    ]
-                ),
-
-            "verification_method":
-                safe_text(
-                    row[
-                        "verification_method"
-                    ]
-                ),
-
-            "notes":
-                safe_text(
-                    row[
-                        "notes"
-                    ]
-                ),
+        result[question_id] = {
+            "requirement_area": safe_text(
+                row["requirement_area"]
+            ),
+            "requirement_text": safe_text(
+                row["requirement_text"]
+            ),
+            "required_value": safe_text(
+                row["required_value"]
+            ),
+            "unit_or_limit": safe_text(
+                row["unit_or_limit"]
+            ),
+            "verification_point": safe_text(
+                row["verification_point"]
+            ),
+            "verification_method": safe_text(
+                row["verification_method"]
+            ),
+            "notes": safe_text(
+                row["notes"]
+            ),
         }
 
     return result
@@ -2505,78 +1252,59 @@ def find_changed_question_ids(
     previous_items,
     current_items,
 ):
-    previous = revision_items_to_dictionary(
-        previous_items
+    previous_dictionary = (
+        revision_items_to_dictionary(
+            previous_items
+        )
     )
 
-    current = revision_items_to_dictionary(
-        current_items
+    current_dictionary = (
+        revision_items_to_dictionary(
+            current_items
+        )
     )
 
     all_ids = sorted(
-        set(
-            previous.keys()
-        )
+        set(previous_dictionary.keys())
         |
-        set(
-            current.keys()
-        )
+        set(current_dictionary.keys())
     )
 
     changed_ids = []
 
-    for requirement_id in all_ids:
-
+    for question_id in all_ids:
         if (
-            previous.get(
-                requirement_id
-            )
+            previous_dictionary.get(question_id)
             !=
-            current.get(
-                requirement_id
-            )
+            current_dictionary.get(question_id)
         ):
-
             changed_ids.append(
-                requirement_id
+                question_id
             )
 
     return changed_ids
 
 
-def build_revision_history_summary(
-    project_name,
-):
+def build_revision_history_summary(project_name):
     revisions = load_project_data_revisions(
         project_name
     )
 
     if revisions.empty:
-
         return pd.DataFrame()
 
     rows = []
-
     previous_items = None
 
     for _, revision in revisions.iterrows():
-
         current_items = load_revision_items(
-            int(
-                revision[
-                    "id"
-                ]
-            )
+            int(revision["id"])
         )
 
         if previous_items is None:
-
-            changed_text = (
-                "Initial issue"
-            )
+            changed_text = "Initial issue"
 
         else:
-
             changed_ids = (
                 find_changed_question_ids(
                     previous_items,
@@ -2585,12 +1313,9 @@ def build_revision_history_summary(
             )
 
             changed_text = (
-                ", ".join(
-                    changed_ids
-                )
+                ", ".join(changed_ids)
                 if changed_ids
-                else
-                "No changes"
+                else "No changes"
             )
 
         rows.append(
@@ -2601,17 +1326,14 @@ def build_revision_history_summary(
                             "revision_number"
                         ]
                     ),
-
                 "Changed Question IDs":
                     changed_text,
-
                 "Committed By":
                     safe_text(
                         revision[
                             "committed_by"
                         ]
                     ),
-
                 "Comment":
                     safe_text(
                         revision[
@@ -2623,13 +1345,11 @@ def build_revision_history_summary(
 
         previous_items = current_items
 
-    return pd.DataFrame(
-        rows
-    )
+    return pd.DataFrame(rows)
 
 
 # ============================================================
-# PROJECT-SPECIFIC REQUIREMENTS
+# PROJECT-SPECIFIC REQUIREMENT DATABASE FUNCTIONS
 # ============================================================
 
 def save_project_requirement(
@@ -2685,7 +1405,6 @@ def save_project_requirement(
     )
 
     connection.commit()
-
     connection.close()
 
 
@@ -2716,7 +1435,6 @@ def load_project_requirements(
     parameters = ()
 
     if project_name:
-
         query += """
             AND project_name = ?
         """
@@ -2736,12 +1454,11 @@ def load_project_requirements(
     )
 
     connection.close()
-
     return dataframe
 
 
 # ============================================================
-# DASHBOARD STORAGE
+# DASHBOARD DATABASE FUNCTIONS
 # ============================================================
 
 def get_requirement_completion(
@@ -2771,14 +1488,9 @@ def get_requirement_completion(
     connection.close()
 
     if row is None:
-
         return False, ""
 
-    return bool(
-        row[0]
-    ), safe_text(
-        row[1]
-    )
+    return bool(row[0]), safe_text(row[1])
 
 
 def save_requirement_completion(
@@ -2813,15 +1525,12 @@ def save_requirement_completion(
             project_name,
             source,
             reference,
-            int(
-                is_complete
-            ),
+            int(is_complete),
             evidence_comment,
         ),
     )
 
     connection.commit()
-
     connection.close()
 
 
@@ -2847,12 +1556,9 @@ def get_deliverable_status(
     connection.close()
 
     if row is None:
-
         return False
 
-    return bool(
-        row[0]
-    )
+    return bool(row[0])
 
 
 def save_deliverable_status(
@@ -2880,14 +1586,11 @@ def save_deliverable_status(
         (
             project_name,
             deliverable_name,
-            int(
-                is_complete
-            ),
+            int(is_complete),
         ),
     )
 
     connection.commit()
-
     connection.close()
 
 
@@ -2906,187 +1609,164 @@ def requirement_row(
     notes="",
 ):
     return {
-        "Question ID":
-            question_id,
-
-        "Requirement Area":
-            area,
-
-        "Requirement":
-            requirement,
-
-        "Required Value":
-            value,
-
-        "Unit / Limit":
-            unit,
-
-        "V&V Point":
-            vv_point,
-
-        "V&V Method":
-            vv_method,
-
-        "Notes":
-            notes,
+        "Question ID": question_id,
+        "Requirement Area": area,
+        "Requirement": requirement,
+        "Required Value": value,
+        "Unit / Limit": unit,
+        "V&V Point": vv_point,
+        "V&V Method": vv_method,
+        "Notes": notes,
     }
 
 
-def build_project_data_requirements(
-    data,
-):
+def build_project_data_requirements(data):
     rows = []
 
-    rows.extend(
-        [
-            requirement_row(
-                "STD-001",
-                "Project Information",
-                "The ISV system shall be supplied for the specified project.",
-                data[
-                    "project_name"
-                ],
-                vv_point=
-                    "Requirements review",
-                vv_method=
-                    "Document review",
-            ),
+    # --------------------------------------------------------
+    # PROJECT INFORMATION
+    # --------------------------------------------------------
 
-            requirement_row(
-                "STD-002",
-                "Project Information",
-                "The ISV system shall be supplied to the specified customer.",
-                data[
-                    "customer_name"
-                ],
-                vv_point=
-                    "Requirements review",
-                vv_method=
-                    "Document review",
+    rows.append(
+        requirement_row(
+            "STD-001",
+            "Project Information",
+            (
+                "The ISV system shall be supplied "
+                "for the specified project."
             ),
-
-            requirement_row(
-                "STD-003",
-                "Project Information",
-                "The project destination country shall be recorded as specified.",
-                data[
-                    "country"
-                ],
-                vv_point=
-                    "Requirements review",
-                vv_method=
-                    "Document review",
-            ),
-
-            requirement_row(
-                "STD-004",
-                "Project Information",
-                "The project shall identify the responsible Lead Engineer.",
-                data[
-                    "lead_engineer"
-                ],
-                vv_point=
-                    "Requirements review",
-                vv_method=
-                    "Document review",
-            ),
-
-            requirement_row(
-                "STD-005",
-                "Project Information",
-                "The project shall identify the responsible Project Manager.",
-                data[
-                    "project_manager"
-                ],
-                vv_point=
-                    "Requirements review",
-                vv_method=
-                    "Document review",
-            ),
-        ]
+            data["project_name"],
+            vv_point="Requirements review",
+            vv_method="Document review",
+        )
     )
 
-    rows.extend(
-        [
-            requirement_row(
-                "STD-010",
-                "Mill Process Data - Material",
-                "The ISV system shall be suitable for processing the specified material type.",
-                data[
-                    "material_type"
-                ],
-                vv_point=
-                    "Requirements review",
-                vv_method=
-                    "Document review",
+    rows.append(
+        requirement_row(
+            "STD-002",
+            "Project Information",
+            (
+                "The ISV system shall be supplied "
+                "to the specified customer."
             ),
-
-            requirement_row(
-                "STD-011",
-                "Mill Process Data - Material",
-                "The ISV system shall be suitable for the specified alloy range.",
-                data[
-                    "alloy_range"
-                ],
-                vv_point=
-                    "Requirements review",
-                vv_method=
-                    "Document review",
-            ),
-        ]
+            data["customer_name"],
+            vv_point="Requirements review",
+            vv_method="Document review",
+        )
     )
+
+    rows.append(
+        requirement_row(
+            "STD-003",
+            "Project Information",
+            (
+                "The project destination country "
+                "shall be recorded as specified."
+            ),
+            data["country"],
+            vv_point="Requirements review",
+            vv_method="Document review",
+        )
+    )
+
+    rows.append(
+        requirement_row(
+            "STD-004",
+            "Project Information",
+            (
+                "The project shall identify the "
+                "responsible Lead Engineer."
+            ),
+            data["lead_engineer"],
+            vv_point="Requirements review",
+            vv_method="Document review",
+        )
+    )
+
+    rows.append(
+        requirement_row(
+            "STD-005",
+            "Project Information",
+            (
+                "The project shall identify the "
+                "responsible Project Manager."
+            ),
+            data["project_manager"],
+            vv_point="Requirements review",
+            vv_method="Document review",
+        )
+    )
+
+    # --------------------------------------------------------
+    # MATERIAL
+    # --------------------------------------------------------
+
+    rows.append(
+        requirement_row(
+            "STD-010",
+            "Mill Process Data - Material",
+            (
+                "The ISV system shall be suitable "
+                "for processing the specified material type."
+            ),
+            data["material_type"],
+            vv_point="Requirements review",
+            vv_method="Document review",
+        )
+    )
+
+    rows.append(
+        requirement_row(
+            "STD-011",
+            "Mill Process Data - Material",
+            (
+                "The ISV system shall be suitable "
+                "for the specified alloy range."
+            ),
+            data["alloy_range"],
+            vv_point="Requirements review",
+            vv_method="Document review",
+        )
+    )
+
+    # --------------------------------------------------------
+    # STRIP DATA
+    # --------------------------------------------------------
 
     strip_fields = [
         (
             "STD-020",
             "maximum entry thickness",
-            data[
-                "max_entry_thickness"
-            ],
+            data["max_entry_thickness"],
         ),
         (
             "STD-021",
             "minimum entry thickness",
-            data[
-                "min_entry_thickness"
-            ],
+            data["min_entry_thickness"],
         ),
         (
             "STD-022",
             "maximum exit thickness",
-            data[
-                "max_exit_thickness"
-            ],
+            data["max_exit_thickness"],
         ),
         (
             "STD-023",
             "minimum exit thickness",
-            data[
-                "min_exit_thickness"
-            ],
+            data["min_exit_thickness"],
         ),
         (
             "STD-024",
             "maximum strip width",
-            data[
-                "max_strip_width"
-            ],
+            data["max_strip_width"],
         ),
         (
             "STD-025",
             "minimum strip width",
-            data[
-                "min_strip_width"
-            ],
+            data["min_strip_width"],
         ),
     ]
 
-    for (
-        question_id,
-        description,
-        value,
-    ) in strip_fields:
-
+    for question_id, description, value in strip_fields:
         rows.append(
             requirement_row(
                 question_id,
@@ -3095,102 +1775,86 @@ def build_project_data_requirements(
                     "The ISV system shall be designed "
                     f"for the specified {description}."
                 ),
-                format_number(
-                    value
-                ),
+                format_number(value),
                 "mm",
-                vv_point=
-                    "Concept design review",
-                vv_method=
-                    "Design review",
+                vv_point="Concept design review",
+                vv_method="Design review",
             )
         )
 
-    rows.extend(
-        [
-            requirement_row(
-                "STD-030",
-                "Mill Process Data - Rolling Data",
-                "The ISV system shall be designed for the specified mill type.",
-                data[
-                    "mill_type"
-                ],
-                vv_point=
-                    "Concept design review",
-                vv_method=
-                    "Design review",
-            ),
+    # --------------------------------------------------------
+    # ROLLING DATA
+    # --------------------------------------------------------
 
-            requirement_row(
-                "STD-031",
-                "Mill Process Data - Rolling Data",
-                "The ISV system interface shall be compatible with the specified mill supplier.",
-                data[
-                    "mill_supplier"
-                ],
-                vv_point=
-                    "Concept design review",
-                vv_method=
-                    "Document review",
+    rows.append(
+        requirement_row(
+            "STD-030",
+            "Mill Process Data - Rolling Data",
+            (
+                "The ISV system shall be designed "
+                "for the specified mill type."
             ),
-        ]
+            data["mill_type"],
+            vv_point="Concept design review",
+            vv_method="Design review",
+        )
     )
 
-    rolling_values = [
+    rows.append(
+        requirement_row(
+            "STD-031",
+            "Mill Process Data - Rolling Data",
+            (
+                "The ISV system interface shall be "
+                "compatible with the specified mill supplier."
+            ),
+            data["mill_supplier"],
+            vv_point="Concept design review",
+            vv_method="Document review",
+        )
+    )
+
+    rolling_numeric = [
         (
             "STD-032",
             "maximum rolling speed",
-            data[
-                "max_rolling_speed"
-            ],
+            data["max_rolling_speed"],
             "m/min",
         ),
         (
             "STD-033",
             "maximum mill force",
-            data[
-                "max_mill_force"
-            ],
+            data["max_mill_force"],
             "kN",
         ),
         (
             "STD-034",
             "maximum strip stress",
-            data[
-                "max_strip_stress"
-            ],
+            data["max_strip_stress"],
             "MPa",
         ),
         (
             "STD-035",
             "minimum strip stress",
-            data[
-                "min_strip_stress"
-            ],
+            data["min_strip_stress"],
             "MPa",
         ),
         (
             "STD-036",
             "main drive power",
-            data[
-                "main_drive_power"
-            ],
+            data["main_drive_power"],
             "kW",
         ),
         (
             "STD-037",
             "maximum reduction",
-            data[
-                "max_reduction"
-            ],
+            data["max_reduction"],
             "%",
         ),
         (
             "STD-038",
             "minimum reduction",
-            data[
-                "min_reduction"
-            ],
+            data["min_reduction"],
             "%",
         ),
     ]
@@ -3200,8 +1864,7 @@ def build_project_data_requirements(
         description,
         value,
         unit,
-    ) in rolling_values:
-
+    ) in rolling_numeric:
         rows.append(
             requirement_row(
                 question_id,
@@ -3210,45 +1873,37 @@ def build_project_data_requirements(
                     "The ISV system shall be designed "
                     f"for the specified {description}."
                 ),
-                format_number(
-                    value
-                ),
+                format_number(value),
                 unit,
-                vv_point=
-                    "Concept design review",
-                vv_method=
-                    "Design review",
+                vv_point="Concept design review",
+                vv_method="Design review",
             )
         )
 
-    roll_values = [
+    # --------------------------------------------------------
+    # ROLL DATA
+    # --------------------------------------------------------
+
+    roll_fields = [
         (
             "STD-040",
             "minimum work roll diameter",
-            data[
-                "min_work_roll_diameter"
-            ],
+            data["min_work_roll_diameter"],
         ),
         (
             "STD-041",
             "maximum work roll diameter",
-            data[
-                "max_work_roll_diameter"
-            ],
+            data["max_work_roll_diameter"],
         ),
         (
             "STD-042",
             "minimum backup roll diameter",
-            data[
-                "min_backup_roll_diameter"
-            ],
+            data["min_backup_roll_diameter"],
         ),
         (
             "STD-043",
             "maximum backup roll diameter",
-            data[
-                "max_backup_roll_diameter"
-            ],
+            data["max_backup_roll_diameter"],
         ),
     ]
 
@@ -3256,8 +1911,7 @@ def build_project_data_requirements(
         question_id,
         description,
         value,
-    ) in roll_values:
-
+    ) in roll_fields:
         rows.append(
             requirement_row(
                 question_id,
@@ -3266,525 +1920,548 @@ def build_project_data_requirements(
                     "The ISV system shall be designed "
                     f"for the specified {description}."
                 ),
-                format_number(
-                    value
-                ),
+                format_number(value),
                 "mm",
-                vv_point=
-                    "Concept design review",
-                vv_method=
-                    "Design review",
+                vv_point="Concept design review",
+                vv_method="Design review",
             )
         )
 
-    rows.extend(
-        [
-            requirement_row(
-                "STD-050",
-                "Cooling System Requirements",
-                "The cooling system shall provide the specified required cooling capacity.",
-                format_number(
-                    data[
-                        "required_cooling_capacity"
-                    ]
-                ),
-                "L/min",
-                vv_point=
-                    "Detailed design review",
-                vv_method=
-                    "Calculation",
-            ),
+    # --------------------------------------------------------
+    # COOLING SYSTEM
+    # --------------------------------------------------------
 
-            requirement_row(
-                "STD-051",
-                "Cooling System Requirements",
-                "The ISV system shall be designed for the specified available coolant pressure.",
-                format_number(
-                    data[
-                        "available_coolant_pressure"
-                    ]
-                ),
-                "bar",
-                vv_point=
-                    "Detailed design review",
-                vv_method=
-                    "Design review",
+    rows.append(
+        requirement_row(
+            "STD-050",
+            "Cooling System Requirements",
+            (
+                "The cooling system shall provide "
+                "the specified required cooling capacity."
             ),
-
-            requirement_row(
-                "STD-052",
-                "Cooling System Requirements",
-                "The ISV system shall be suitable for the specified coolant temperature.",
-                format_number(
-                    data[
-                        "coolant_temperature"
-                    ]
-                ),
-                "°C",
-                vv_point=
-                    "Detailed design review",
-                vv_method=
-                    "Design review",
+            format_number(
+                data["required_cooling_capacity"]
             ),
-
-            requirement_row(
-                "STD-053",
-                "Cooling System Requirements",
-                "The ISV system shall be compatible with the specified coolant medium.",
-                data[
-                    "coolant_medium"
-                ],
-                vv_point=
-                    "Detailed design review",
-                vv_method=
-                    "Design review",
-            ),
-        ]
+            "L/min",
+            vv_point="Detailed design review",
+            vv_method="Calculation",
+        )
     )
 
-    rows.extend(
-        [
-            requirement_row(
-                "STD-060",
-                "Spraybar Configuration - Basic Arrangement",
-                "The ISV system shall use the specified spraybar arrangement.",
-                data[
-                    "spraybar_arrangement"
-                ],
-                vv_point=
-                    "Approval drawing review",
-                vv_method=
-                    "Drawing review",
+    rows.append(
+        requirement_row(
+            "STD-051",
+            "Cooling System Requirements",
+            (
+                "The ISV system shall be designed "
+                "for the specified available coolant pressure."
             ),
-
-            requirement_row(
-                "STD-061",
-                "Spraybar Configuration - Basic Arrangement",
-                "The spraybar shall use the specified row configuration.",
-                data[
-                    "row_configuration"
-                ],
-                vv_point=
-                    "Approval drawing review",
-                vv_method=
-                    "Drawing review",
+            format_number(
+                data["available_coolant_pressure"]
             ),
-
-            requirement_row(
-                "STD-062",
-                "Spraybar Configuration - Basic Arrangement",
-                "The spraybar shall be manufactured from the specified material.",
-                data[
-                    "spraybar_material"
-                ],
-                vv_point=
-                    "Detailed design review",
-                vv_method=
-                    "Drawing review",
-            ),
-
-            requirement_row(
-                "STD-063",
-                "Spraybar Configuration - Valve Configuration",
-                "The ISV system shall use the specified ISV product variant.",
-                data[
-                    "product_variant"
-                ],
-                vv_point=
-                    "Concept design review",
-                vv_method=
-                    "Design review",
-            ),
-
-            requirement_row(
-                "STD-064",
-                "Spraybar Configuration - Valve Configuration",
-                "The ISV MK3 valve configuration shall use the specified configuration.",
-                (
-                    data[
-                        "mk3_configuration"
-                    ]
-                    if
-                    data[
-                        "product_variant"
-                    ]
-                    ==
-                    "ISV - MK3"
-                    else
-                    "Not applicable"
-                ),
-                vv_point=
-                    "Concept design review",
-                vv_method=
-                    "Design review",
-            ),
-        ]
+            "bar",
+            vv_point="Detailed design review",
+            vv_method="Design review",
+        )
     )
 
-    rows.extend(
-        [
-            requirement_row(
-                "STD-070",
-                "Spraybar Configuration - Nozzle Configuration",
-                "The spraybar nozzle arrangement shall use the specified nozzle pitch.",
-                format_number(
-                    data[
-                        "nozzle_pitch"
-                    ]
-                ),
-                "mm",
-                vv_point=
-                    "Approval drawing review",
-                vv_method=
-                    "Drawing review",
+    rows.append(
+        requirement_row(
+            "STD-052",
+            "Cooling System Requirements",
+            (
+                "The ISV system shall be suitable "
+                "for the specified coolant temperature."
             ),
+            format_number(
+                data["coolant_temperature"]
+            ),
+            "°C",
+            vv_point="Detailed design review",
+            vv_method="Design review",
+        )
+    )
 
-            requirement_row(
-                "STD-071",
-                "Spraybar Configuration - Nozzle Configuration",
-                "Each top valve shall supply the specified number of nozzles.",
+    rows.append(
+        requirement_row(
+            "STD-053",
+            "Cooling System Requirements",
+            (
+                "The ISV system shall be compatible "
+                "with the specified coolant medium."
+            ),
+            data["coolant_medium"],
+            vv_point="Detailed design review",
+            vv_method="Design review",
+        )
+    )
+
+    # --------------------------------------------------------
+    # SPRAYBAR BASIC ARRANGEMENT
+    # --------------------------------------------------------
+
+    rows.append(
+        requirement_row(
+            "STD-060",
+            "Spraybar Configuration - Basic Arrangement",
+            (
+                "The ISV system shall use the "
+                "specified spraybar arrangement."
+            ),
+            data["spraybar_arrangement"],
+            vv_point="Approval drawing review",
+            vv_method="Drawing review",
+        )
+    )
+
+    rows.append(
+        requirement_row(
+            "STD-061",
+            "Spraybar Configuration - Basic Arrangement",
+            (
+                "The spraybar shall use the "
+                "specified row configuration."
+            ),
+            data["row_configuration"],
+            vv_point="Approval drawing review",
+            vv_method="Drawing review",
+        )
+    )
+
+    rows.append(
+        requirement_row(
+            "STD-062",
+            "Spraybar Configuration - Basic Arrangement",
+            (
+                "The spraybar shall be manufactured "
+                "from the specified material."
+            ),
+            data["spraybar_material"],
+            vv_point="Detailed design review",
+            vv_method="Drawing review",
+        )
+    )
+
+    # --------------------------------------------------------
+    # VALVES
+    # --------------------------------------------------------
+
+    rows.append(
+        requirement_row(
+            "STD-063",
+            "Spraybar Configuration - Valve Configuration",
+            (
+                "The ISV system shall use the "
+                "specified ISV product variant."
+            ),
+            data["product_variant"],
+            vv_point="Concept design review",
+            vv_method="Design review",
+        )
+    )
+
+    rows.append(
+        requirement_row(
+            "STD-064",
+            "Spraybar Configuration - Valve Configuration",
+            (
+                "The ISV MK3 valve configuration "
+                "shall use the specified configuration."
+            ),
+            (
+                data["mk3_configuration"]
+                if data["product_variant"]
+                == "ISV - MK3"
+                else "Not applicable"
+            ),
+            vv_point="Concept design review",
+            vv_method="Design review",
+            notes=(
+                "Applicable only when ISV - MK3 "
+                "is selected."
+            ),
+        )
+    )
+
+    # --------------------------------------------------------
+    # NOZZLES
+    # --------------------------------------------------------
+
+    rows.append(
+        requirement_row(
+            "STD-070",
+            "Spraybar Configuration - Nozzle Configuration",
+            (
+                "The spraybar nozzle arrangement shall "
+                "use the specified nozzle pitch."
+            ),
+            format_number(
+                data["nozzle_pitch"]
+            ),
+            "mm",
+            vv_point="Approval drawing review",
+            vv_method="Drawing review",
+        )
+    )
+
+    rows.append(
+        requirement_row(
+            "STD-071",
+            "Spraybar Configuration - Nozzle Configuration",
+            (
+                "Each top valve shall supply the "
+                "specified number of nozzles."
+            ),
+            str(
+                data["nozzles_per_valve_top"]
+            ),
+            "nozzles / valve",
+            vv_point="Approval drawing review",
+            vv_method="Drawing review",
+        )
+    )
+
+    rows.append(
+        requirement_row(
+            "STD-072",
+            "Spraybar Configuration - Nozzle Configuration",
+            (
+                "Each bottom valve shall supply the "
+                "specified number of nozzles."
+            ),
+            (
                 str(
                     data[
-                        "nozzles_per_valve_top"
+                        "nozzles_per_valve_bottom"
                     ]
-                ),
-                "nozzles / valve",
-                vv_point=
-                    "Approval drawing review",
-                vv_method=
-                    "Drawing review",
+                )
+                if data["spraybar_arrangement"]
+                == "Top + bottom bar"
+                else "Not applicable"
             ),
-
-            requirement_row(
-                "STD-072",
-                "Spraybar Configuration - Nozzle Configuration",
-                "Each bottom valve shall supply the specified number of nozzles.",
-                (
-                    str(
-                        data[
-                            "nozzles_per_valve_bottom"
-                        ]
-                    )
-                    if
-                    data[
-                        "spraybar_arrangement"
-                    ]
-                    ==
-                    "Top + bottom bar"
-                    else
-                    "Not applicable"
-                ),
-                (
-                    "nozzles / valve"
-                    if
-                    data[
-                        "spraybar_arrangement"
-                    ]
-                    ==
-                    "Top + bottom bar"
-                    else
-                    ""
-                ),
-                vv_point=
-                    "Approval drawing review",
-                vv_method=
-                    "Drawing review",
+            (
+                "nozzles / valve"
+                if data["spraybar_arrangement"]
+                == "Top + bottom bar"
+                else ""
             ),
-
-            requirement_row(
-                "STD-073",
-                "Spraybar Configuration - Nozzle Configuration",
-                "The spraybar configuration shall include a top backup nozzle as specified.",
-                data[
-                    "top_backup_nozzle"
-                ],
-                vv_point=
-                    "Approval drawing review",
-                vv_method=
-                    "Drawing review",
-            ),
-
-            requirement_row(
-                "STD-074",
-                "Spraybar Configuration - Bite Lube Spray",
-                "The bite lubrication spray shall use the specified nozzle pitch.",
-                format_number(
-                    data[
-                        "bite_lube_pitch"
-                    ]
-                ),
-                "mm",
-                vv_point=
-                    "Approval drawing review",
-                vv_method=
-                    "Drawing review",
-            ),
-
-            requirement_row(
-                "STD-075",
-                "Spraybar Configuration - Bite Lube Spray",
-                "The bite lubrication spray shall contain the specified number of nozzles.",
-                str(
-                    data[
-                        "bite_lube_nozzles"
-                    ]
-                ),
-                "nozzles",
-                vv_point=
-                    "Approval drawing review",
-                vv_method=
-                    "Drawing review",
-            ),
-
-            requirement_row(
-                "STD-076",
-                "Spraybar Configuration - Bite Lube Spray",
-                "The bite lubrication system shall use a remote valve as specified.",
-                data[
-                    "bite_lube_remote_valve"
-                ],
-                vv_point=
-                    "Detailed design review",
-                vv_method=
-                    "Design review",
-            ),
-        ]
+            vv_point="Approval drawing review",
+            vv_method="Drawing review",
+        )
     )
 
-    rows.extend(
-        [
-            requirement_row(
-                "STD-080",
-                "Coolant Connections",
-                "The coolant connection to the spraybar shall use the specified connection size.",
-                data[
-                    "connection_to_bar"
-                ],
-                vv_point=
-                    "Detailed design review",
-                vv_method=
-                    "Drawing review",
+    rows.append(
+        requirement_row(
+            "STD-073",
+            "Spraybar Configuration - Nozzle Configuration",
+            (
+                "The spraybar configuration shall include "
+                "a top backup nozzle as specified."
             ),
-
-            requirement_row(
-                "STD-081",
-                "Coolant Connections",
-                "The coolant hose connection shall use the specified thread size.",
-                data[
-                    "hose_thread_size"
-                ],
-                vv_point=
-                    "Detailed design review",
-                vv_method=
-                    "Drawing review",
-            ),
-
-            requirement_row(
-                "STD-082",
-                "Coolant Connections",
-                "The coolant hose connection shall use the specified cone configuration.",
-                data[
-                    "hose_cone"
-                ],
-                vv_point=
-                    "Detailed design review",
-                vv_method=
-                    "Drawing review",
-            ),
-
-            requirement_row(
-                "STD-083",
-                "Coolant Connections",
-                "The coolant block shall use the specified connection angle.",
-                format_number(
-                    data[
-                        "coolant_block_angle"
-                    ]
-                ),
-                "degrees",
-                vv_point=
-                    "Approval drawing review",
-                vv_method=
-                    "Drawing review",
-            ),
-
-            requirement_row(
-                "STD-084",
-                "Coolant Connections",
-                "The ISV system shall provide the specified number of coolant connections.",
-                str(
-                    data[
-                        "number_coolant_connections"
-                    ]
-                ),
-                "connections",
-                vv_point=
-                    "Approval drawing review",
-                vv_method=
-                    "Drawing review",
-            ),
-        ]
+            data["top_backup_nozzle"],
+            vv_point="Approval drawing review",
+            vv_method="Drawing review",
+        )
     )
+
+    rows.append(
+        requirement_row(
+            "STD-074",
+            "Spraybar Configuration - Bite Lube Spray",
+            (
+                "The bite lubrication spray shall use "
+                "the specified nozzle pitch."
+            ),
+            format_number(
+                data["bite_lube_pitch"]
+            ),
+            "mm",
+            vv_point="Approval drawing review",
+            vv_method="Drawing review",
+        )
+    )
+
+    rows.append(
+        requirement_row(
+            "STD-075",
+            "Spraybar Configuration - Bite Lube Spray",
+            (
+                "The bite lubrication spray shall contain "
+                "the specified number of nozzles."
+            ),
+            str(
+                data["bite_lube_nozzles"]
+            ),
+            "nozzles",
+            vv_point="Approval drawing review",
+            vv_method="Drawing review",
+        )
+    )
+
+    rows.append(
+        requirement_row(
+            "STD-076",
+            "Spraybar Configuration - Bite Lube Spray",
+            (
+                "The bite lubrication system shall use "
+                "a remote valve as specified."
+            ),
+            data["bite_lube_remote_valve"],
+            vv_point="Detailed design review",
+            vv_method="Design review",
+        )
+    )
+
+    # --------------------------------------------------------
+    # COOLANT CONNECTIONS
+    # --------------------------------------------------------
+
+    rows.append(
+        requirement_row(
+            "STD-080",
+            "Coolant Connections",
+            (
+                "The coolant connection to the spraybar "
+                "shall use the specified connection size."
+            ),
+            data["connection_to_bar"],
+            vv_point="Detailed design review",
+            vv_method="Drawing review",
+        )
+    )
+
+    rows.append(
+        requirement_row(
+            "STD-081",
+            "Coolant Connections",
+            (
+                "The coolant hose connection shall use "
+                "the specified thread size."
+            ),
+            data["hose_thread_size"],
+            vv_point="Detailed design review",
+            vv_method="Drawing review",
+        )
+    )
+
+    rows.append(
+        requirement_row(
+            "STD-082",
+            "Coolant Connections",
+            (
+                "The coolant hose connection shall use "
+                "the specified cone configuration."
+            ),
+            data["hose_cone"],
+            vv_point="Detailed design review",
+            vv_method="Drawing review",
+        )
+    )
+
+    rows.append(
+        requirement_row(
+            "STD-083",
+            "Coolant Connections",
+            (
+                "The coolant block shall use the "
+                "specified connection angle."
+            ),
+            format_number(
+                data["coolant_block_angle"]
+            ),
+            "degrees",
+            vv_point="Approval drawing review",
+            vv_method="Drawing review",
+        )
+    )
+
+    rows.append(
+        requirement_row(
+            "STD-084",
+            "Coolant Connections",
+            (
+                "The ISV system shall provide the "
+                "specified number of coolant connections."
+            ),
+            str(
+                data["number_coolant_connections"]
+            ),
+            "connections",
+            vv_point="Approval drawing review",
+            vv_method="Drawing review",
+        )
+    )
+
+    # --------------------------------------------------------
+    # PNEUMATICS
+    # --------------------------------------------------------
 
     mk3_selected = (
-        data[
-            "product_variant"
-        ]
-        ==
-        "ISV - MK3"
+        data["product_variant"]
+        == "ISV - MK3"
     )
 
-    rows.extend(
-        [
-            requirement_row(
-                "STD-090",
-                "Pneumatic Requirements",
-                "The MK3 pneumatic system shall provide the specified number of air connections.",
-                (
-                    str(
-                        data[
-                            "number_air_connections"
-                        ]
-                    )
-                    if mk3_selected
-                    else
-                    "Not applicable"
-                ),
-                (
-                    "connections"
-                    if mk3_selected
-                    else
-                    ""
-                ),
-                vv_point=
-                    "Detailed design review",
-                vv_method=
-                    "Drawing review",
+    rows.append(
+        requirement_row(
+            "STD-090",
+            "Pneumatic Requirements",
+            (
+                "The MK3 pneumatic system shall provide "
+                "the specified number of air connections."
             ),
-
-            requirement_row(
-                "STD-091",
-                "Pneumatic Requirements",
-                "An air intensifier shall be supplied as specified for the MK3 system.",
-                (
-                    data[
-                        "air_intensifier_supplied"
-                    ]
-                    if mk3_selected
-                    else
-                    "Not applicable"
-                ),
-                vv_point=
-                    "Detailed design review",
-                vv_method=
-                    "Document review",
-            ),
-
-            requirement_row(
-                "STD-092",
-                "Pneumatic Requirements",
-                "An air control panel shall be supplied as specified for the MK3 system.",
-                (
-                    data[
-                        "air_control_panel_supplied"
-                    ]
-                    if mk3_selected
-                    else
-                    "Not applicable"
-                ),
-                vv_point=
-                    "Detailed design review",
-                vv_method=
-                    "Document review",
-            ),
-        ]
-    )
-
-    rows.extend(
-        [
-            requirement_row(
-                "STD-100",
-                "Electrical Requirements",
-                "Each signal cable shall have the specified cable length.",
-                format_number(
-                    data[
-                        "signal_cable_length"
-                    ]
-                ),
-                "m",
-                vv_point=
-                    "Detailed design review",
-                vv_method=
-                    "Drawing review",
-            ),
-
-            requirement_row(
-                "STD-101",
-                "Electrical Requirements",
-                "The ISV electrical system shall provide the specified quantity of signal cables.",
+            (
                 str(
-                    data[
-                        "signal_cable_quantity"
-                    ]
-                ),
-                "cables",
-                vv_point=
-                    "Detailed design review",
-                vv_method=
-                    "Drawing review",
+                    data["number_air_connections"]
+                )
+                if mk3_selected
+                else "Not applicable"
             ),
-
-            requirement_row(
-                "STD-102",
-                "Electrical Requirements",
-                "The signal cable entry shall use the specified entry angle.",
-                data[
-                    "cable_entry_angle"
-                ],
-                vv_point=
-                    "Approval drawing review",
-                vv_method=
-                    "Drawing review",
+            (
+                "connections"
+                if mk3_selected
+                else ""
             ),
-
-            requirement_row(
-                "STD-103",
-                "Electrical Requirements",
-                "The ISV electrical system shall provide the specified quantity of junction boxes.",
-                str(
-                    data[
-                        "junction_box_quantity"
-                    ]
-                ),
-                "junction boxes",
-                vv_point=
-                    "Detailed design review",
-                vv_method=
-                    "Drawing review",
+            vv_point="Detailed design review",
+            vv_method="Drawing review",
+            notes=(
+                "Applicable only when ISV - MK3 "
+                "is selected."
             ),
-
-            requirement_row(
-                "STD-104",
-                "Electrical Requirements",
-                "The ISV electrical system shall use the specified junction box type.",
-                data[
-                    "junction_box_type"
-                ],
-                vv_point=
-                    "Detailed design review",
-                vv_method=
-                    "Drawing review",
-            ),
-        ]
+        )
     )
 
-    return pd.DataFrame(
-        rows
+    rows.append(
+        requirement_row(
+            "STD-091",
+            "Pneumatic Requirements",
+            (
+                "An air intensifier shall be supplied "
+                "as specified for the MK3 system."
+            ),
+            (
+                data["air_intensifier_supplied"]
+                if mk3_selected
+                else "Not applicable"
+            ),
+            vv_point="Detailed design review",
+            vv_method="Document review",
+            notes=(
+                "Applicable only when ISV - MK3 "
+                "is selected."
+            ),
+        )
     )
+
+    rows.append(
+        requirement_row(
+            "STD-092",
+            "Pneumatic Requirements",
+            (
+                "An air control panel shall be supplied "
+                "as specified for the MK3 system."
+            ),
+            (
+                data["air_control_panel_supplied"]
+                if mk3_selected
+                else "Not applicable"
+            ),
+            vv_point="Detailed design review",
+            vv_method="Document review",
+            notes=(
+                "Applicable only when ISV - MK3 "
+                "is selected."
+            ),
+        )
+    )
+
+    # --------------------------------------------------------
+    # ELECTRICAL
+    # --------------------------------------------------------
+
+    rows.append(
+        requirement_row(
+            "STD-100",
+            "Electrical Requirements",
+            (
+                "Each signal cable shall have the "
+                "specified cable length."
+            ),
+            format_number(
+                data["signal_cable_length"]
+            ),
+            "m",
+            vv_point="Detailed design review",
+            vv_method="Drawing review",
+        )
+    )
+
+    rows.append(
+        requirement_row(
+            "STD-101",
+            "Electrical Requirements",
+            (
+                "The ISV electrical system shall provide "
+                "the specified quantity of signal cables."
+            ),
+            str(
+                data["signal_cable_quantity"]
+            ),
+            "cables",
+            vv_point="Detailed design review",
+            vv_method="Drawing review",
+        )
+    )
+
+    rows.append(
+        requirement_row(
+            "STD-102",
+            "Electrical Requirements",
+            (
+                "The signal cable entry shall use the "
+                "specified entry angle."
+            ),
+            data["cable_entry_angle"],
+            vv_point="Approval drawing review",
+            vv_method="Drawing review",
+        )
+    )
+
+    rows.append(
+        requirement_row(
+            "STD-103",
+            "Electrical Requirements",
+            (
+                "The ISV electrical system shall provide "
+                "the specified quantity of junction boxes."
+            ),
+            str(
+                data["junction_box_quantity"]
+            ),
+            "junction boxes",
+            vv_point="Detailed design review",
+            vv_method="Drawing review",
+        )
+    )
+
+    rows.append(
+        requirement_row(
+            "STD-104",
+            "Electrical Requirements",
+            (
+                "The ISV electrical system shall use "
+                "the specified junction box type."
+            ),
+            data["junction_box_type"],
+            vv_point="Detailed design review",
+            vv_method="Drawing review",
+        )
+    )
+
+    return pd.DataFrame(rows)
 
 
 # ============================================================
-# INITIALISE
+# INITIALISE DATABASE
 # ============================================================
 
 create_or_update_database()
@@ -3797,17 +2474,17 @@ create_or_update_database()
 with st.sidebar:
 
     st.markdown(
-        (
-            '<div class="sidebar-brand">'
-            '<div class="sidebar-logo">⬢</div>'
-            '<div>'
-            '<div class="sidebar-title">ISV</div>'
-            '<div class="sidebar-subtitle">'
-            'Engineering Requirements'
-            '</div>'
-            '</div>'
-            '</div>'
-        ),
+        """
+        <div class="sidebar-brand">
+            <div class="sidebar-logo">⬢</div>
+            <div>
+                <div class="sidebar-title">ISV</div>
+                <div class="sidebar-subtitle">
+                    Requirements Management
+                </div>
+            </div>
+        </div>
+        """,
         unsafe_allow_html=True,
     )
 
@@ -3823,13 +2500,13 @@ with st.sidebar:
     )
 
     st.markdown(
-        (
-            '<div class="sidebar-footer">'
-            '<strong style="color:white;">Engineering Team</strong>'
-            '<br>'
-            'Internal ISV engineering tool'
-            '</div>'
-        ),
+        """
+        <div class="sidebar-footer">
+            <strong>Engineering Team</strong>
+            <br>
+            Internal ISV engineering tool
+        </div>
+        """,
         unsafe_allow_html=True,
     )
 
@@ -3838,34 +2515,28 @@ with st.sidebar:
 # PAGE 1 — PROJECT DATA
 # ============================================================
 
-if (
-    selected_page
-    ==
-    "1. Project Data"
-):
+if selected_page == "1. Project Data":
 
     render_page_heading(
         "▤",
         "Project Data",
         (
             "Define the controlled engineering baseline "
-            "for the ISV project."
+            "for an ISV project and commit locked revisions."
         ),
     )
 
-    selector_col, revision_col = (
-        st.columns(
-            [
-                3,
-                1,
-            ]
-        )
+    # --------------------------------------------------------
+    # PROJECT SELECTOR / REVISION STATUS
+    # --------------------------------------------------------
+
+    project_selector_column, revision_column = (
+        st.columns([3, 1])
     )
 
-    with selector_col:
-
+    with project_selector_column:
         selected_project = st.selectbox(
-            "Active Project",
+            "Project",
             ALLOWED_PROJECTS,
             key="project_data_project",
         )
@@ -3882,8 +2553,7 @@ if (
         )
     )
 
-    with revision_col:
-
+    with revision_column:
         render_metric_card(
             "Next Revision",
             next_revision_number,
@@ -3896,48 +2566,38 @@ if (
         )
     )
 
-    if (
-        latest_revision_number
-        ==
-        "None"
-    ):
-
+    if latest_revision_number == "None":
         render_info_strip(
             (
-                "No locked Project Data revision exists. "
+                "No locked Project Data revision exists for this project. "
                 "The first committed baseline will be Revision 00."
             )
         )
-
     else:
-
         render_info_strip(
             (
                 f"Latest locked revision: {latest_revision_number}. "
-                f"The next committed issue will be Revision "
+                f"Any new committed changes will create Revision "
                 f"{next_revision_number}."
             )
         )
 
-
     # --------------------------------------------------------
-    # 1 PROJECT INFORMATION
+    # 1. PROJECT INFORMATION
     # --------------------------------------------------------
 
-    with st.container(
-        border=True
-    ):
+    with st.container(border=True):
 
         render_section_heading(
             "1",
             "Project Information",
         )
 
-        col1, col2 = st.columns(
-            2
+        project_info_col1, project_info_col2 = (
+            st.columns(2)
         )
 
-        with col1:
+        with project_info_col1:
 
             st.text_input(
                 "Project reference",
@@ -3952,10 +2612,7 @@ if (
                     "STD-002",
                     "",
                 ),
-                key=(
-                    f"customer_"
-                    f"{selected_project}"
-                ),
+                key=f"customer_{selected_project}",
             )
 
             country = st.text_input(
@@ -3965,13 +2622,10 @@ if (
                     "STD-003",
                     "",
                 ),
-                key=(
-                    f"country_"
-                    f"{selected_project}"
-                ),
+                key=f"country_{selected_project}",
             )
 
-        with col2:
+        with project_info_col2:
 
             lead_engineer = st.text_input(
                 "Lead Engineer *",
@@ -3980,10 +2634,7 @@ if (
                     "STD-004",
                     "",
                 ),
-                key=(
-                    f"lead_engineer_"
-                    f"{selected_project}"
-                ),
+                key=f"lead_engineer_{selected_project}",
             )
 
             project_manager = st.text_input(
@@ -3993,34 +2644,33 @@ if (
                     "STD-005",
                     "",
                 ),
-                key=(
-                    f"project_manager_"
-                    f"{selected_project}"
-                ),
+                key=f"project_manager_{selected_project}",
             )
 
+            st.caption(
+                "These fields identify the responsible "
+                "project engineering team."
+            )
 
     # --------------------------------------------------------
-    # 2 MILL PROCESS DATA
+    # 2. MILL PROCESS DATA
     # --------------------------------------------------------
 
-    with st.container(
-        border=True
-    ):
+    with st.container(border=True):
 
         render_section_heading(
             "2",
             "Mill Process Data",
         )
 
+        # MATERIAL
+
         render_subsection(
             "Material"
         )
 
         material_col1, material_col2 = (
-            st.columns(
-                2
-            )
+            st.columns(2)
         )
 
         with material_col1:
@@ -4039,10 +2689,7 @@ if (
                     saved_material,
                     0,
                 ),
-                key=(
-                    f"material_"
-                    f"{selected_project}"
-                ),
+                key=f"material_{selected_project}",
             )
 
         with material_col2:
@@ -4055,25 +2702,21 @@ if (
                     "",
                 ),
                 placeholder=(
-                    "Example: carbon steel, "
-                    "stainless grades 304–316"
+                    "Example: Carbon steel, stainless grades 304–316"
                 ),
-                key=(
-                    f"alloy_"
-                    f"{selected_project}"
-                ),
+                key=f"alloy_{selected_project}",
             )
 
         st.divider()
+
+        # STRIP DATA
 
         render_subsection(
             "Strip Data"
         )
 
         strip_col1, strip_col2, strip_col3 = (
-            st.columns(
-                3
-            )
+            st.columns(3)
         )
 
         with strip_col1:
@@ -4087,10 +2730,7 @@ if (
                     0.0,
                 ),
                 step=0.1,
-                key=(
-                    f"max_entry_"
-                    f"{selected_project}"
-                ),
+                key=f"max_entry_{selected_project}",
             )
 
             min_entry_thickness = st.number_input(
@@ -4102,10 +2742,7 @@ if (
                     0.0,
                 ),
                 step=0.1,
-                key=(
-                    f"min_entry_"
-                    f"{selected_project}"
-                ),
+                key=f"min_entry_{selected_project}",
             )
 
         with strip_col2:
@@ -4119,10 +2756,7 @@ if (
                     0.0,
                 ),
                 step=0.1,
-                key=(
-                    f"max_exit_"
-                    f"{selected_project}"
-                ),
+                key=f"max_exit_{selected_project}",
             )
 
             min_exit_thickness = st.number_input(
@@ -4134,10 +2768,7 @@ if (
                     0.0,
                 ),
                 step=0.1,
-                key=(
-                    f"min_exit_"
-                    f"{selected_project}"
-                ),
+                key=f"min_exit_{selected_project}",
             )
 
         with strip_col3:
@@ -4151,10 +2782,7 @@ if (
                     0.0,
                 ),
                 step=1.0,
-                key=(
-                    f"max_width_"
-                    f"{selected_project}"
-                ),
+                key=f"max_width_{selected_project}",
             )
 
             min_strip_width = st.number_input(
@@ -4166,22 +2794,19 @@ if (
                     0.0,
                 ),
                 step=1.0,
-                key=(
-                    f"min_width_"
-                    f"{selected_project}"
-                ),
+                key=f"min_width_{selected_project}",
             )
 
         st.divider()
+
+        # ROLLING DATA
 
         render_subsection(
             "Rolling Data"
         )
 
         rolling_col1, rolling_col2, rolling_col3 = (
-            st.columns(
-                3
-            )
+            st.columns(3)
         )
 
         saved_mill_type = get_text_value(
@@ -4199,47 +2824,30 @@ if (
                     MILL_TYPES,
                     (
                         saved_mill_type
-                        if
-                        saved_mill_type
+                        if saved_mill_type
                         in MILL_TYPES
-                        else
-                        "Other"
+                        else "Other"
                     ),
                     0,
                 ),
-                key=(
-                    f"mill_type_"
-                    f"{selected_project}"
-                ),
+                key=f"mill_type_{selected_project}",
             )
 
-            if (
-                mill_type_selection
-                ==
-                "Other"
-            ):
+            if mill_type_selection == "Other":
 
                 mill_type = st.text_input(
                     "Specify mill type *",
                     value=(
                         saved_mill_type
-                        if
-                        saved_mill_type
+                        if saved_mill_type
                         not in MILL_TYPES
-                        else
-                        ""
+                        else ""
                     ),
-                    key=(
-                        f"mill_other_"
-                        f"{selected_project}"
-                    ),
+                    key=f"mill_other_{selected_project}",
                 )
 
             else:
-
-                mill_type = (
-                    mill_type_selection
-                )
+                mill_type = mill_type_selection
 
             mill_supplier = st.text_input(
                 "Mill supplier *",
@@ -4248,10 +2856,7 @@ if (
                     "STD-031",
                     "",
                 ),
-                key=(
-                    f"mill_supplier_"
-                    f"{selected_project}"
-                ),
+                key=f"mill_supplier_{selected_project}",
             )
 
             max_rolling_speed = st.number_input(
@@ -4263,10 +2868,7 @@ if (
                     0.0,
                 ),
                 step=10.0,
-                key=(
-                    f"rolling_speed_"
-                    f"{selected_project}"
-                ),
+                key=f"rolling_speed_{selected_project}",
             )
 
         with rolling_col2:
@@ -4280,10 +2882,7 @@ if (
                     0.0,
                 ),
                 step=100.0,
-                key=(
-                    f"mill_force_"
-                    f"{selected_project}"
-                ),
+                key=f"mill_force_{selected_project}",
             )
 
             max_strip_stress = st.number_input(
@@ -4295,10 +2894,7 @@ if (
                     0.0,
                 ),
                 step=1.0,
-                key=(
-                    f"max_stress_"
-                    f"{selected_project}"
-                ),
+                key=f"max_stress_{selected_project}",
             )
 
             min_strip_stress = st.number_input(
@@ -4310,10 +2906,7 @@ if (
                     0.0,
                 ),
                 step=1.0,
-                key=(
-                    f"min_stress_"
-                    f"{selected_project}"
-                ),
+                key=f"min_stress_{selected_project}",
             )
 
         with rolling_col3:
@@ -4327,10 +2920,7 @@ if (
                     0.0,
                 ),
                 step=10.0,
-                key=(
-                    f"drive_power_"
-                    f"{selected_project}"
-                ),
+                key=f"drive_power_{selected_project}",
             )
 
             max_reduction = st.number_input(
@@ -4346,10 +2936,7 @@ if (
                     ),
                 ),
                 step=1.0,
-                key=(
-                    f"max_reduction_"
-                    f"{selected_project}"
-                ),
+                key=f"max_reduction_{selected_project}",
             )
 
             min_reduction = st.number_input(
@@ -4365,141 +2952,127 @@ if (
                     ),
                 ),
                 step=1.0,
-                key=(
-                    f"min_reduction_"
-                    f"{selected_project}"
-                ),
+                key=f"min_reduction_{selected_project}",
             )
 
         st.divider()
+
+        # ROLL DATA
 
         render_subsection(
             "Roll Data"
         )
 
         roll_col1, roll_col2 = (
-            st.columns(
-                2
-            )
+            st.columns(2)
         )
 
         with roll_col1:
 
-            min_work_roll_diameter = st.number_input(
-                "Minimum work roll diameter (mm) *",
-                min_value=0.0,
-                value=get_float_value(
-                    latest_values,
-                    "STD-040",
-                    0.0,
-                ),
-                step=1.0,
-                key=(
-                    f"min_work_roll_"
-                    f"{selected_project}"
-                ),
+            min_work_roll_diameter = (
+                st.number_input(
+                    "Minimum work roll diameter (mm) *",
+                    min_value=0.0,
+                    value=get_float_value(
+                        latest_values,
+                        "STD-040",
+                        0.0,
+                    ),
+                    step=1.0,
+                    key=f"min_work_roll_{selected_project}",
+                )
             )
 
-            max_work_roll_diameter = st.number_input(
-                "Maximum work roll diameter (mm) *",
-                min_value=0.0,
-                value=get_float_value(
-                    latest_values,
-                    "STD-041",
-                    0.0,
-                ),
-                step=1.0,
-                key=(
-                    f"max_work_roll_"
-                    f"{selected_project}"
-                ),
+            max_work_roll_diameter = (
+                st.number_input(
+                    "Maximum work roll diameter (mm) *",
+                    min_value=0.0,
+                    value=get_float_value(
+                        latest_values,
+                        "STD-041",
+                        0.0,
+                    ),
+                    step=1.0,
+                    key=f"max_work_roll_{selected_project}",
+                )
             )
 
         with roll_col2:
 
-            min_backup_roll_diameter = st.number_input(
-                "Minimum backup roll diameter (mm) *",
-                min_value=0.0,
-                value=get_float_value(
-                    latest_values,
-                    "STD-042",
-                    0.0,
-                ),
-                step=1.0,
-                key=(
-                    f"min_backup_roll_"
-                    f"{selected_project}"
-                ),
+            min_backup_roll_diameter = (
+                st.number_input(
+                    "Minimum backup roll diameter (mm) *",
+                    min_value=0.0,
+                    value=get_float_value(
+                        latest_values,
+                        "STD-042",
+                        0.0,
+                    ),
+                    step=1.0,
+                    key=f"min_backup_roll_{selected_project}",
+                )
             )
 
-            max_backup_roll_diameter = st.number_input(
-                "Maximum backup roll diameter (mm) *",
-                min_value=0.0,
-                value=get_float_value(
-                    latest_values,
-                    "STD-043",
-                    0.0,
-                ),
-                step=1.0,
-                key=(
-                    f"max_backup_roll_"
-                    f"{selected_project}"
-                ),
+            max_backup_roll_diameter = (
+                st.number_input(
+                    "Maximum backup roll diameter (mm) *",
+                    min_value=0.0,
+                    value=get_float_value(
+                        latest_values,
+                        "STD-043",
+                        0.0,
+                    ),
+                    step=1.0,
+                    key=f"max_backup_roll_{selected_project}",
+                )
             )
 
-
     # --------------------------------------------------------
-    # 3 COOLING SYSTEM
+    # 3. COOLING SYSTEM REQUIREMENTS
     # --------------------------------------------------------
 
-    with st.container(
-        border=True
-    ):
+    with st.container(border=True):
 
         render_section_heading(
             "3",
             "Cooling System Requirements",
         )
 
-        col1, col2 = (
-            st.columns(
-                2
-            )
+        cooling_col1, cooling_col2 = (
+            st.columns(2)
         )
 
-        with col1:
+        with cooling_col1:
 
-            required_cooling_capacity = st.number_input(
-                "Required cooling capacity (L/min) *",
-                min_value=0.0,
-                value=get_float_value(
-                    latest_values,
-                    "STD-050",
-                    0.0,
-                ),
-                step=10.0,
-                key=(
-                    f"cooling_capacity_"
-                    f"{selected_project}"
-                ),
+            required_cooling_capacity = (
+                st.number_input(
+                    "Required cooling capacity (L/min) *",
+                    min_value=0.0,
+                    value=get_float_value(
+                        latest_values,
+                        "STD-050",
+                        0.0,
+                    ),
+                    step=10.0,
+                    key=f"cooling_capacity_{selected_project}",
+                )
             )
 
-            available_coolant_pressure = st.number_input(
-                "Available coolant pressure (bar) *",
-                min_value=0.0,
-                value=get_float_value(
-                    latest_values,
-                    "STD-051",
-                    0.0,
-                ),
-                step=0.1,
-                key=(
-                    f"coolant_pressure_"
-                    f"{selected_project}"
-                ),
+            available_coolant_pressure = (
+                st.number_input(
+                    "Available coolant pressure (bar) *",
+                    min_value=0.0,
+                    value=get_float_value(
+                        latest_values,
+                        "STD-051",
+                        0.0,
+                    ),
+                    step=0.1,
+                    key=f"coolant_pressure_{selected_project}",
+                )
             )
 
-        with col2:
+        with cooling_col2:
 
             coolant_temperature = st.number_input(
                 "Coolant temperature (°C) *",
@@ -4509,10 +3082,7 @@ if (
                     20.0,
                 ),
                 step=1.0,
-                key=(
-                    f"coolant_temp_"
-                    f"{selected_project}"
-                ),
+                key=f"coolant_temp_{selected_project}",
             )
 
             saved_coolant = get_text_value(
@@ -4528,79 +3098,59 @@ if (
                     COOLANT_MEDIA,
                     (
                         saved_coolant
-                        if
-                        saved_coolant
+                        if saved_coolant
                         in COOLANT_MEDIA
-                        else
-                        "Other"
+                        else "Other"
                     ),
                     1,
                 ),
-                key=(
-                    f"coolant_medium_"
-                    f"{selected_project}"
-                ),
+                key=f"coolant_medium_{selected_project}",
             )
 
-            if (
-                coolant_selection
-                ==
-                "Other"
-            ):
+            if coolant_selection == "Other":
 
                 coolant_medium = st.text_input(
                     "Specify coolant medium *",
                     value=(
                         saved_coolant
-                        if
-                        saved_coolant
+                        if saved_coolant
                         not in COOLANT_MEDIA
-                        else
-                        ""
+                        else ""
                     ),
-                    key=(
-                        f"other_coolant_"
-                        f"{selected_project}"
-                    ),
+                    key=f"other_coolant_{selected_project}",
                 )
 
             else:
-
-                coolant_medium = (
-                    coolant_selection
-                )
-
+                coolant_medium = coolant_selection
 
     # --------------------------------------------------------
-    # 4 SPRAYBAR CONFIGURATION
+    # 4. SPRAYBAR CONFIGURATION
     # --------------------------------------------------------
 
-    with st.container(
-        border=True
-    ):
+    with st.container(border=True):
 
         render_section_heading(
             "4",
             "Spraybar Configuration",
         )
 
+        # BASIC ARRANGEMENT
+
         render_subsection(
             "Basic Arrangement"
         )
 
-        col1, col2, col3 = (
-            st.columns(
-                3
-            )
+        arrangement_col1, arrangement_col2, arrangement_col3 = (
+            st.columns(3)
         )
 
-        with col1:
+        saved_arrangement = get_text_value(
+            latest_values,
+            "STD-060",
+            "Top + bottom bar",
+        )
 
-            saved_arrangement = get_text_value(
-                latest_values,
-                "STD-060",
-                "Top + bottom bar",
-            )
+        with arrangement_col1:
 
             spraybar_arrangement = st.selectbox(
                 "Arrangement *",
@@ -4610,75 +3160,66 @@ if (
                     saved_arrangement,
                     0,
                 ),
-                key=(
-                    f"arrangement_"
-                    f"{selected_project}"
-                ),
+                key=f"arrangement_{selected_project}",
             )
 
-        with col2:
+        saved_row_configuration = get_text_value(
+            latest_values,
+            "STD-061",
+            "Single row",
+        )
 
-            saved_row = get_text_value(
-                latest_values,
-                "STD-061",
-                "Single row",
-            )
+        with arrangement_col2:
 
             row_configuration = st.selectbox(
                 "Row configuration *",
                 ROW_CONFIGURATIONS,
                 index=option_index(
                     ROW_CONFIGURATIONS,
-                    saved_row,
+                    saved_row_configuration,
                     0,
                 ),
-                key=(
-                    f"row_config_"
-                    f"{selected_project}"
-                ),
+                key=f"row_config_{selected_project}",
             )
 
-        with col3:
+        saved_spraybar_material = get_text_value(
+            latest_values,
+            "STD-062",
+            "Stainless steel",
+        )
 
-            saved_material = get_text_value(
-                latest_values,
-                "STD-062",
-                "Stainless steel",
-            )
+        with arrangement_col3:
 
             spraybar_material = st.selectbox(
                 "Spraybar material *",
                 SPRAYBAR_MATERIALS,
                 index=option_index(
                     SPRAYBAR_MATERIALS,
-                    saved_material,
+                    saved_spraybar_material,
                     1,
                 ),
-                key=(
-                    f"spraybar_material_"
-                    f"{selected_project}"
-                ),
+                key=f"bar_material_{selected_project}",
             )
 
         st.divider()
+
+        # VALVE CONFIGURATION
 
         render_subsection(
             "Valve Configuration"
         )
 
         valve_col1, valve_col2 = (
-            st.columns(
-                2
-            )
+            st.columns(2)
+        )
+
+        saved_variant = get_text_value(
+            latest_values,
+            "STD-063",
+            "ISV - MK3",
         )
 
         with valve_col1:
-
-            saved_variant = get_text_value(
-                latest_values,
-                "STD-063",
-                "ISV - MK3",
-            )
 
             product_variant = st.selectbox(
                 "ISV product variant *",
@@ -4688,19 +3229,12 @@ if (
                     saved_variant,
                     0,
                 ),
-                key=(
-                    f"variant_"
-                    f"{selected_project}"
-                ),
+                key=f"variant_{selected_project}",
             )
 
         with valve_col2:
 
-            if (
-                product_variant
-                ==
-                "ISV - MK3"
-            ):
+            if product_variant == "ISV - MK3":
 
                 saved_mk3 = get_text_value(
                     latest_values,
@@ -4716,10 +3250,7 @@ if (
                         saved_mk3,
                         0,
                     ),
-                    key=(
-                        f"mk3_config_"
-                        f"{selected_project}"
-                    ),
+                    key=f"mk3_config_{selected_project}",
                 )
 
             else:
@@ -4729,19 +3260,20 @@ if (
                 )
 
                 st.info(
-                    "MK3 configuration is not applicable."
+                    "MK3 configuration is not applicable "
+                    "to the selected valve variant."
                 )
 
         st.divider()
+
+        # NOZZLE CONFIGURATION
 
         render_subsection(
             "Nozzle Configuration"
         )
 
         nozzle_col1, nozzle_col2 = (
-            st.columns(
-                2
-            )
+            st.columns(2)
         )
 
         with nozzle_col1:
@@ -4755,45 +3287,39 @@ if (
                     0.0,
                 ),
                 step=1.0,
-                key=(
-                    f"nozzle_pitch_"
-                    f"{selected_project}"
-                ),
+                key=f"nozzle_pitch_{selected_project}",
             )
 
-            nozzles_per_valve_top = st.number_input(
-                "Nozzles per valve - top *",
-                min_value=0,
-                value=get_integer_value(
-                    latest_values,
-                    "STD-071",
-                    0,
-                ),
-                step=1,
-                key=(
-                    f"top_nozzles_"
-                    f"{selected_project}"
-                ),
+            nozzles_per_valve_top = (
+                st.number_input(
+                    "Nozzles per valve - top *",
+                    min_value=0,
+                    value=get_integer_value(
+                        latest_values,
+                        "STD-071",
+                        0,
+                    ),
+                    step=1,
+                    key=f"top_nozzles_{selected_project}",
+                )
             )
 
-            nozzles_per_valve_bottom = st.number_input(
-                "Nozzles per valve - bottom *",
-                min_value=0,
-                value=get_integer_value(
-                    latest_values,
-                    "STD-072",
-                    0,
-                ),
-                step=1,
-                disabled=(
-                    spraybar_arrangement
-                    !=
-                    "Top + bottom bar"
-                ),
-                key=(
-                    f"bottom_nozzles_"
-                    f"{selected_project}"
-                ),
+            nozzles_per_valve_bottom = (
+                st.number_input(
+                    "Nozzles per valve - bottom *",
+                    min_value=0,
+                    value=get_integer_value(
+                        latest_values,
+                        "STD-072",
+                        0,
+                    ),
+                    step=1,
+                    disabled=(
+                        spraybar_arrangement
+                        != "Top + bottom bar"
+                    ),
+                    key=f"bottom_nozzles_{selected_project}",
+                )
             )
 
         with nozzle_col2:
@@ -4812,22 +3338,19 @@ if (
                     saved_backup_nozzle,
                     0,
                 ),
-                key=(
-                    f"backup_nozzle_"
-                    f"{selected_project}"
-                ),
+                key=f"backup_nozzle_{selected_project}",
             )
 
         st.divider()
+
+        # BITE LUBE
 
         render_subsection(
             "Bite Lube Spray"
         )
 
         bite_col1, bite_col2, bite_col3 = (
-            st.columns(
-                3
-            )
+            st.columns(3)
         )
 
         with bite_col1:
@@ -4841,10 +3364,7 @@ if (
                     0.0,
                 ),
                 step=1.0,
-                key=(
-                    f"bite_pitch_"
-                    f"{selected_project}"
-                ),
+                key=f"bite_pitch_{selected_project}",
             )
 
         with bite_col2:
@@ -4858,52 +3378,43 @@ if (
                     0,
                 ),
                 step=1,
-                key=(
-                    f"bite_nozzles_"
-                    f"{selected_project}"
-                ),
+                key=f"bite_nozzles_{selected_project}",
             )
 
         with bite_col3:
 
-            saved_remote = get_text_value(
+            saved_remote_valve = get_text_value(
                 latest_values,
                 "STD-076",
                 "No",
             )
 
-            bite_lube_remote_valve = st.selectbox(
-                "Remote valve *",
-                YES_NO,
-                index=option_index(
+            bite_lube_remote_valve = (
+                st.selectbox(
+                    "Remote valve *",
                     YES_NO,
-                    saved_remote,
-                    0,
-                ),
-                key=(
-                    f"remote_valve_"
-                    f"{selected_project}"
-                ),
+                    index=option_index(
+                        YES_NO,
+                        saved_remote_valve,
+                        0,
+                    ),
+                    key=f"remote_valve_{selected_project}",
+                )
             )
 
-
     # --------------------------------------------------------
-    # 5 COOLANT CONNECTIONS
+    # 5. COOLANT CONNECTIONS
     # --------------------------------------------------------
 
-    with st.container(
-        border=True
-    ):
+    with st.container(border=True):
 
         render_section_heading(
             "5",
             "Coolant Connections",
         )
 
-        col1, col2 = (
-            st.columns(
-                2
-            )
+        connection_col1, connection_col2 = (
+            st.columns(2)
         )
 
         saved_bar_connection = get_text_value(
@@ -4912,53 +3423,40 @@ if (
             "G1",
         )
 
-        with col1:
+        with connection_col1:
 
-            bar_connection_selection = st.selectbox(
-                "Connection to bar *",
-                BAR_CONNECTIONS,
-                index=option_index(
+            bar_connection_selection = (
+                st.selectbox(
+                    "Connection to bar *",
                     BAR_CONNECTIONS,
-                    (
-                        saved_bar_connection
-                        if
-                        saved_bar_connection
-                        in BAR_CONNECTIONS
-                        else
-                        "Other"
+                    index=option_index(
+                        BAR_CONNECTIONS,
+                        (
+                            saved_bar_connection
+                            if saved_bar_connection
+                            in BAR_CONNECTIONS
+                            else "Other"
+                        ),
+                        2,
                     ),
-                    2,
-                ),
-                key=(
-                    f"bar_connection_"
-                    f"{selected_project}"
-                ),
+                    key=f"bar_connection_{selected_project}",
+                )
             )
 
-            if (
-                bar_connection_selection
-                ==
-                "Other"
-            ):
+            if bar_connection_selection == "Other":
 
                 connection_to_bar = st.text_input(
                     "Specify connection to bar *",
                     value=(
                         saved_bar_connection
-                        if
-                        saved_bar_connection
+                        if saved_bar_connection
                         not in BAR_CONNECTIONS
-                        else
-                        ""
+                        else ""
                     ),
-                    key=(
-                        f"bar_other_"
-                        f"{selected_project}"
-                    ),
+                    key=f"bar_connection_other_{selected_project}",
                 )
 
             else:
-
                 connection_to_bar = (
                     bar_connection_selection
                 )
@@ -4970,10 +3468,8 @@ if (
                     "STD-081",
                     "",
                 ),
-                key=(
-                    f"hose_thread_"
-                    f"{selected_project}"
-                ),
+                placeholder="Example: G1",
+                key=f"hose_thread_{selected_project}",
             )
 
             hose_cone = st.text_input(
@@ -4983,13 +3479,11 @@ if (
                     "STD-082",
                     "",
                 ),
-                key=(
-                    f"hose_cone_"
-                    f"{selected_project}"
-                ),
+                placeholder="Enter cone specification",
+                key=f"hose_cone_{selected_project}",
             )
 
-        with col2:
+        with connection_col2:
 
             coolant_block_angle = st.number_input(
                 "Coolant block angle (degrees) *",
@@ -5004,74 +3498,67 @@ if (
                     ),
                 ),
                 step=1.0,
-                key=(
-                    f"block_angle_"
-                    f"{selected_project}"
-                ),
+                key=f"block_angle_{selected_project}",
             )
 
-            number_coolant_connections = st.number_input(
-                "Number of coolant connections *",
-                min_value=1,
-                value=max(
-                    1,
-                    get_integer_value(
-                        latest_values,
-                        "STD-084",
+            number_coolant_connections = (
+                st.number_input(
+                    "Number of coolant connections *",
+                    min_value=1,
+                    value=max(
                         1,
+                        get_integer_value(
+                            latest_values,
+                            "STD-084",
+                            1,
+                        ),
                     ),
-                ),
-                step=1,
-                key=(
-                    f"coolant_connections_"
-                    f"{selected_project}"
-                ),
+                    step=1,
+                    key=f"coolant_connections_{selected_project}",
+                )
             )
 
-
     # --------------------------------------------------------
-    # 6 PNEUMATIC REQUIREMENTS
+    # 6. PNEUMATIC REQUIREMENTS
     # --------------------------------------------------------
 
-    with st.container(
-        border=True
-    ):
+    with st.container(border=True):
 
         render_section_heading(
             "6",
             "Pneumatic Requirements",
         )
 
-        if (
-            product_variant
-            ==
-            "ISV - MK3"
-        ):
+        if product_variant == "ISV - MK3":
+
+            render_info_strip(
+                (
+                    "Pneumatic requirements are shown because "
+                    "ISV - MK3 is selected."
+                )
+            )
 
             pneumatic_col1, pneumatic_col2, pneumatic_col3 = (
-                st.columns(
-                    3
-                )
+                st.columns(3)
             )
 
             with pneumatic_col1:
 
-                number_air_connections = st.number_input(
-                    "Number of air connections *",
-                    min_value=1,
-                    value=max(
-                        1,
-                        get_integer_value(
-                            latest_values,
-                            "STD-090",
+                number_air_connections = (
+                    st.number_input(
+                        "Number of air connections *",
+                        min_value=1,
+                        value=max(
                             1,
+                            get_integer_value(
+                                latest_values,
+                                "STD-090",
+                                1,
+                            ),
                         ),
-                    ),
-                    step=1,
-                    key=(
-                        f"air_connections_"
-                        f"{selected_project}"
-                    ),
+                        step=1,
+                        key=f"air_connections_{selected_project}",
+                    )
                 )
 
             with pneumatic_col2:
@@ -5082,18 +3569,17 @@ if (
                     "No",
                 )
 
-                air_intensifier_supplied = st.selectbox(
-                    "Air intensifier supplied *",
-                    YES_NO,
-                    index=option_index(
+                air_intensifier_supplied = (
+                    st.selectbox(
+                        "Air intensifier supplied *",
                         YES_NO,
-                        saved_intensifier,
-                        0,
-                    ),
-                    key=(
-                        f"intensifier_"
-                        f"{selected_project}"
-                    ),
+                        index=option_index(
+                            YES_NO,
+                            saved_intensifier,
+                            0,
+                        ),
+                        key=f"intensifier_{selected_project}",
+                    )
                 )
 
             with pneumatic_col3:
@@ -5104,60 +3590,50 @@ if (
                     "No",
                 )
 
-                air_control_panel_supplied = st.selectbox(
-                    "Air control panel supplied *",
-                    YES_NO,
-                    index=option_index(
+                air_control_panel_supplied = (
+                    st.selectbox(
+                        "Air control panel supplied *",
                         YES_NO,
-                        saved_air_panel,
-                        0,
-                    ),
-                    key=(
-                        f"air_panel_"
-                        f"{selected_project}"
-                    ),
+                        index=option_index(
+                            YES_NO,
+                            saved_air_panel,
+                            0,
+                        ),
+                        key=f"air_panel_{selected_project}",
+                    )
                 )
 
         else:
 
             number_air_connections = 0
-
             air_intensifier_supplied = (
                 "Not applicable"
             )
-
             air_control_panel_supplied = (
                 "Not applicable"
             )
 
             st.info(
-                (
-                    "Pneumatic requirements are only applicable "
-                    "when ISV - MK3 is selected."
-                )
+                "Pneumatic requirements are only applicable "
+                "when ISV - MK3 is selected."
             )
 
-
     # --------------------------------------------------------
-    # 7 ELECTRICAL REQUIREMENTS
+    # 7. ELECTRICAL REQUIREMENTS
     # --------------------------------------------------------
 
-    with st.container(
-        border=True
-    ):
+    with st.container(border=True):
 
         render_section_heading(
             "7",
             "Electrical Requirements",
         )
 
-        col1, col2 = (
-            st.columns(
-                2
-            )
+        electrical_col1, electrical_col2 = (
+            st.columns(2)
         )
 
-        with col1:
+        with electrical_col1:
 
             signal_cable_length = st.number_input(
                 "Signal cable length (m) *",
@@ -5168,10 +3644,7 @@ if (
                     0.0,
                 ),
                 step=1.0,
-                key=(
-                    f"signal_length_"
-                    f"{selected_project}"
-                ),
+                key=f"signal_length_{selected_project}",
             )
 
             signal_cable_quantity = st.number_input(
@@ -5186,13 +3659,10 @@ if (
                     ),
                 ),
                 step=1,
-                key=(
-                    f"signal_quantity_"
-                    f"{selected_project}"
-                ),
+                key=f"signal_quantity_{selected_project}",
             )
 
-            saved_angle = get_text_value(
+            saved_cable_angle = get_text_value(
                 latest_values,
                 "STD-102",
                 "0°",
@@ -5203,16 +3673,13 @@ if (
                 CABLE_ENTRY_ANGLES,
                 index=option_index(
                     CABLE_ENTRY_ANGLES,
-                    saved_angle,
+                    saved_cable_angle,
                     0,
                 ),
-                key=(
-                    f"cable_angle_"
-                    f"{selected_project}"
-                ),
+                key=f"cable_angle_{selected_project}",
             )
 
-        with col2:
+        with electrical_col2:
 
             junction_box_quantity = st.number_input(
                 "Junction box quantity *",
@@ -5223,10 +3690,7 @@ if (
                     0,
                 ),
                 step=1,
-                key=(
-                    f"junction_quantity_"
-                    f"{selected_project}"
-                ),
+                key=f"junction_quantity_{selected_project}",
             )
 
             saved_junction_type = get_text_value(
@@ -5243,186 +3707,122 @@ if (
                     saved_junction_type,
                     0,
                 ),
-                key=(
-                    f"junction_type_"
-                    f"{selected_project}"
-                ),
+                key=f"junction_type_{selected_project}",
             )
 
-
     # --------------------------------------------------------
-    # BUILD DATA
+    # BUILD CURRENT PROJECT DATA
     # --------------------------------------------------------
 
     project_data = {
         "project_name":
             selected_project,
-
         "customer_name":
             customer_name.strip(),
-
         "country":
             country.strip(),
-
         "lead_engineer":
             lead_engineer.strip(),
-
         "project_manager":
             project_manager.strip(),
-
         "material_type":
             material_type,
-
         "alloy_range":
             alloy_range.strip(),
-
         "max_entry_thickness":
             max_entry_thickness,
-
         "min_entry_thickness":
             min_entry_thickness,
-
         "max_exit_thickness":
             max_exit_thickness,
-
         "min_exit_thickness":
             min_exit_thickness,
-
         "max_strip_width":
             max_strip_width,
-
         "min_strip_width":
             min_strip_width,
-
         "mill_type":
-            str(
-                mill_type
-            ).strip(),
-
+            str(mill_type).strip(),
         "mill_supplier":
             mill_supplier.strip(),
-
         "max_rolling_speed":
             max_rolling_speed,
-
         "max_mill_force":
             max_mill_force,
-
         "max_strip_stress":
             max_strip_stress,
-
         "min_strip_stress":
             min_strip_stress,
-
         "main_drive_power":
             main_drive_power,
-
         "max_reduction":
             max_reduction,
-
         "min_reduction":
             min_reduction,
-
         "min_work_roll_diameter":
             min_work_roll_diameter,
-
         "max_work_roll_diameter":
             max_work_roll_diameter,
-
         "min_backup_roll_diameter":
             min_backup_roll_diameter,
-
         "max_backup_roll_diameter":
             max_backup_roll_diameter,
-
         "required_cooling_capacity":
             required_cooling_capacity,
-
         "available_coolant_pressure":
             available_coolant_pressure,
-
         "coolant_temperature":
             coolant_temperature,
-
         "coolant_medium":
-            str(
-                coolant_medium
-            ).strip(),
-
+            str(coolant_medium).strip(),
         "spraybar_arrangement":
             spraybar_arrangement,
-
         "row_configuration":
             row_configuration,
-
         "spraybar_material":
             spraybar_material,
-
         "product_variant":
             product_variant,
-
         "mk3_configuration":
             mk3_configuration,
-
         "nozzle_pitch":
             nozzle_pitch,
-
         "nozzles_per_valve_top":
             nozzles_per_valve_top,
-
         "nozzles_per_valve_bottom":
             nozzles_per_valve_bottom,
-
         "top_backup_nozzle":
             top_backup_nozzle,
-
         "bite_lube_pitch":
             bite_lube_pitch,
-
         "bite_lube_nozzles":
             bite_lube_nozzles,
-
         "bite_lube_remote_valve":
             bite_lube_remote_valve,
-
         "connection_to_bar":
-            str(
-                connection_to_bar
-            ).strip(),
-
+            str(connection_to_bar).strip(),
         "hose_thread_size":
             hose_thread_size.strip(),
-
         "hose_cone":
             hose_cone.strip(),
-
         "coolant_block_angle":
             coolant_block_angle,
-
         "number_coolant_connections":
             number_coolant_connections,
-
         "number_air_connections":
             number_air_connections,
-
         "air_intensifier_supplied":
             air_intensifier_supplied,
-
         "air_control_panel_supplied":
             air_control_panel_supplied,
-
         "signal_cable_length":
             signal_cable_length,
-
         "signal_cable_quantity":
             signal_cable_quantity,
-
         "cable_entry_angle":
             cable_entry_angle,
-
         "junction_box_quantity":
             junction_box_quantity,
-
         "junction_box_type":
             junction_box_type,
     }
@@ -5433,18 +3833,23 @@ if (
         )
     )
 
-
     # --------------------------------------------------------
-    # 8 REVIEW
+    # 8. REVIEW GENERATED REQUIREMENTS
     # --------------------------------------------------------
 
-    with st.container(
-        border=True
-    ):
+    with st.container(border=True):
 
         render_section_heading(
             "8",
             "Review Generated Requirements",
+        )
+
+        st.caption(
+            (
+                "These requirements will form the locked "
+                f"Revision {next_revision_number} baseline "
+                "when committed."
+            )
         )
 
         review_filter = st.selectbox(
@@ -5459,31 +3864,20 @@ if (
                     .tolist()
                 ),
             ],
-            key=(
-                f"review_filter_"
-                f"{selected_project}"
-            ),
+            key=f"review_filter_{selected_project}",
         )
 
-        if (
-            review_filter
-            ==
-            "All areas"
-        ):
-
+        if review_filter == "All areas":
             review_dataframe = (
-                generated_requirements
+                generated_requirements.copy()
             )
-
         else:
-
             review_dataframe = (
                 generated_requirements[
                     generated_requirements[
                         "Requirement Area"
                     ]
-                    ==
-                    review_filter
+                    == review_filter
                 ]
             )
 
@@ -5503,67 +3897,51 @@ if (
             hide_index=True,
         )
 
-
     # --------------------------------------------------------
     # VALIDATION
     # --------------------------------------------------------
 
     validation_errors = []
 
-    text_fields = {
+    required_text_fields = {
         "Customer name":
             customer_name,
-
         "Country":
             country,
-
         "Lead Engineer":
             lead_engineer,
-
         "Project Manager":
             project_manager,
-
         "Alloy range":
             alloy_range,
-
         "Mill type":
             mill_type,
-
         "Mill supplier":
             mill_supplier,
-
         "Coolant medium":
             coolant_medium,
-
         "Connection to bar":
             connection_to_bar,
-
         "Hose thread size":
             hose_thread_size,
-
         "Hose cone":
             hose_cone,
     }
 
-    for (
-        field_name,
-        field_value,
-    ) in text_fields.items():
-
-        if not str(
-            field_value
-        ).strip():
-
+    for field_name, field_value in (
+        required_text_fields.items()
+    ):
+        if not str(field_value).strip():
             validation_errors.append(
                 f"{field_name} is required."
             )
 
+    # Logical range validation
+
     if (
         max_entry_thickness
-        <
-        min_entry_thickness
+        < min_entry_thickness
     ):
-
         validation_errors.append(
             (
                 "Maximum entry thickness cannot be "
@@ -5573,10 +3951,8 @@ if (
 
     if (
         max_exit_thickness
-        <
-        min_exit_thickness
+        < min_exit_thickness
     ):
-
         validation_errors.append(
             (
                 "Maximum exit thickness cannot be "
@@ -5586,10 +3962,8 @@ if (
 
     if (
         max_strip_width
-        <
-        min_strip_width
+        < min_strip_width
     ):
-
         validation_errors.append(
             (
                 "Maximum strip width cannot be "
@@ -5599,10 +3973,8 @@ if (
 
     if (
         max_strip_stress
-        <
-        min_strip_stress
+        < min_strip_stress
     ):
-
         validation_errors.append(
             (
                 "Maximum strip stress cannot be "
@@ -5612,10 +3984,8 @@ if (
 
     if (
         max_reduction
-        <
-        min_reduction
+        < min_reduction
     ):
-
         validation_errors.append(
             (
                 "Maximum reduction cannot be "
@@ -5625,10 +3995,8 @@ if (
 
     if (
         max_work_roll_diameter
-        <
-        min_work_roll_diameter
+        < min_work_roll_diameter
     ):
-
         validation_errors.append(
             (
                 "Maximum work roll diameter cannot be "
@@ -5638,10 +4006,8 @@ if (
 
     if (
         max_backup_roll_diameter
-        <
-        min_backup_roll_diameter
+        < min_backup_roll_diameter
     ):
-
         validation_errors.append(
             (
                 "Maximum backup roll diameter cannot be "
@@ -5649,25 +4015,17 @@ if (
             )
         )
 
-
     # --------------------------------------------------------
-    # 9 COMMIT / HISTORY
+    # 9. COMMIT REVISION
     # --------------------------------------------------------
 
-    commit_col, history_col = (
-        st.columns(
-            [
-                1.25,
-                1,
-            ]
-        )
+    commit_left, commit_right = (
+        st.columns([1.4, 1])
     )
 
-    with commit_col:
+    with commit_left:
 
-        with st.container(
-            border=True
-        ):
+        with st.container(border=True):
 
             render_section_heading(
                 "9",
@@ -5677,48 +4035,38 @@ if (
             committed_by = st.text_input(
                 "Committed by *",
                 value=lead_engineer,
-                key=(
-                    f"commit_by_"
-                    f"{selected_project}"
-                ),
+                key=f"commit_by_{selected_project}",
             )
 
             revision_comment = st.text_area(
                 "Revision comment",
                 placeholder=(
                     "Example: Initial project baseline "
-                    "or updated cooling system requirements."
+                    "or updated cooling system data."
                 ),
-                key=(
-                    f"revision_comment_"
-                    f"{selected_project}"
-                ),
+                key=f"revision_comment_{selected_project}",
             )
 
             if validation_errors:
 
                 st.warning(
                     (
-                        f"{len(validation_errors)} "
-                        "validation issue(s) remain."
+                        "The Project Data currently contains "
+                        f"{len(validation_errors)} validation issue(s)."
                     )
                 )
 
                 with st.expander(
                     "Show validation issues"
                 ):
-
-                    for error in (
-                        validation_errors
-                    ):
-
+                    for error in validation_errors:
                         st.write(
                             f"• {error}"
                         )
 
             commit_button = st.button(
                 (
-                    f"Commit Revision "
+                    f"🔒 Commit Locked Revision "
                     f"{next_revision_number}"
                 ),
                 type="primary",
@@ -5732,7 +4080,7 @@ if (
                     st.error(
                         (
                             "Resolve the validation issues "
-                            "before committing."
+                            "before committing this revision."
                         )
                     )
 
@@ -5778,11 +4126,9 @@ if (
                             )
                         )
 
-    with history_col:
+    with commit_right:
 
-        with st.container(
-            border=True
-        ):
+        with st.container(border=True):
 
             st.subheader(
                 "Revision History"
@@ -5797,7 +4143,10 @@ if (
             if revision_history.empty:
 
                 st.info(
-                    "No revisions have been committed."
+                    (
+                        "No revisions have been "
+                        "committed for this project."
+                    )
                 )
 
             else:
@@ -5813,6 +4162,16 @@ if (
                     hide_index=True,
                 )
 
+                with st.expander(
+                    "Show revision details"
+                ):
+
+                    st.dataframe(
+                        revision_history,
+                        use_container_width=True,
+                        hide_index=True,
+                    )
+
 
 # ============================================================
 # PAGE 2 — PROJECT-SPECIFIC REQUIREMENTS
@@ -5820,8 +4179,7 @@ if (
 
 elif (
     selected_page
-    ==
-    "2. Project-Specific Requirements"
+    == "2. Project-Specific Requirements"
 ):
 
     render_page_heading(
@@ -5829,26 +4187,26 @@ elif (
         "Project-Specific Requirements",
         (
             "Capture additional customer and stakeholder "
-            "requirements using guided templates."
+            "requirements using simple guided templates."
         ),
     )
 
-    with st.container(
-        border=True
-    ):
+    # --------------------------------------------------------
+    # 1. REQUIREMENT DETAILS
+    # --------------------------------------------------------
+
+    with st.container(border=True):
 
         render_section_heading(
             "1",
             "Requirement Details",
         )
 
-        col1, col2 = (
-            st.columns(
-                2
-            )
+        detail_col1, detail_col2 = (
+            st.columns(2)
         )
 
-        with col1:
+        with detail_col1:
 
             requirement_project = st.selectbox(
                 "Project *",
@@ -5863,15 +4221,17 @@ elif (
                     "Sales",
                     "Engineering",
                     "Project Management",
-                    "Procurement",
-                    "Production",
+                    "Operations / Production",
+                    "Supply Chain Management",
                     "Site and Service",
+                    "Research and Development",
+                    "Quality",
                     "Other",
                 ],
                 key="specific_source",
             )
 
-        with col2:
+        with detail_col2:
 
             requirement_title = st.text_input(
                 "Requirement title *",
@@ -5883,16 +4243,15 @@ elif (
 
             submitted_by = st.text_input(
                 "Submitted by *",
-                placeholder=(
-                    "Enter your name"
-                ),
+                placeholder="Enter your name",
                 key="specific_submitter",
             )
 
+    # --------------------------------------------------------
+    # 2. CHOOSE TEMPLATE
+    # --------------------------------------------------------
 
-    with st.container(
-        border=True
-    ):
+    with st.container(border=True):
 
         render_section_heading(
             "2",
@@ -5900,7 +4259,7 @@ elif (
         )
 
         template_name = st.selectbox(
-            "Requirement type *",
+            "What kind of requirement do you want to add? *",
             list(
                 PROJECT_REQUIREMENT_TEMPLATES.keys()
             ),
@@ -5914,44 +4273,31 @@ elif (
         )
 
         render_info_strip(
-            template_details[
-                "help"
-            ]
+            template_details["help"]
         )
 
+    # --------------------------------------------------------
+    # 3. GUIDED INPUTS
+    # --------------------------------------------------------
 
-    input_col, preview_col = (
-        st.columns(
-            [
-                1.55,
-                1,
-            ]
-        )
+    input_column, preview_column = (
+        st.columns([1.5, 1])
     )
 
     generated_requirement = ""
-
     stakeholder_input = ""
-
     requirement_complete = False
 
+    with input_column:
 
-    with input_col:
-
-        with st.container(
-            border=True
-        ):
+        with st.container(border=True):
 
             render_section_heading(
                 "3",
                 "Fill In the Requirement",
             )
 
-            if (
-                template_name
-                ==
-                "Operating condition"
-            ):
+            if template_name == "Operating condition":
 
                 equipment = st.text_input(
                     "What equipment or system? *",
@@ -5998,11 +4344,7 @@ elif (
                     ]
                 )
 
-            elif (
-                template_name
-                ==
-                "Capacity or quantity"
-            ):
+            elif template_name == "Capacity or quantity":
 
                 equipment = st.text_input(
                     "What equipment or system? *",
@@ -6012,6 +4354,9 @@ elif (
 
                 action = st.text_input(
                     "What must it provide or control? *",
+                    placeholder=(
+                        "Example: independently control"
+                    ),
                     key="specific_capacity_action",
                 )
 
@@ -6024,16 +4369,16 @@ elif (
 
                 item = st.text_input(
                     "What is being counted? *",
+                    placeholder=(
+                        "Example: spray zones"
+                    ),
                     key="specific_capacity_item",
                 )
 
                 quantity_text = (
-                    str(
-                        quantity
-                    )
+                    str(quantity)
                     if quantity > 0
-                    else
-                    "[quantity]"
+                    else "[quantity]"
                 )
 
                 generated_requirement = (
@@ -6062,11 +4407,7 @@ elif (
                     ]
                 )
 
-            elif (
-                template_name
-                ==
-                "Performance level"
-            ):
+            elif template_name == "Performance level":
 
                 equipment = st.text_input(
                     "What equipment or system? *",
@@ -6076,6 +4417,9 @@ elif (
 
                 action = st.text_input(
                     "What performance is required? *",
+                    placeholder=(
+                        "Example: deliver cooling fluid"
+                    ),
                     key="specific_performance_action",
                 )
 
@@ -6088,16 +4432,16 @@ elif (
 
                 unit = st.text_input(
                     "Unit *",
+                    placeholder=(
+                        "Example: L/min"
+                    ),
                     key="specific_performance_unit",
                 )
 
                 value_text = (
-                    format_number(
-                        value
-                    )
+                    format_number(value)
                     if value > 0
-                    else
-                    "[value]"
+                    else "[value]"
                 )
 
                 generated_requirement = (
@@ -6126,11 +4470,7 @@ elif (
                     ]
                 )
 
-            elif (
-                template_name
-                ==
-                "Response time"
-            ):
+            elif template_name == "Response time":
 
                 equipment = st.text_input(
                     "What equipment or system? *",
@@ -6140,11 +4480,17 @@ elif (
 
                 action = st.text_input(
                     "What must happen? *",
+                    placeholder=(
+                        "Example: begin coolant delivery"
+                    ),
                     key="specific_response_action",
                 )
 
                 trigger = st.text_input(
                     "What triggers the action? *",
+                    placeholder=(
+                        "Example: receiving a control signal"
+                    ),
                     key="specific_response_trigger",
                 )
 
@@ -6170,8 +4516,7 @@ elif (
                         response_time
                     )
                     if response_time > 0
-                    else
-                    "[time]"
+                    else "[time]"
                 )
 
                 generated_requirement = (
@@ -6201,11 +4546,7 @@ elif (
                     ]
                 )
 
-            elif (
-                template_name
-                ==
-                "Compatibility or interface"
-            ):
+            elif template_name == "Compatibility or interface":
 
                 equipment = st.text_input(
                     "What ISV equipment or system? *",
@@ -6215,11 +4556,18 @@ elif (
 
                 interface_item = st.text_input(
                     "What must it connect to or work with? *",
+                    placeholder=(
+                        "Example: customer's PLC"
+                    ),
                     key="specific_interface_item",
                 )
 
                 interface_requirement = st.text_area(
                     "Describe the required connection or compatibility *",
+                    placeholder=(
+                        "Example: exchange operating status "
+                        "and alarm signals"
+                    ),
                     key="specific_interface_requirement",
                 )
 
@@ -6246,11 +4594,7 @@ elif (
                     ]
                 )
 
-            elif (
-                template_name
-                ==
-                "Product type or standard"
-            ):
+            elif template_name == "Product type or standard":
 
                 equipment = st.text_input(
                     "What equipment or item? *",
@@ -6260,11 +4604,17 @@ elif (
 
                 specification = st.text_input(
                     "Required product, material or standard *",
+                    placeholder=(
+                        "Example: stainless steel construction"
+                    ),
                     key="specific_product_specification",
                 )
 
                 reason = st.text_area(
                     "Where or why is this required? *",
+                    placeholder=(
+                        "Example: for all wetted components"
+                    ),
                     key="specific_product_reason",
                 )
 
@@ -6290,11 +4640,7 @@ elif (
                     ]
                 )
 
-            elif (
-                template_name
-                ==
-                "Reliability or maintenance"
-            ):
+            elif template_name == "Reliability or maintenance":
 
                 equipment = st.text_input(
                     "What equipment or component? *",
@@ -6304,6 +4650,10 @@ elif (
 
                 maintenance_need = st.text_area(
                     "What must be possible? *",
+                    placeholder=(
+                        "Example: valves must be replaceable "
+                        "without removing the complete spraybar"
+                    ),
                     key="specific_maintenance_need",
                 )
 
@@ -6330,14 +4680,17 @@ elif (
 
                 free_requirement = st.text_area(
                     "Describe the requirement *",
+                    placeholder=(
+                        "Describe what the project needs "
+                        "in clear, simple language."
+                    ),
                     height=180,
                     key="specific_other_requirement",
                 )
 
                 generated_requirement = (
                     free_requirement.strip()
-                    or
-                    "[Describe the requirement]"
+                    or "[Describe the requirement]"
                 )
 
                 stakeholder_input = (
@@ -6348,12 +4701,13 @@ elif (
                     free_requirement.strip()
                 )
 
+    # --------------------------------------------------------
+    # 4. LIVE PREVIEW
+    # --------------------------------------------------------
 
-    with preview_col:
+    with preview_column:
 
-        with st.container(
-            border=True
-        ):
+        with st.container(border=True):
 
             render_section_heading(
                 "4",
@@ -6371,18 +4725,19 @@ elif (
             )
 
             st.markdown(
-                (
-                    '<div class="preview-panel">'
-                    f'{escape(preview_text)}'
-                    '</div>'
-                ),
+                f"""
+                <div class="preview-panel">
+                {escape(preview_text)}
+                </div>
+                """,
                 unsafe_allow_html=True,
             )
 
+    # --------------------------------------------------------
+    # 5. V&V
+    # --------------------------------------------------------
 
-    with st.container(
-        border=True
-    ):
+    with st.container(border=True):
 
         render_section_heading(
             "5",
@@ -6390,9 +4745,7 @@ elif (
         )
 
         vv_col1, vv_col2 = (
-            st.columns(
-                2
-            )
+            st.columns(2)
         )
 
         with vv_col1:
@@ -6403,12 +4756,26 @@ elif (
                 key="specific_vv_point",
             )
 
+            st.caption(
+                (
+                    "The project stage where the "
+                    "requirement will be checked."
+                )
+            )
+
         with vv_col2:
 
             verification_method = st.selectbox(
                 "V&V method *",
                 VERIFICATION_METHODS,
                 key="specific_vv_method",
+            )
+
+            st.caption(
+                (
+                    "How engineering will demonstrate "
+                    "that the requirement has been met."
+                )
             )
 
     submit_requirement = st.button(
@@ -6422,19 +4789,16 @@ elif (
         errors = []
 
         if not requirement_title.strip():
-
             errors.append(
                 "Requirement title"
             )
 
         if not submitted_by.strip():
-
             errors.append(
                 "Submitted by"
             )
 
         if not requirement_complete:
-
             errors.append(
                 "Requirement information"
             )
@@ -6444,10 +4808,7 @@ elif (
             st.error(
                 (
                     "Please complete: "
-                    +
-                    ", ".join(
-                        errors
-                    )
+                    + ", ".join(errors)
                 )
             )
 
@@ -6487,13 +4848,14 @@ elif (
 
             st.rerun()
 
+    # --------------------------------------------------------
+    # EXISTING PROJECT REQUIREMENTS
+    # --------------------------------------------------------
 
-    with st.container(
-        border=True
-    ):
+    with st.container(border=True):
 
         st.subheader(
-            "Existing Project-Specific Requirements"
+            "Project-Specific Requirements"
         )
 
         project_requirements = (
@@ -6507,7 +4869,7 @@ elif (
             st.info(
                 (
                     "No project-specific requirements "
-                    "have been submitted."
+                    "have been submitted for this project."
                 )
             )
 
@@ -6516,26 +4878,13 @@ elif (
             display_requirements = (
                 project_requirements.rename(
                     columns={
-                        "id":
-                            "ID",
-
-                        "requirement_title":
-                            "Title",
-
-                        "requirement_text":
-                            "Requirement",
-
-                        "boilerplate_name":
-                            "Template",
-
-                        "verification_point":
-                            "V&V Point",
-
-                        "verification_method":
-                            "V&V Method",
-
-                        "status":
-                            "Status",
+                        "id": "ID",
+                        "requirement_title": "Title",
+                        "requirement_text": "Requirement",
+                        "boilerplate_name": "Template",
+                        "verification_point": "V&V Point",
+                        "verification_method": "V&V Method",
+                        "status": "Status",
                     }
                 )
             )
@@ -6567,24 +4916,19 @@ else:
         "⌁",
         "Engineering Dashboard",
         (
-            "Track the design lifecycle, requirement compliance "
-            "and verification progress."
+            "Review the complete project requirement set, "
+            "track compliance and view V&V progress."
         ),
     )
 
-    dashboard_project_col, revision_col = (
-        st.columns(
-            [
-                3,
-                1,
-            ]
-        )
+    dashboard_project_col, dashboard_revision_col = (
+        st.columns([3, 1])
     )
 
     with dashboard_project_col:
 
         dashboard_project = st.selectbox(
-            "Active Project",
+            "Project",
             ALLOWED_PROJECTS,
             key="dashboard_project",
         )
@@ -6595,18 +4939,13 @@ else:
         )
     )
 
-    with revision_col:
+    with dashboard_revision_col:
 
         render_metric_card(
             "Project Data Revision",
             dashboard_latest_revision,
             "metric-orange",
         )
-
-
-    # --------------------------------------------------------
-    # LOAD REQUIREMENTS
-    # --------------------------------------------------------
 
     latest_revision_id = (
         get_latest_revision_id(
@@ -6616,16 +4955,12 @@ else:
 
     if latest_revision_id is None:
 
-        standard_items = (
-            pd.DataFrame()
-        )
+        standard_items = pd.DataFrame()
 
     else:
 
-        standard_items = (
-            load_revision_items(
-                latest_revision_id
-            )
+        standard_items = load_revision_items(
+            latest_revision_id
         )
 
     project_specific_items = (
@@ -6636,13 +4971,12 @@ else:
 
     combined_rows = []
 
+    # Latest Project Data requirements
 
     for _, row in standard_items.iterrows():
 
         reference = safe_text(
-            row[
-                "requirement_id"
-            ]
+            row["requirement_id"]
         )
 
         complete, comment = (
@@ -6653,73 +4987,62 @@ else:
             )
         )
 
-        required_value = safe_text(
-            row[
-                "required_value"
-            ]
+        value_text = safe_text(
+            row["required_value"]
         )
 
-        unit = safe_text(
-            row[
-                "unit_or_limit"
-            ]
+        unit_text = safe_text(
+            row["unit_or_limit"]
         )
 
-        value_display = (
-            f"{required_value} {unit}"
-            if unit
-            else
-            required_value
-        )
+        if unit_text:
+            value_display = (
+                f"{value_text} {unit_text}"
+            )
+        else:
+            value_display = value_text
 
         combined_rows.append(
             {
                 "Source":
                     "Project Data",
-
                 "Reference":
                     reference,
-
                 "Requirement":
                     safe_text(
                         row[
                             "requirement_text"
                         ]
                     ),
-
                 "Required Value":
                     value_display,
-
                 "V&V Point":
                     safe_text(
                         row[
                             "verification_point"
                         ]
                     ),
-
                 "V&V Method":
                     safe_text(
                         row[
                             "verification_method"
                         ]
                     ),
-
                 "Complete":
                     complete,
-
                 "Evidence / Comment":
                     comment,
             }
         )
 
+    # Project-specific requirements
 
     for _, row in (
         project_specific_items.iterrows()
     ):
 
         reference = (
-            f"REQ-"
-            f"{int(row['id']):04d}"
+            f"REQ-{int(row['id']):04d}"
         )
 
         complete, comment = (
@@ -6734,97 +5057,81 @@ else:
             {
                 "Source":
                     "Project specific",
-
                 "Reference":
                     reference,
-
                 "Requirement":
                     safe_text(
                         row[
                             "requirement_text"
                         ]
                     ),
-
                 "Required Value":
                     "",
-
                 "V&V Point":
                     safe_text(
                         row[
                             "verification_point"
                         ]
                     ),
-
                 "V&V Method":
                     safe_text(
                         row[
                             "verification_method"
                         ]
                     ),
-
                 "Complete":
                     complete,
-
                 "Evidence / Comment":
                     comment,
             }
         )
 
-
-    combined_requirements = (
-        pd.DataFrame(
-            combined_rows
-        )
+    combined_requirements = pd.DataFrame(
+        combined_rows
     )
 
     total_requirements = len(
         combined_requirements
     )
 
-    completed_requirements = (
-        int(
+    if total_requirements > 0:
+
+        completed_requirements = int(
             combined_requirements[
                 "Complete"
             ].sum()
         )
-        if total_requirements
-        else
-        0
-    )
+
+    else:
+
+        completed_requirements = 0
 
     open_requirements = (
         total_requirements
-        -
-        completed_requirements
+        - completed_requirements
     )
 
     completion_percentage = (
         int(
             round(
                 completed_requirements
-                /
-                total_requirements
-                *
-                100
+                / total_requirements
+                * 100
             )
         )
-        if total_requirements
-        else
-        0
+        if total_requirements > 0
+        else 0
     )
 
-
     # --------------------------------------------------------
-    # SUMMARY CARDS
+    # METRICS
     # --------------------------------------------------------
 
-    metric1, metric2, metric3, metric4 = (
-        st.columns(
-            4
-        )
+    metric_col1, metric_col2, metric_col3, metric_col4 = (
+        st.columns(4)
     )
 
-    with metric1:
+    with metric_col1:
 
         render_metric_card(
             "Total Requirements",
@@ -6832,7 +5139,7 @@ else:
             "metric-blue",
         )
 
-    with metric2:
+    with metric_col2:
 
         render_metric_card(
             "Requirements Met",
@@ -6840,15 +5147,15 @@ else:
             "metric-green",
         )
 
-    with metric3:
+    with metric_col3:
 
         render_metric_card(
-            "Outstanding",
+            "Requirements Open",
             open_requirements,
             "metric-amber",
         )
 
-    with metric4:
+    with metric_col4:
 
         render_metric_card(
             "Overall Completion",
@@ -6856,33 +5163,21 @@ else:
             "metric-orange",
         )
 
-
-    # --------------------------------------------------------
-    # DESIGN TIMELINE
-    # --------------------------------------------------------
-
-    render_project_timeline()
-
-
     # --------------------------------------------------------
     # FILTERS
     # --------------------------------------------------------
 
-    with st.container(
-        border=True
-    ):
+    with st.container(border=True):
 
         st.subheader(
             "Requirement Filters"
         )
 
-        filter1, filter2, filter3 = (
-            st.columns(
-                3
-            )
+        filter_col1, filter_col2, filter_col3 = (
+            st.columns(3)
         )
 
-        with filter1:
+        with filter_col1:
 
             source_filter = st.selectbox(
                 "Requirement source",
@@ -6914,7 +5209,7 @@ else:
                 ]
             )
 
-        with filter2:
+        with filter_col2:
 
             vv_filter = st.selectbox(
                 "V&V point",
@@ -6924,7 +5219,7 @@ else:
                 ],
             )
 
-        with filter3:
+        with filter_col3:
 
             completion_filter = st.selectbox(
                 "Completion",
@@ -6935,7 +5230,6 @@ else:
                 ],
             )
 
-
     filtered_requirements = (
         combined_requirements.copy()
     )
@@ -6944,8 +5238,7 @@ else:
 
         if (
             source_filter
-            !=
-            "All requirements"
+            != "All requirements"
         ):
 
             filtered_requirements = (
@@ -6953,32 +5246,22 @@ else:
                     filtered_requirements[
                         "Source"
                     ]
-                    ==
-                    source_filter
+                    == source_filter
                 ]
             )
 
-        if (
-            vv_filter
-            !=
-            "All V&V points"
-        ):
+        if vv_filter != "All V&V points":
 
             filtered_requirements = (
                 filtered_requirements[
                     filtered_requirements[
                         "V&V Point"
                     ]
-                    ==
-                    vv_filter
+                    == vv_filter
                 ]
             )
 
-        if (
-            completion_filter
-            ==
-            "Open only"
-        ):
+        if completion_filter == "Open only":
 
             filtered_requirements = (
                 filtered_requirements[
@@ -6990,8 +5273,7 @@ else:
 
         elif (
             completion_filter
-            ==
-            "Complete only"
+            == "Complete only"
         ):
 
             filtered_requirements = (
@@ -7002,25 +5284,17 @@ else:
                 ]
             )
 
-
     # --------------------------------------------------------
-    # CHECKLIST + V&V PROGRESS
+    # REQUIREMENT CHECKLIST
     # --------------------------------------------------------
 
-    checklist_col, vv_progress_col = (
-        st.columns(
-            [
-                1.65,
-                1,
-            ]
-        )
+    checklist_col, vv_col = (
+        st.columns([1.7, 1])
     )
 
     with checklist_col:
 
-        with st.container(
-            border=True
-        ):
+        with st.container(border=True):
 
             st.subheader(
                 "Requirements Checklist"
@@ -7039,23 +5313,12 @@ else:
 
                 for _, row in (
                     filtered_requirements
-                    .reset_index(
-                        drop=True
-                    )
+                    .reset_index(drop=True)
                     .iterrows()
                 ):
 
-                    reference = (
-                        row[
-                            "Reference"
-                        ]
-                    )
-
-                    source = (
-                        row[
-                            "Source"
-                        ]
-                    )
+                    reference = row["Reference"]
+                    source = row["Source"]
 
                     key_prefix = (
                         f"{dashboard_project}_"
@@ -7063,11 +5326,13 @@ else:
                         f"{reference}"
                     )
 
+                    expander_title = (
+                        f"{reference} — "
+                        f"{row['Requirement']}"
+                    )
+
                     with st.expander(
-                        (
-                            f"{reference} — "
-                            f"{row['Requirement']}"
-                        ),
+                        expander_title,
                         expanded=False,
                     ):
 
@@ -7084,13 +5349,11 @@ else:
                                 )
                             )
 
-                        detail1, detail2 = (
-                            st.columns(
-                                2
-                            )
+                        details_col1, details_col2 = (
+                            st.columns(2)
                         )
 
-                        with detail1:
+                        with details_col1:
 
                             st.caption(
                                 (
@@ -7099,7 +5362,7 @@ else:
                                 )
                             )
 
-                        with detail2:
+                        with details_col2:
 
                             st.caption(
                                 (
@@ -7108,30 +5371,34 @@ else:
                                 )
                             )
 
-                        complete_value = st.checkbox(
-                            "Requirement met",
-                            value=bool(
-                                row[
-                                    "Complete"
-                                ]
-                            ),
-                            key=(
-                                f"complete_"
-                                f"{key_prefix}"
-                            ),
+                        complete_value = (
+                            st.checkbox(
+                                "Requirement met",
+                                value=bool(
+                                    row[
+                                        "Complete"
+                                    ]
+                                ),
+                                key=(
+                                    f"complete_"
+                                    f"{key_prefix}"
+                                ),
+                            )
                         )
 
-                        comment_value = st.text_input(
-                            "Evidence / comment",
-                            value=safe_text(
-                                row[
-                                    "Evidence / Comment"
-                                ]
-                            ),
-                            key=(
-                                f"comment_"
-                                f"{key_prefix}"
-                            ),
+                        comment_value = (
+                            st.text_input(
+                                "Evidence / comment",
+                                value=safe_text(
+                                    row[
+                                        "Evidence / Comment"
+                                    ]
+                                ),
+                                key=(
+                                    f"comment_"
+                                    f"{key_prefix}"
+                                ),
+                            )
                         )
 
                         if st.button(
@@ -7164,15 +5431,16 @@ else:
 
                             st.rerun()
 
+    # --------------------------------------------------------
+    # V&V PROGRESS
+    # --------------------------------------------------------
 
-    with vv_progress_col:
+    with vv_col:
 
-        with st.container(
-            border=True
-        ):
+        with st.container(border=True):
 
             st.subheader(
-                "V&V Progress by Point"
+                "V&V Progress"
             )
 
             if combined_requirements.empty:
@@ -7185,9 +5453,7 @@ else:
 
                 grouped = (
                     combined_requirements
-                    .groupby(
-                        "V&V Point"
-                    )
+                    .groupby("V&V Point")
                     .agg(
                         Requirements=(
                             "Reference",
@@ -7205,23 +5471,17 @@ else:
                     grouped[
                         "Requirements"
                     ]
-                    -
-                    grouped[
-                        "Met"
-                    ]
+                    - grouped["Met"]
                 )
 
                 grouped["Completion"] = (
                     (
-                        grouped[
-                            "Met"
-                        ]
+                        grouped["Met"]
                         /
                         grouped[
                             "Requirements"
                         ]
-                        *
-                        100
+                        * 100
                     )
                     .round()
                     .astype(int)
@@ -7229,9 +5489,14 @@ else:
 
                 for _, row in grouped.iterrows():
 
+                    point_name = (
+                        row["V&V Point"]
+                        or "Unassigned"
+                    )
+
                     st.markdown(
                         (
-                            f"**{row['V&V Point']}** "
+                            f"**{point_name}** "
                             f"— "
                             f"{int(row['Completion'])}%"
                         )
@@ -7239,12 +5504,9 @@ else:
 
                     st.progress(
                         int(
-                            row[
-                                "Completion"
-                            ]
+                            row["Completion"]
                         )
-                        /
-                        100
+                        / 100
                     )
 
                     st.caption(
@@ -7254,25 +5516,17 @@ else:
                         )
                     )
 
-
     # --------------------------------------------------------
-    # DELIVERABLES + COMPLETION
+    # ENGINEERING DELIVERABLES / OVERALL
     # --------------------------------------------------------
 
-    deliverable_col, overall_col = (
-        st.columns(
-            [
-                1.3,
-                1,
-            ]
-        )
+    deliverables_col, overall_col = (
+        st.columns([1.3, 1])
     )
 
-    with deliverable_col:
+    with deliverables_col:
 
-        with st.container(
-            border=True
-        ):
+        with st.container(border=True):
 
             st.subheader(
                 "Engineering Deliverables"
@@ -7302,14 +5556,9 @@ else:
                 )
 
                 if updated_value:
-
                     completed_deliverables += 1
 
-                if (
-                    updated_value
-                    !=
-                    stored_value
-                ):
+                if updated_value != stored_value:
 
                     save_deliverable_status(
                         project_name=
@@ -7327,15 +5576,12 @@ else:
                     len(
                         ENGINEERING_DELIVERABLES
                     )
-                    *
-                    100
+                    * 100
                 )
             )
 
             st.progress(
-                deliverable_percentage
-                /
-                100
+                deliverable_percentage / 100
             )
 
             st.caption(
@@ -7346,12 +5592,9 @@ else:
                 )
             )
 
-
     with overall_col:
 
-        with st.container(
-            border=True
-        ):
+        with st.container(border=True):
 
             st.subheader(
                 "Requirement Completion"
@@ -7359,8 +5602,13 @@ else:
 
             st.markdown(
                 f"""
-                <div class="completion-ring-wrap">
-
+                <div style="
+                    min-height:290px;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    flex-direction:column;
+                ">
                     <div style="
                         width:190px;
                         height:190px;
@@ -7369,50 +5617,43 @@ else:
                         align-items:center;
                         justify-content:center;
                         flex-direction:column;
-
                         background:
                             radial-gradient(
                                 circle,
-                                #ffffff 55%,
+                                #0b1526 55%,
                                 transparent 57%
                             ),
                             conic-gradient(
-                                #f47b20 0% {completion_percentage}%,
-                                #e8edf3 {completion_percentage}% 100%
+                                #ff9a35 0% {completion_percentage}%,
+                                #1c2a3d {completion_percentage}% 100%
                             );
-
                         box-shadow:
-                            0 8px 28px
-                            rgba(12,45,82,0.09);
+                            0 0 34px
+                            rgba(255,154,67,0.18);
                     ">
-
                         <div style="
-                            color:#071a35;
+                            color:white;
                             font-size:2.7rem;
                             font-weight:800;
                         ">
                             {completion_percentage}%
                         </div>
-
                         <div style="
-                            color:#66758b;
-                            font-weight:600;
+                            color:#c9b18c;
                         ">
-                            Verified
+                            Complete
                         </div>
-
                     </div>
 
                     <div style="
                         margin-top:1.2rem;
-                        color:#66758b;
+                        color:#9eacc7;
                     ">
                         {completed_requirements} met
                         &nbsp;·&nbsp;
-                        {open_requirements} outstanding
+                        {open_requirements} open
                     </div>
-
                 </div>
                 """,
                 unsafe_allow_html=True,
-            ) 
+            )
