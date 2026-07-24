@@ -5600,60 +5600,28 @@ else:
                 "Requirement Completion"
             )
 
-            st.markdown(
-                f"""
-                <div style="
-                    min-height:290px;
-                    display:flex;
-                    align-items:center;
-                    justify-content:center;
-                    flex-direction:column;
-                ">
-                    <div style="
-                        width:190px;
-                        height:190px;
-                        border-radius:50%;
-                        display:flex;
-                        align-items:center;
-                        justify-content:center;
-                        flex-direction:column;
-                        background:
-                            radial-gradient(
-                                circle,
-                                #0b1526 55%,
-                                transparent 57%
-                            ),
-                            conic-gradient(
-                                #ff9a35 0% {completion_percentage}%,
-                                #1c2a3d {completion_percentage}% 100%
-                            );
-                        box-shadow:
-                            0 0 34px
-                            rgba(255,154,67,0.18);
-                    ">
-                        <div style="
-                            color:white;
-                            font-size:2.7rem;
-                            font-weight:800;
-                        ">
-                            {completion_percentage}%
-                        </div>
-                        <div style="
-                            color:#c9b18c;
-                        ">
-                            Complete
-                        </div>
-                    </div>
+            completion_html = (
+                '<div style="min-height:290px;display:flex;align-items:center;'
+                'justify-content:center;flex-direction:column;">'
+                '<div style="width:190px;height:190px;border-radius:50%;'
+                'display:flex;align-items:center;justify-content:center;'
+                'flex-direction:column;'
+                'background:radial-gradient(circle,#0b1526 55%,transparent 57%),'
+                f'conic-gradient(#ff9a35 0% {completion_percentage}%,'
+                f'#1c2a3d {completion_percentage}% 100%);'
+                'box-shadow:0 0 34px rgba(255,154,67,0.18);">'
+                '<div style="color:white;font-size:2.7rem;font-weight:800;">'
+                f'{completion_percentage}%'
+                '</div>'
+                '<div style="color:#c9b18c;">Complete</div>'
+                '</div>'
+                '<div style="margin-top:1.2rem;color:#9eacc7;">'
+                f'{completed_requirements} met &nbsp;·&nbsp; {open_requirements} open'
+                '</div>'
+                '</div>'
+            )
 
-                    <div style="
-                        margin-top:1.2rem;
-                        color:#9eacc7;
-                    ">
-                        {completed_requirements} met
-                        &nbsp;·&nbsp;
-                        {open_requirements} open
-                    </div>
-                </div>
-                """,
+            st.markdown(
+                completion_html,
                 unsafe_allow_html=True,
-            )   
+            )    
