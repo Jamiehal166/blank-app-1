@@ -1492,6 +1492,108 @@ div[data-testid="stProgress"] > div > div {
     color: #0b2547 !important;
 }
 
+
+/* ==========================================================
+   LAYOUT POLISH / STREAMLIT OVERRIDES
+========================================================== */
+
+/* Make bordered sections read clearly as separate cards */
+.stApp div[data-testid="stVerticalBlockBorderWrapper"] {
+    background: #ffffff !important;
+    border: 1px solid #e3e8ef !important;
+    border-radius: 18px !important;
+    box-shadow: 0 8px 26px rgba(20, 39, 68, 0.07) !important;
+}
+
+/* Compact the large vertical gaps Streamlit can add inside cards */
+.stApp div[data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stVerticalBlock"] {
+    gap: 0.85rem !important;
+}
+
+/* Dividers should separate subsections without creating large blank bands */
+.stApp div[data-testid="stDivider"] {
+    margin: 0.2rem 0 0.35rem 0 !important;
+    padding: 0 !important;
+}
+
+.stApp div[data-testid="stDivider"] hr {
+    margin: 0 !important;
+    border-color: #edf0f4 !important;
+}
+
+/* Selectbox: force the complete control, including arrow segment, light */
+.stApp div[data-testid="stSelectbox"] div[data-baseweb="select"] > div {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    border: 1px solid #dfe4ea !important;
+    border-radius: 10px !important;
+    overflow: hidden !important;
+}
+
+.stApp div[data-testid="stSelectbox"] div[data-baseweb="select"] > div > div {
+    background: transparent !important;
+    background-color: transparent !important;
+}
+
+.stApp div[data-testid="stSelectbox"] div[data-baseweb="select"] > div > div:last-child {
+    background: #f5f7fa !important;
+    background-color: #f5f7fa !important;
+    border-left: 1px solid #e1e6ec !important;
+    min-width: 42px !important;
+}
+
+.stApp div[data-testid="stSelectbox"] svg {
+    color: #0b2547 !important;
+    fill: #0b2547 !important;
+}
+
+/* Number inputs: soften stepper controls and remove dark theme remnants */
+.stApp div[data-testid="stNumberInput"] div[data-baseweb="input"] {
+    background: #ffffff !important;
+    border: 1px solid #dfe4ea !important;
+    border-radius: 10px !important;
+    overflow: hidden !important;
+}
+
+.stApp div[data-testid="stNumberInput"] button {
+    background: #f5f7fa !important;
+    background-color: #f5f7fa !important;
+    color: #0b2547 !important;
+    border: 0 !important;
+    border-left: 1px solid #e1e6ec !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
+
+.stApp div[data-testid="stNumberInput"] button:hover {
+    background: #fff0e5 !important;
+    color: #f47b20 !important;
+}
+
+.stApp div[data-testid="stNumberInput"] button svg {
+    color: #0b2547 !important;
+    fill: #0b2547 !important;
+}
+
+/* Give form sections a little breathing room, but not huge blank areas */
+.stApp .section-heading {
+    margin-top: 0.05rem !important;
+    margin-bottom: 0.45rem !important;
+}
+
+.stApp .subsection-title {
+    margin-top: 0.15rem !important;
+    margin-bottom: 0.25rem !important;
+}
+
+/* Keep labels/input groups compact */
+.stApp div[data-testid="stTextInput"],
+.stApp div[data-testid="stNumberInput"],
+.stApp div[data-testid="stSelectbox"],
+.stApp div[data-testid="stTextArea"] {
+    margin-bottom: 0.15rem !important;
+}
+
 /* Keep dropdown popup light */
 div[role="listbox"],
 div[role="option"] {
@@ -7313,4 +7415,4 @@ else:
                 </div>
                 """,
                 unsafe_allow_html=True,
-            )
+            ) 
