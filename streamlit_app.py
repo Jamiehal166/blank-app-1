@@ -769,57 +769,169 @@ label {
 
 
 /* ==========================================================
-   FORM FIELDS
+   FORM FIELDS — FORCE LIGHT THEME
 ========================================================== */
 
-div[data-baseweb="input"] > div,
-div[data-baseweb="select"] > div,
-div[data-baseweb="textarea"] > div {
-    background:
-        #ffffff !important;
-
-    border:
-        1px solid
-        #dfe4ea !important;
-
-    border-radius:
-        10px !important;
-
-    box-shadow:
-        inset 0 1px 2px
-        rgba(12, 40, 70, 0.02);
+/* Standard text inputs + number inputs */
+div[data-testid="stTextInput"] div[data-baseweb="input"],
+div[data-testid="stNumberInput"] div[data-baseweb="input"],
+div[data-testid="stTextInput"] div[data-baseweb="base-input"],
+div[data-testid="stNumberInput"] div[data-baseweb="base-input"] {
+    background-color: #ffffff !important;
+    color: #0b2547 !important;
+    border-radius: 10px !important;
 }
 
 
-div[data-baseweb="input"] > div:focus-within,
-div[data-baseweb="select"] > div:focus-within,
-div[data-baseweb="textarea"] > div:focus-within {
-    border-color:
-        #ff9a4d !important;
-
-    box-shadow:
-        0 0 0 3px
-        rgba(255, 138, 42, 0.10);
+/* Actual input element */
+div[data-testid="stTextInput"] input,
+div[data-testid="stNumberInput"] input {
+    background-color: #ffffff !important;
+    color: #0b2547 !important;
+    -webkit-text-fill-color: #0b2547 !important;
 }
 
 
-input,
-textarea {
-    color:
-        var(--navy-950) !important;
+/* Number input +/- button area */
+div[data-testid="stNumberInput"] button {
+    background-color: #f7f8fa !important;
+    color: #0b2547 !important;
+    border-color: #dfe4ea !important;
 }
 
 
+div[data-testid="stNumberInput"] button:hover {
+    background-color: #fff0e5 !important;
+    color: #f47b20 !important;
+}
+
+
+/* Text areas */
+div[data-testid="stTextArea"] textarea {
+    background-color: #ffffff !important;
+    color: #0b2547 !important;
+    -webkit-text-fill-color: #0b2547 !important;
+    border: 1px solid #dfe4ea !important;
+    border-radius: 10px !important;
+}
+
+
+/* Select boxes / dropdown field */
+div[data-testid="stSelectbox"] div[data-baseweb="select"] > div {
+    background-color: #ffffff !important;
+    color: #0b2547 !important;
+    border: 1px solid #dfe4ea !important;
+    border-radius: 10px !important;
+}
+
+
+/* Text shown inside select boxes */
+div[data-testid="stSelectbox"] div[data-baseweb="select"] span,
+div[data-testid="stSelectbox"] div[data-baseweb="select"] div {
+    color: #0b2547 !important;
+}
+
+
+/* Dropdown arrow */
+div[data-testid="stSelectbox"] svg {
+    fill: #0b2547 !important;
+    color: #0b2547 !important;
+}
+
+
+/* Placeholder text */
 input::placeholder,
 textarea::placeholder {
-    color:
-        #9aa7b7 !important;
+    color: #9aa7b7 !important;
+    -webkit-text-fill-color: #9aa7b7 !important;
+    opacity: 1 !important;
 }
 
 
-div[data-baseweb="select"] span {
-    color:
-        var(--navy-950) !important;
+/* Disabled inputs — useful for Project Reference */
+input:disabled,
+textarea:disabled {
+    background-color: #f1f4f7 !important;
+    color: #66758b !important;
+    -webkit-text-fill-color: #66758b !important;
+    opacity: 1 !important;
+}
+
+
+/* General BaseWeb fallback — catches Streamlit variations */
+div[data-baseweb="input"],
+div[data-baseweb="input"] > div,
+div[data-baseweb="base-input"],
+div[data-baseweb="select"] > div,
+div[data-baseweb="textarea"],
+div[data-baseweb="textarea"] > div {
+    background-color: #ffffff !important;
+    color: #0b2547 !important;
+}
+
+
+/* Focus state — soft orange */
+div[data-testid="stTextInput"] div[data-baseweb="input"]:focus-within,
+div[data-testid="stNumberInput"] div[data-baseweb="input"]:focus-within,
+div[data-testid="stSelectbox"] div[data-baseweb="select"] > div:focus-within,
+div[data-testid="stTextArea"] textarea:focus {
+    border-color: #ff9a4d !important;
+    box-shadow:
+        0 0 0 3px
+        rgba(255, 138, 42, 0.12) !important;
+}
+
+
+/* Field labels */
+div[data-testid="stWidgetLabel"] p,
+div[data-testid="stTextInput"] label p,
+div[data-testid="stNumberInput"] label p,
+div[data-testid="stSelectbox"] label p,
+div[data-testid="stTextArea"] label p {
+    color: #0b2547 !important;
+    font-weight: 600 !important;
+}
+
+
+/* Dropdown menu when opened */
+div[data-baseweb="popover"] {
+    background-color: #ffffff !important;
+}
+
+
+div[data-baseweb="popover"] ul {
+    background-color: #ffffff !important;
+}
+
+
+div[data-baseweb="popover"] li {
+    background-color: #ffffff !important;
+    color: #0b2547 !important;
+}
+
+
+div[data-baseweb="popover"] li:hover {
+    background-color: #fff0e5 !important;
+    color: #0b2547 !important;
+}
+
+
+/* Selected dropdown option */
+div[data-baseweb="popover"] li[aria-selected="true"] {
+    background-color: #ffe0c8 !important;
+    color: #0b2547 !important;
+}
+
+
+/* Autofill */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+    -webkit-text-fill-color: #0b2547 !important;
+    -webkit-box-shadow:
+        0 0 0 1000px #ffffff inset !important;
+    box-shadow:
+        0 0 0 1000px #ffffff inset !important;
 }
 
 
@@ -1339,6 +1451,58 @@ div[data-testid="stProgress"] > div > div {
 
     flex-direction:
         column;
+}
+
+
+/* ==========================================================
+   FINAL LIGHT INPUT OVERRIDE
+   Keep this at the END of the CSS
+========================================================== */
+
+.stApp input,
+.stApp textarea {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #0b2547 !important;
+    -webkit-text-fill-color: #0b2547 !important;
+}
+
+.stApp div[data-baseweb="input"],
+.stApp div[data-baseweb="input"] > div,
+.stApp div[data-baseweb="base-input"],
+.stApp div[data-baseweb="select"] > div,
+.stApp div[data-baseweb="textarea"],
+.stApp div[data-baseweb="textarea"] > div {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #0b2547 !important;
+}
+
+.stApp input:disabled,
+.stApp textarea:disabled {
+    background: #f1f4f7 !important;
+    background-color: #f1f4f7 !important;
+    color: #66758b !important;
+    -webkit-text-fill-color: #66758b !important;
+}
+
+/* BaseWeb nested wrappers sometimes inherit Streamlit's dark theme */
+.stApp div[data-baseweb="input"] *,
+.stApp div[data-baseweb="select"] > div * {
+    color: #0b2547 !important;
+}
+
+/* Keep dropdown popup light */
+div[role="listbox"],
+div[role="option"] {
+    background-color: #ffffff !important;
+    color: #0b2547 !important;
+}
+
+div[role="option"]:hover,
+div[role="option"][aria-selected="true"] {
+    background-color: #fff0e5 !important;
+    color: #0b2547 !important;
 }
 
 </style>
